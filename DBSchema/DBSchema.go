@@ -126,7 +126,7 @@ func TableMetas(tableName string) []models.TableMeta {
 			dataType := column.DataType
 
 			if column.DataType == "nvarchar" {
-				dataType = "varchar(255)"
+				dataType = "varchar"
 			} else if column.DataType == "ntext" {
 				dataType = "text"
 			}
@@ -171,7 +171,7 @@ func TableMetas(tableName string) []models.TableMeta {
 
 
 			if dataType == "varchar" {
-				dataType = "varchar(255)"
+				dataType = "varchar"
 			} else if dataType == "ntext" {
 				dataType = "text"
 			} else if dataType == "int8" {
