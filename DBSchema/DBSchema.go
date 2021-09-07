@@ -149,7 +149,7 @@ func TableMetas(tableName string) []models.TableMeta {
 
 		Enums := []models.PostgresEnum{}
 //
-		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid").Scan(&Enums)
+		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
 
 		rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT udt_name as DATA_TYPE, COLUMN_NAME, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database,  tableName)).Rows()
 
