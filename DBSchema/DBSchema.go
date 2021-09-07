@@ -147,7 +147,9 @@ func TableMetas(tableName string) []models.TableMeta {
 		rowPK.Scan(&pkColumn)
 		//	fmt.Println(fmt.Sprintf("SELECT k.column_name FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", tableName, config.Config.Database.Database, "'%_pkey'"))
 
-
+		Enums := []models.PostgresEnum{}
+//
+		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid").Scan(&Enums)
 
 		rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT udt_name as DATA_TYPE, COLUMN_NAME, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database,  tableName)).Rows()
 
@@ -180,6 +182,12 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "int"
 			} else if dataType == "timestamptz" {
 				dataType = "timestamp"
+			}
+
+			for _, enum :=range Enums{
+				if(enum.Typname == dataType) {
+					dataType = "varchar"
+				}
 			}
 
 			table_metas = append(table_metas, models.TableMeta{
