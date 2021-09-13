@@ -603,7 +603,7 @@ func sqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string {
 			return sqlNullFloat
 		}
 		return golangFloat64
-	case "float", "real":
+	case "float", "float8", "float4", "real":
 		if nullable {
 			if gureguTypes {
 				return gureguNullFloat
@@ -660,7 +660,7 @@ func sqlTypeToGraphyType(mysqlType string, nullable bool, gureguTypes bool) stri
 			return gqlNullFloat
 		}
 		return gqlFloat
-	case "float", "real":
+	case "float", "float8", "float4", "real":
 		if nullable {
 			if gureguTypes {
 				return gqlNullFloat

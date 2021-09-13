@@ -172,17 +172,21 @@ func TableMetas(tableName string) []models.TableMeta {
 			}
 
 
-			if dataType == "varchar" {
-				dataType = "varchar"
-			} else if dataType == "ntext" {
-				dataType = "text"
-			} else if dataType == "int8" {
-				dataType = "int"
-			} else if dataType == "int4" {
-				dataType = "int"
-			} else if dataType == "timestamptz" {
-				dataType = "timestamp"
-			}
+			//if dataType == "varchar" {
+			//	dataType = "varchar"
+			//} else if dataType == "ntext" {
+			//	dataType = "text"
+			//} else if dataType == "int8" {
+			//	dataType = "int"
+			//} else if dataType == "int4" {
+			//	dataType = "int"
+			//} else if dataType == "float8" {
+			//	dataType = "float"
+			//} else if dataType == "float4" {
+			//	dataType = "float"
+			//} else if dataType == "timestamptz" {
+			//	dataType = "timestamp"
+			//}
 
 			for _, enum :=range Enums{
 				if(enum.Typname == dataType) {
