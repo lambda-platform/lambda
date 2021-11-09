@@ -65,7 +65,7 @@ func Tables() map[string][]string {
 
 		return result
 	} else if config.Config.Database.Connection == "postgres"  {
-		rows, _ := DB_.Query("SELECT tablename, concat('TABLE') as tabletype FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' union SELECT table_name as tablename, concat('VIEW') as tabletype FROM information_schema.views where table_schema not in ('information_schema', 'pg_catalog') ORDER BY TABLE_NAME")
+		rows, _ := DB_.Query("SELECT tablename, concat('TABLE') as tabletype FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' union SELECT table_name as tablename, concat('VIEW') as tabletype FROM information_schema.views where table_schema not in ('information_schema', 'pg_catalog') ORDER BY tablename")
 		for rows.Next() {
 			var tableName, tableType string
 			rows.Scan(&tableName, &tableType)
@@ -82,7 +82,7 @@ func Tables() map[string][]string {
 
 		return result
 	} else {
-		rows, _ := DB_.Query("SHOW FULL TABLES ORDER BY TABLE_NAME")
+		rows, _ := DB_.Query("SHOW FULL TABLES")
 		for rows.Next() {
 			var tableName, tableType string
 			rows.Scan(&tableName, &tableType)
