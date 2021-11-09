@@ -41,6 +41,9 @@ type lambdaConfig struct {
 	DataFormCustomElements []struct {
 		Element string `json:"element"`
 	} `json:"data_form_custom_elements"`
+	DataGridCustomElements []struct {
+		Element string `json:"element"`
+	} `json:"data_grid_custom_elements"`
 	PasswordResetTimeOut int `json:"password_reset_time_out"`
 	StaticWords map[string]interface{} `json:"static_words"`
 	Notify struct {
