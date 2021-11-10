@@ -81,7 +81,16 @@ type LambdaConfigFile struct {
 	HasLanguage bool   `json:"has_language"`
 	WithCrudLog bool   `json:"withCrudLog"`
 	KrudPublic bool   `json:"krud_public"`
-
+	ControlPanel struct {
+		LogoLight   string `json:"logoLight"`
+		LogoDark    string `json:"logoDark"`
+		BrandBtnURL string `json:"brandBtnUrl"`
+		ThemeMode string `json:"themeMode"`
+		PrimaryColor string `json:"primaryColor"`
+		ThemeColors []string `json:"themeColors"`
+		ExtraStyles []string `json:"extraStyles"`
+		ExtraScripts []string `json:"extraScripts"`
+	} `json:"controlPanel"`
 	Languages   []struct {
 		Label string `json:"label"`
 		Code  string `json:"code"`
@@ -95,6 +104,9 @@ type LambdaConfigFile struct {
 	DataFormCustomElements []struct {
 		Element string `json:"element"`
 	} `json:"data_form_custom_elements"`
+	DataGridCustomElements []struct {
+		Element string `json:"element"`
+	} `json:"data_grid_custom_elements"`
 	PasswordResetTimeOut int `json:"password_reset_time_out"`
 	StaticWords map[string]interface{} `json:"static_words"`
 	Notify struct {
