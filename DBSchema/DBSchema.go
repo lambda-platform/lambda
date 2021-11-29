@@ -145,6 +145,11 @@ func TableMetas(tableName string) []models.TableMeta {
 		pkColumn := ""
 		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", tableName, config.Config.Database.Database, "'%_pkey'")).Row()
 		rowPK.Scan(&pkColumn)
+
+		if(pkColumn == ""){
+			rowPK = DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'", tableName)).Row()
+			rowPK.Scan(&pkColumn)
+		}
 		//	fmt.Println(fmt.Sprintf("SELECT k.column_name FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", tableName, config.Config.Database.Database, "'%_pkey'"))
 
 		Enums := []models.PostgresEnum{}
