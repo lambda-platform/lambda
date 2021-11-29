@@ -207,12 +207,14 @@ func TableMetas(tableName string) []models.TableMeta {
 
 
 	} else {
-		columns, db_error := DB_.Query("show fields from " + tableName)
+		columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName+"' AND table_schema = '" + config.Config.Database.Database+"' ORDER BY ORDINAL_POSITION"
+
+		columns, db_error := DB_.Query(columnDataTypeQuery)
 
 		if db_error == nil {
 			for columns.Next() {
-				var Field, Type, Null, Key, Default, Extra string
-				columns.Scan(&Field, &Type, &Null, &Key, &Default, &Extra)
+				var Field, Type, Null, Key, Extra string
+				columns.Scan(&Field, &Key, &Type, &Null)
 
 				table_metas = append(table_metas, models.TableMeta{
 					Model:  Field,
