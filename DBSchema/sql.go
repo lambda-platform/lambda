@@ -553,7 +553,7 @@ func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, json
 // sqlTypeToGoType converts the mysql types to go compatible sql.Nullable (https://golang.org/pkg/database/sql/) types
 func sqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string {
 	switch mysqlType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4":
+	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "year":
 		if nullable {
 			if gureguTypes {
 				return gureguNullInt
@@ -618,7 +618,7 @@ func sqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string {
 }
 func sqlTypeToGraphyType(mysqlType string, nullable bool, gureguTypes bool) string {
 	switch mysqlType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4":
+	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "year":
 		if nullable {
 			if gureguTypes {
 				return gqlNullInt
