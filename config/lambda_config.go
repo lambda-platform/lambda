@@ -4,6 +4,7 @@ package config
 type lambdaConfig struct {
 	SchemaLoadMode       string `json:"schema_load_mode"`
 	ProjectKey       string `json:"project_key"`
+	LambdaMainServicePath   string `json:"lambda_main_service_path"`
 	Theme       string `json:"theme"`
 	Domain      string `json:"domain"`
 	Title       string `json:"title"`

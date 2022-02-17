@@ -1,11 +1,11 @@
 package DB
 
 import (
-	"fmt"
-	"strings"
-	"time"
 	"database/sql"
 	"database/sql/driver"
+	"strings"
+	"time"
+	"fmt"
 )
 
 // CustomTime provides an example of how to declare a new time Type with a custom formatter.
@@ -57,4 +57,12 @@ func (ct Date) MarshalJSON() ([]byte, error) {
 func (ct *Date) String() string {
 	t := time.Time(*ct)
 	return fmt.Sprintf("%q", t.Format(CtLayout))
+	//return t.Format(CtLayout)
+}
+
+// String returns the time in the custom format
+func (ct *Date) StringValua() string {
+	t := time.Time(*ct)
+	//return fmt.Sprintf("%q", t.Format(CtLayout))
+	return t.Format(CtLayout)
 }
