@@ -33,8 +33,14 @@ func (date *Date) GobDecode(b []byte) error {
 // UnmarshalJSON Parses the json string in the custom format
 func (ct *Date) UnmarshalJSON(b []byte) (err error) {
 	s := strings.Trim(string(b), `"`)
-	nt, err := time.Parse(CtLayout, s)
-	*ct = Date(nt)
+	if s != "null"{
+		nt, err := time.Parse(CtLayout, s)
+		if err != nil{
+			return err
+		}
+		*ct = Date(nt)
+	}
+
 	return
 }
 func (date *Date) Scan(value interface{}) (err error) {

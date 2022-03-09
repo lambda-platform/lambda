@@ -29,8 +29,8 @@ const (
 	//gureguNullTime   = "null.Time"
 	gureguNullTime   = "*time.Time"
 	golangTime       = "time.Time"
-	date   = "*DB.Date"
-	dateNull       = "DB.Date"
+	date   = "DB.Date"
+	dateNull       = "*DB.Date"
 )
 const (
 	gqlNullInt   = "Int"
@@ -191,21 +191,20 @@ func GenerateGrapqlOrder(columnTypes map[string]map[string]string, tableName str
 
 	return []byte(src), nil
 }
-func GenerateWithImports(otherPackage string, columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
+func GenerateWithImports(otherPackage string, columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, virtualColums string) ([]byte, error) {
 	var dbTypes string
 
 	dbTypes, _, _ = generateMysqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
 
-
 	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \n"
-	src := fmt.Sprintf("package %s\n %s\n %s\n \ntype %s %s %s} %s",
+	src := fmt.Sprintf("package %s\n %s\n %s\n \ntype %s %s %s %s} %s",
 		pkgName,
 		otherPackage,
 		importTime,
 		structName,
 		dbTypes,
-		extraColumns,extraStucts)
+		extraColumns, virtualColums, extraStucts)
 	if gormAnnotation == true {
 		tableNameFunc := "//  TableName sets the insert table name for this struct type\n " +
 			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +

@@ -114,4 +114,6 @@ type DBSCHEMA struct {
 	TableList []string               `json:"tableList"`
 	ViewList  []string               `json:"viewList"`
 	TableMeta map[string][]TableMeta `json:"tableMeta"`
+	MicroserviceID int `json:"microservice_id"`
+	Microservice string `json:"microservice"`
 }

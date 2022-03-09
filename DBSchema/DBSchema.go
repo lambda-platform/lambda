@@ -28,6 +28,8 @@ func GetDBSchema() models.DBSCHEMA {
 		tables["tables"],
 		tables["views"],
 		table_metas,
+		0,
+		"",
 	}
 
 	file, _ := json.MarshalIndent(vb_schemas, "", " ")
@@ -156,7 +158,7 @@ func TableMetas(tableName string) []models.TableMeta {
 //
 		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
 
-		rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT udt_name as DATA_TYPE, COLUMN_NAME, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database,  tableName)).Rows()
+		rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT udt_name as DATA_TYPE, COLUMN_NAME, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database,  tableName)).Rows()
 
 		defer rows.Close()
 		for rows.Next() {
@@ -259,6 +261,8 @@ func GenerateSchemaForCloud() models.DBSCHEMA {
 		tables["tables"],
 		tables["views"],
 		table_metas,
+		0,
+		"",
 	}
 
 	file, _ := json.MarshalIndent(vb_schemas, "", " ")
@@ -297,7 +301,7 @@ func TablesForCloud() map[string][]string {
 
 		return result
 	} else if config.Config.Database.Connection == "postgres"  {
-		rows, _ := DB_.Query("SELECT tablename, concat('TABLE') as tabletype FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' union SELECT table_name as tablename, concat('VIEW') as tabletype FROM information_schema.views where table_schema not in ('information_schema', 'pg_catalog')")
+		rows, _ := DB_.Query("SELECT tablename, concat('TABLE') as tabletype FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' union SELECT table_name as tablename, concat('VIEW') as tabletype FROM information_schema.views where table_schema not in ('information_schema', 'pg_catalog')  ORDER BY tablename")
 		for rows.Next() {
 			var tableName, tableType string
 			rows.Scan(&tableName, &tableType)

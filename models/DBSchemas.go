@@ -1,13 +1,15 @@
 package models
 
+import "github.com/lambda-platform/datagrid"
 type Formula struct {
-	Targets []struct {
-		Field string `json:"field"`
-		Prop  string `json:"prop"`
-	} `json:"targets"`
+	Targets  []Target `json:"targets"`
 	Template string `json:"template"`
 	Form     string `json:"form"`
 	Model    string `json:"model"`
+}
+type Target struct {
+		Field string `json:"field"`
+		Prop  string `json:"prop"`
 }
 
 type FormItem struct {
@@ -135,6 +137,7 @@ type SCHEMAGRID struct {
 	Paging         int      `json:"paging"`
 	Template       int      `json:"template"`
 	Schema         []struct {
+		VirtualColumn       bool `json:"virtualColumn"`
 		Model       string `json:"model"`
 		Title       string `json:"title"`
 		DbType      string `json:"dbType"`
@@ -151,17 +154,7 @@ type SCHEMAGRID struct {
 		PinPosition string `json:"pinPosition"`
 		Link        string `json:"link"`
 		LinkTarget  string `json:"linkTarget"`
-		Relation    struct {
-			Table              interface{}   `json:"table"`
-			Key                interface{}   `json:"key"`
-			Fields             []interface{} `json:"fields"`
-			SortField          interface{}   `json:"sortField"`
-			SortOrder          string        `json:"sortOrder"`
-			Multiple           bool          `json:"multiple"`
-			Filter             string        `json:"filter"`
-			ParentFieldOfForm  string        `json:"parentFieldOfForm"`
-			ParentFieldOfTable string        `json:"parentFieldOfTable"`
-		} `json:"relation"`
+		Relation   datagrid.Relation `json:"relation"`
 		Filterable bool `json:"filterable"`
 		Filter     struct {
 			Type             string      `json:"type"`
@@ -222,4 +215,6 @@ type SCHEMAGRID struct {
 	IsExcel              bool        `json:"isExcel"`
 	IsRefresh            bool        `json:"isRefresh"`
 	IsNumbered           bool        `json:"isNumbered"`
+	Microservices           []datagrid.Microservice        `json:"microservices"`
 }
+

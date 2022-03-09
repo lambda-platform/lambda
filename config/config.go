@@ -25,6 +25,10 @@ func init() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
+		err = envconfig.Process("grpc", &Config.GRPC)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 		err = envconfig.Process("db", &Config.Database)
 		if err != nil {
 			log.Fatal(err.Error())
@@ -56,12 +60,16 @@ func init() {
 		}
 		jsonParser := json.NewDecoder(configFile)
 		jsonParser.Decode(&LambdaConfig)
+		if LambdaConfig.ModuleName == "" {
+			LambdaConfig.ModuleName = "lambda"
+		}
 
 	})
 }
 
 type config struct {
 	App          app
+	GRPC          grpc
 	Database     database
 	SysAdmin   SysAdmin
 	JWT          JWT
@@ -84,6 +92,9 @@ type app struct {
 	Port string
 	Migrate string
 	Seed string
+}
+type grpc struct {
+	Port string
 }
 
 type JWT struct {

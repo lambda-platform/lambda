@@ -44,10 +44,11 @@ func init() {
 			if(config.Config.Database.Debug){
 				dbConnection.LogMode(true)
 			}
+
 			DB = dbConnection
 
 
-			gorm.DefaultCallback.Create().Remove("mssql:set_identity_insert")
+
 
 
 
@@ -76,4 +77,3 @@ func DBConnection() *sql.DB {
 
 	return DB_
 }
-

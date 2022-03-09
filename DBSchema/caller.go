@@ -48,7 +48,7 @@ func TableToStruct(table string, hiddenColumns []string, pkgName string, Subs []
 			subStchemas = subStchemas+"\n    "+strcase.ToCamel(sub)+" []*"+strcase.ToCamel(sub)+""
 		}
 
-		struc_, _ := GenerateWithImports("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, subStchemas, "")
+		struc_, _ := GenerateWithImports("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, subStchemas, "", "")
 
 
 		return string(struc_)
