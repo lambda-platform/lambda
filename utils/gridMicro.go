@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/lambda-platform/lambda/DBSchema"
+	"github.com/lambda-platform/lambda/models"
 	pb "github.com/lambda-platform/lambda/grpc/proto"
 )
 
@@ -16,7 +16,7 @@ func IndexOf(connectionValue int, grpcRows *pb.StringRows) (int) {
 	return -1
 }
 
-func IndexOfMicro(MicroserviceID int, microservices []DBSchema.Microservice) (int) {
+func IndexOfMicro(MicroserviceID int, microservices []models.Microservice) (int) {
 
 	for i, m := range microservices {
 		if MicroserviceID == m.ProjectID {
