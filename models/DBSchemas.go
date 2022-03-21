@@ -1,6 +1,5 @@
 package models
 
-import "github.com/lambda-platform/datagrid"
 type Formula struct {
 	Targets  []Target `json:"targets"`
 	Template string `json:"template"`
@@ -154,7 +153,7 @@ type SCHEMAGRID struct {
 		PinPosition string `json:"pinPosition"`
 		Link        string `json:"link"`
 		LinkTarget  string `json:"linkTarget"`
-		Relation   datagrid.Relation `json:"relation"`
+		Relation   GridRelation `json:"relation"`
 		Filterable bool `json:"filterable"`
 		Filter     struct {
 			Type             string      `json:"type"`
@@ -215,6 +214,6 @@ type SCHEMAGRID struct {
 	IsExcel              bool        `json:"isExcel"`
 	IsRefresh            bool        `json:"isRefresh"`
 	IsNumbered           bool        `json:"isNumbered"`
-	Microservices           []datagrid.Microservice        `json:"microservices"`
+	Microservices           []Microservice        `json:"microservices"`
 }
 
