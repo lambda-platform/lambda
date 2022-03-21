@@ -35,6 +35,7 @@ type lambdaConfig struct {
 		Code  string `json:"code"`
 	} `json:"languages"`
 	DefaultLanguage string `json:"default_language"`
+	AdminRoles   []int64
 	RoleRedirects   []struct {
 		RoleID int64    `json:"role_id"`
 		URL    string `json:"url"`

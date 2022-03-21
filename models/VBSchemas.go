@@ -16,16 +16,16 @@ type VBSchemaList struct {
 	ID        uint64       `gorm:"column:id;primary_key" json:"id"`
 	Name      string    `gorm:"column:name" json:"name"`
 	Type      string    `gorm:"column:type" json:"type"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
+	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 type VBSchema struct {
 	ID        uint64       `gorm:"column:id;primary_key" json:"id"`
 	Name      string    `gorm:"column:name" json:"name"`
 	Schema    string    `gorm:"column:schema;type:TEXT" json:"schema"` //type:LONGTEXT
 	Type      string    `gorm:"column:type" json:"type"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
+	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 func (v *VBSchema) TableName() string {
@@ -37,8 +37,8 @@ type ProjectVBSchema struct {
 	Name      string    `gorm:"column:name" json:"name"`
 	Schema    string    `gorm:"column:schema;type:TEXT" json:"schema"` //type:LONGTEXT
 	Type      string    `gorm:"column:type" json:"type"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
+	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 func (v *ProjectVBSchema) TableName() string {
@@ -54,8 +54,8 @@ type VBSchemaMSSQL struct {
 	Name      string    `gorm:"column:name" json:"name"`
 	Schema    string    `gorm:"column:schema;type:NTEXT" json:"schema"` //type:LONGTEXT
 	Type      string    `gorm:"column:type" json:"type"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
+	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 //  TableName sets the insert table name for this struct type
@@ -78,8 +78,8 @@ type VBSchemaAdmin struct {
 	Schema    string    `gorm:"column:schema;type:TEXT" json:"schema"`
 	Type      string    `gorm:"column:type" json:"type"`
 	Id      string    `gorm:"column:id" json:"id"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
+	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 //  TableName sets the insert table name for this struct type
@@ -93,8 +93,8 @@ type VBSchemaAdminMSSQL struct {
 	Schema    string    `gorm:"column:schema;type:NTEXT" json:"schema"`
 	Type      string    `gorm:"column:type" json:"type"`
 	Id      string    `gorm:"column:id" json:"id"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
+	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 //  TableName sets the insert table name for this struct type
