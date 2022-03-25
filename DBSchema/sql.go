@@ -634,7 +634,7 @@ func sqlTypeToGraphyType(mysqlType string, nullable bool, gureguTypes bool) stri
 			return gqlNullInt
 		}
 		return gqlInt
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext",  "tinytext", "geometry":
+	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext",  "tinytext", "geometry", "uuid":
 		if nullable {
 			if gureguTypes {
 				return gqlNullString
