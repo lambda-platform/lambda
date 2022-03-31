@@ -107,6 +107,7 @@ type SysAdmin struct {
 	Login string
 	Email string
 	Password string
+	UUID bool
 }
 
 type Mail struct {

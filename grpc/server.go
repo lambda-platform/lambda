@@ -11,6 +11,8 @@ func GetIntData(ctx context.Context, in *pb.TableOption) (*pb.IntRows, error) {
 
 	var rows *pb.IntRows = &pb.IntRows{}
 
+
+
 	DB.DB.Table(in.Table).Select(in.Key + " as key, "+in.Field + " as value").Where(in.Key+" IN (?)", in.Values).Find(&rows.Rows)
 
 
