@@ -6,6 +6,7 @@ type lambdaConfig struct {
 	ModuleName       string `json:"module_name"`
 	ProjectKey       string `json:"project_key"`
 	LambdaMainServicePath   string `json:"lambda_main_service_path"`
+	MicroserviceDev   bool `json:"microservice_dev"`
 	Theme       string `json:"theme"`
 	Domain      string `json:"domain"`
 	Title       string `json:"title"`

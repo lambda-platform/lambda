@@ -44,6 +44,7 @@ type FormItem struct {
 		Multiple bool        `json:"multiple"`
 	} `json:"gridSearch"`
 	IsFkey   bool `json:"isFkey"`
+	InfoUrl        string `json:"info_url"`
 	Relation struct {
 		Table              interface{}   `json:"table"`
 		Key                interface{}   `json:"key"`

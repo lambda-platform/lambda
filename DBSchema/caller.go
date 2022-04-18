@@ -111,7 +111,7 @@ func TableToGraphql(table string, hiddenColumns []string, Subs []string, isInput
 		DB_ = DB.DB.DB()
 
 		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
-		//fmt.Println(columnDataTypes)
+
 
 		if err != nil {
 			fmt.Println("Error in creating struct from json: " + err.Error())

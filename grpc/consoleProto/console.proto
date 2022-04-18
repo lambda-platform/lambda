@@ -1,0 +1,31 @@
+syntax = "proto3";
+package console;
+
+option go_package = "./;console";
+
+service Console {
+    rpc UploadDBSCHEMA (SchemaParams) returns (Response) {}
+    rpc LambdaSCHEMA (LambdaSchemaParams) returns (LambdaSchemaResponse) {}
+    rpc RoleData (LambdaSchemaParams) returns (LambdaSchemaResponse) {}
+
+}
+
+message LambdaSchemaParams {
+    string ProjectKey = 1;
+}
+message SchemaParams {
+    string ProjectKey = 1;
+    bytes DBSchema = 2;
+    bytes LambdaConfig = 3;
+}
+
+message Response {
+    bool status = 1;
+    string message = 2;
+}
+
+message LambdaSchemaResponse {
+    bool status = 1;
+    string message = 2;
+    bytes Data = 3;
+}

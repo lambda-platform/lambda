@@ -585,12 +585,12 @@ func sqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string {
 			return sqlNullString
 		}
 		return "string"
-	case "datetime", "time", "timestamp", "datetimeoffset", "timestamptz":
+	case "time", "timestamp", "datetimeoffset", "timestamptz":
 		if nullable && gureguTypes {
 			return gureguNullTime
 		}
 		return golangTime
-	case "date":
+	case "datetime", "date":
 		if nullable && gureguTypes {
 			return dateNull
 		}
@@ -642,12 +642,12 @@ func sqlTypeToGraphyType(mysqlType string, nullable bool, gureguTypes bool) stri
 			return gqlNullString
 		}
 		return gqlString
-	case "datetime", "time", "timestamp", "datetimeoffset", "timestamptz":
+	case "time", "timestamp", "datetimeoffset", "timestamptz":
 		if nullable && gureguTypes {
 			return gqlNullTime
 		}
 		return gqlTime
-	case "date":
+	case "datetime", "date":
 		if nullable && gureguTypes {
 			return dbNullDate
 		}

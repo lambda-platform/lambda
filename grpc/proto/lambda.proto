@@ -7,16 +7,31 @@ package lambda;
 option go_package = "./;proto";
 
 service Lambda {
-
     rpc GetIntData (TableOption) returns (IntRows) {}
     rpc GetStringData (TableOption) returns (StringRows) {}
+    rpc GetSchemaData (SchemaParams) returns (Response) {}
+    rpc GetRoleData (RoleParams) returns (Response) {}
+    rpc UploadMySCHEMA (RoleParams) returns (Response) {}
 }
 
+message RoleParams {
+    string id = 1;
+}
+message SchemaParams {
+    int32 id = 1;
+    string schema = 2;
+    string type = 3;
+
+}
 message TableOption {
     string table = 1;
     string key = 2;
     string field = 3;
     repeated int32 values = 4;
+}
+message Response {
+    bool status = 1;
+
 }
 
 message IntRows {
