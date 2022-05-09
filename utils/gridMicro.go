@@ -2,12 +2,29 @@ package utils
 
 import (
 	"github.com/lambda-platform/lambda/models"
+	"fmt"
+	"reflect"
 	pb "github.com/lambda-platform/lambda/grpc/proto"
 )
 
 
-func IndexOf(connectionValue int, grpcRows *pb.StringRows) (int) {
-	keyValue := int32(connectionValue)
+func IndexOf(connectionValue interface{}, grpcRows *pb.StringRows) (int) {
+	keyValue := ""
+
+	if reflect.TypeOf(connectionValue).String() == "*string" {
+		valPre := connectionValue.(*string)
+		keyValue = *valPre
+	} else if reflect.TypeOf(connectionValue).String() == "*int" {
+		valPre := connectionValue.(*int)
+		keyValue = fmt.Sprintf("%d", *valPre)
+	}  else if reflect.TypeOf(connectionValue).String() == "int" {
+		valPre := connectionValue.(int)
+		keyValue = fmt.Sprintf("%d", valPre)
+	} else {
+		keyValue = fmt.Sprintf("%v", connectionValue)
+	}
+
+
 	for k, v := range grpcRows.Rows {
 		if keyValue == v.Key {
 			return k

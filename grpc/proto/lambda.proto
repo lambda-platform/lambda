@@ -27,7 +27,7 @@ message TableOption {
     string table = 1;
     string key = 2;
     string field = 3;
-    repeated int32 values = 4;
+    repeated string values = 4;
 }
 message Response {
     bool status = 1;
@@ -48,6 +48,6 @@ message StringRows {
 }
 
 message StringRow {
-    int32 key = 1;
+    string key = 1;
     string value = 2;
 }
