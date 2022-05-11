@@ -1,0 +1,14 @@
+input sort {
+    column: String!
+    order:order!
+}
+input subSort {
+    column: String!
+    table:String!
+    order:order!
+
+}
+enum order{
+    asc
+    desc
+}

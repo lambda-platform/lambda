@@ -1,0 +1,35 @@
+input filter {
+    column: String!
+    condition:condition!
+    value: String!
+}
+input groupFilter {
+    filters:[filter]!
+    combine: combine!
+}
+enum combine{
+    or
+    and
+}
+input subFilter {
+    column: String!
+    table: String!
+    condition:condition!
+    value: String!
+}
+enum condition{
+    equals
+    notEqual
+    contains
+    notContains
+    startsWith
+    endsWith
+    greaterThan
+    greaterThanOrEqual
+    lessThan
+    lessThanOrEqual
+    isNull
+    notNull
+    whereIn
+}
+
