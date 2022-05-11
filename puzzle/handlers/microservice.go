@@ -75,8 +75,9 @@ func GetLambdaSCHEMA() {
 	defer conn.Close()
 	c := pb.NewConsoleClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 
 	r, err := c.LambdaSCHEMA(ctx, &pb.LambdaSchemaParams{
 		ProjectKey: config.LambdaConfig.ProjectKey,
