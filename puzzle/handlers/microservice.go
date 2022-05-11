@@ -6,6 +6,7 @@ import (
 	"github.com/lambda-platform/lambda/DBSchema"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/datasource"
+	"github.com/lambda-platform/lambda/generator"
 	pb "github.com/lambda-platform/lambda/grpc/consoleProto"
 	"google.golang.org/grpc"
 
@@ -109,12 +110,12 @@ func GetLambdaSCHEMA() {
 		userUUID = "true"
 	}
 
-	generator2.ModelInit(dbSchema, data.FormSchemas, data.GridSchemas, true, userUUID)
+	generator.ModelInit(dbSchema, data.FormSchemas, data.GridSchemas, true, userUUID)
 
 	/*
 	   Generate GRAPHQL
 	*/
-	generator2.GQLInit(dbSchema, data.GraphqlSchemas)
+	generator.GQLInit(dbSchema, data.GraphqlSchemas)
 
 	for _, vb := range data.FormSchemas {
 		_ = ioutil.WriteFile("lambda/schemas/form/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
