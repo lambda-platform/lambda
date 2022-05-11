@@ -3,16 +3,17 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"runtime"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"sync"
 )
 
 var onceMix sync.Once
 
 var Mix map[string]string
-func init()  {
+
+func init() {
 
 	onceMix.Do(func() {
 
@@ -24,17 +25,17 @@ func init()  {
 			fmt.Println("dir windows:")
 			fmt.Println(dir)
 
-			mixFile := dir+"/public/mix-manifest.json"
+			mixFile = dir + "/public/mix-manifest.json"
 			fmt.Println(mixFile)
 		}
 
 		data, err := ioutil.ReadFile(mixFile)
 
-		if err != nil{
+		if err != nil {
 			fmt.Println("MIX FILE NOT FOUND")
 		}
 		err2 := json.Unmarshal(data, &Mix)
-		if err2 != nil{
+		if err2 != nil {
 			fmt.Println("File parse error")
 		}
 	})
