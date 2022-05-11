@@ -59,9 +59,9 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   Float:
     model:
-      -github.com/lambda-platform/lambda/graphql/custom_model.Float
-      -github.com/lambda-platform/lambda/graphql/custom_model.Float32
-      -github.com/lambda-platform/lambda/graphql/custom_model.Float64
+      - github.com/lambda-platform/lambda/graphql/custom_model.Float
+      - github.com/lambda-platform/lambda/graphql/custom_model.Float32
+      - github.com/lambda-platform/lambda/graphql/custom_model.Float64
   Date:
     model:
-      -github.com/lambda-platform/lambda/graphql/custom_model.Date
+      - github.com/lambda-platform/lambda/graphql/custom_model.Date

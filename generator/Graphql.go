@@ -24,6 +24,7 @@ func Generate() {
 	)
 
 	if err != nil {
+		fmt.Println("======= error")
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(3)
 
