@@ -1,24 +1,19 @@
 package grpc
 
 import (
-	"fmt"
 	"context"
-	"io/ioutil"
+	"fmt"
 	"github.com/lambda-platform/lambda/DB"
-	"github.com/lambda-platform/puzzle/handlers"
 	pb "github.com/lambda-platform/lambda/grpc/proto"
+	"github.com/lambda-platform/lambda/puzzle/handlers"
+	"io/ioutil"
 )
-
 
 func GetIntData(ctx context.Context, in *pb.TableOption) (*pb.IntRows, error) {
 
 	var rows *pb.IntRows = &pb.IntRows{}
 
-
-
-	DB.DB.Table(in.Table).Select(in.Key + " as key, "+in.Field + " as value").Where(in.Key+" IN (?)", in.Values).Find(&rows.Rows)
-
-
+	DB.DB.Table(in.Table).Select(in.Key+" as key, "+in.Field+" as value").Where(in.Key+" IN (?)", in.Values).Find(&rows.Rows)
 
 	return rows, nil
 }
@@ -26,19 +21,18 @@ func GetStringData(ctx context.Context, in *pb.TableOption) (*pb.StringRows, err
 
 	var rows *pb.StringRows = &pb.StringRows{}
 
-	DB.DB.Table(in.Table).Select(in.Key + " as key, "+in.Field + " as value").Where(in.Key+" IN (?)", in.Values).Find(&rows.Rows)
+	DB.DB.Table(in.Table).Select(in.Key+" as key, "+in.Field+" as value").Where(in.Key+" IN (?)", in.Values).Find(&rows.Rows)
 
 	return rows, nil
 }
 
-func GetSchemaData(ctx context.Context, in *pb.SchemaParams) (*pb.Response, error)  {
+func GetSchemaData(ctx context.Context, in *pb.SchemaParams) (*pb.Response, error) {
 
 	var res *pb.Response = &pb.Response{}
 
-
 	if in.Type == "form" || in.Type == "grid" {
 
-		_ = ioutil.WriteFile("lambda/schemas/"+in.Type+"/"+fmt.Sprintf("%d",in.Id)+".json", []byte(in.Schema), 0777)
+		_ = ioutil.WriteFile("lambda/schemas/"+in.Type+"/"+fmt.Sprintf("%d", in.Id)+".json", []byte(in.Schema), 0777)
 	}
 
 	return res, nil

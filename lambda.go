@@ -1,9 +1,9 @@
 package lambda
 
 import (
+	"github.com/labstack/echo/v4"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
-	"github.com/labstack/echo/v4"
 )
 
 type Lambda struct {
