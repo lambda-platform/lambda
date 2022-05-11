@@ -1,4 +1,4 @@
-package generator2
+package generator
 
 import (
 	"github.com/iancoleman/strcase"
