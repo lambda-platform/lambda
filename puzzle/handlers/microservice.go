@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"github.com/lambda-platform/lambda/DB"
 	agentModels "github.com/lambda-platform/lambda/agent/models"
-	"github.com/lambda-platform/lambda/generator"
 	genertarModels "github.com/lambda-platform/lambda/generator/models"
 	gUtils "github.com/lambda-platform/lambda/generator/utils"
 	"github.com/lambda-platform/lambda/models"
@@ -110,12 +109,12 @@ func GetLambdaSCHEMA() {
 		userUUID = "true"
 	}
 
-	generator.ModelInit(dbSchema, data.FormSchemas, data.GridSchemas, true, userUUID)
+	generator2.ModelInit(dbSchema, data.FormSchemas, data.GridSchemas, true, userUUID)
 
 	/*
 	   Generate GRAPHQL
 	*/
-	generator.GQLInit(dbSchema, data.GraphqlSchemas)
+	generator2.GQLInit(dbSchema, data.GraphqlSchemas)
 
 	for _, vb := range data.FormSchemas {
 		_ = ioutil.WriteFile("lambda/schemas/form/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
