@@ -24,8 +24,8 @@ var KrudGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 			Label: "Гарчиг",
 		},
 	},
-	ColumnList: []string{"id", "title"},
-	Filters: map[string]string{},
+	ColumnList:  []string{"id", "title"},
+	Filters:     map[string]string{},
 	Relations:   []models.GridRelation{},
 	Condition:   "",
 	Aggergation: "",
@@ -72,6 +72,6 @@ type KrudGridMain struct {
 	Title     string     `gorm:"column:title" json:"title"`
 }
 
-func (k *KrudGrid) KrudGridMain() string {
+func (k *KrudGridMain) TableName() string {
 	return "krud"
 }
