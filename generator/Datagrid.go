@@ -9,7 +9,6 @@ import (
 	lambdaModels "github.com/lambda-platform/lambda/models"
 	lambdaUtils "github.com/lambda-platform/lambda/utils"
 	"strconv"
-	"strings"
 )
 
 func WriteGridsModel(dbSchema lambdaModels.DBSCHEMA, grids []genertarModels.ProjectSchemas, copyClienModels bool) {
@@ -69,7 +68,7 @@ var %sDatagrid datagrid.Datagrid = datagrid.Datagrid{
     Relations: %s,
     Condition: "%s",
     Aggergation: "%s",
-    Triggers: %s,
+   	%s
     TriggerNameSpace: "%s",
 	FillVirtualColumns: fillVirtualColumns%s,
 }
@@ -157,9 +156,7 @@ func createModel(schema lambdaModels.SCHEMAGRID, dbSchema lambdaModels.DBSCHEMA,
 	}
 	if microRelationFound {
 		importPackages = importPackages + "\n import \"github.com/lambda-platform/lambda/utils\" \n"
-		importPackages = importPackages + "\n import \"reflect\" \n"
-		importPackages = importPackages + "\n import \"fmt\" \n"
-		importPackages = importPackages + "\n import \"strings\" \n"
+
 		importPackages = importPackages + "\n import \"github.com/lambda-platform/lambda/grpc\" \n"
 	}
 	importPackages = importPackages + "\n import \"github.com/lambda-platform/lambda/datagrid\" \n"
@@ -229,66 +226,51 @@ func createColumns(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (str
 
 }
 func createTrigger(schema lambdaModels.SCHEMAGRID, modelAliasWithID string, modelAlias string, vbID int) string {
-	packageSplited := strings.Split(schema.Triggers.Namespace, "/")
 
-	triggerPackageName := packageSplited[len(packageSplited)-1]
+	beforeFetchMethod := `nil`
 
-	beforeFetchMethods := strings.Split(schema.Triggers.BeforeFetch, "@")
+	if schema.Triggers.BeforeFetch != "" {
+		beforeFetchMethod = schema.Triggers.BeforeFetch
 
-	beforeFetchMethod := `""`
-	beforeFetchStruct := "new(interface{})"
-	if len(beforeFetchMethods) >= 2 {
-		beforeFetchMethod = `"` + beforeFetchMethods[1] + `"`
-		beforeFetchStruct = `new(` + triggerPackageName + "." + beforeFetchMethods[0] + `)`
-	}
-	afterFetchMethods := strings.Split(schema.Triggers.AfterFetch, "@")
-
-	afterFetchMethod := `""`
-	afterFetchStruct := "new(interface{})"
-	if len(afterFetchMethods) >= 2 {
-		afterFetchMethod = `"` + afterFetchMethods[1] + `"`
-		afterFetchStruct = `new(` + triggerPackageName + "." + afterFetchMethods[0] + `)`
 	}
 
-	beforeDeleteMethods := strings.Split(schema.Triggers.BeforeDelete, "@")
+	afterFetchMethod := `nil`
 
-	beforeDeleteMethod := `""`
-	beforeDeleteStruct := "new(interface{})"
-	if len(beforeDeleteMethods) >= 2 {
-		beforeDeleteMethod = `"` + beforeDeleteMethods[1] + `"`
-		beforeDeleteStruct = `new(` + triggerPackageName + "." + beforeDeleteMethods[0] + `)`
+	if schema.Triggers.AfterFetch != "" {
+		afterFetchMethod = schema.Triggers.AfterFetch
+
 	}
 
-	afterDeleteMethods := strings.Split(schema.Triggers.AfterDelete, "@")
+	beforeDeleteMethod := `nil`
 
-	afterDeleteMethod := `""`
-	afterDeleteStruct := "new(interface{})"
-	if len(afterDeleteMethods) >= 2 {
-		afterDeleteMethod = `"` + afterDeleteMethods[1] + `"`
-		afterDeleteStruct = `new(` + triggerPackageName + "." + afterDeleteMethods[0] + `)`
+	if schema.Triggers.BeforeDelete != "" {
+		beforeDeleteMethod = schema.Triggers.BeforeDelete
+
 	}
 
-	beforePrintMethods := strings.Split(schema.Triggers.BeforePrint, "@")
+	afterDeleteMethod := `nil`
 
-	beforePrintMethod := `""`
-	beforePrintStruct := "new(interface{})"
-	if len(beforePrintMethods) >= 2 {
-		beforePrintMethod = `"` + beforePrintMethods[1] + `"`
-		beforePrintStruct = `new(` + triggerPackageName + "." + beforePrintMethods[0] + `)`
+	if schema.Triggers.AfterDelete != "" {
+		afterDeleteMethod = schema.Triggers.AfterDelete
+
 	}
 
-	return `map[string]interface{}{
-				"beforeFetch":` + beforeFetchMethod + `,
-				"beforeFetchStruct":` + beforeFetchStruct + `,
-				"afterFetch":` + afterFetchMethod + `,
-				"afterFetchStruct":` + afterFetchStruct + `,
-				"beforeDelete":` + beforeDeleteMethod + `,
-				"beforeDeleteStruct":` + beforeDeleteStruct + `,
-				"afterDelete":` + afterDeleteMethod + `,
-				"afterDeleteStruct":` + afterDeleteStruct + `,
-				"beforePrint":` + beforePrintMethod + `,
-				"beforePrintStruct":` + beforePrintStruct + `,
-		}`
+	beforePrintMethod := `nil`
+
+	if schema.Triggers.BeforePrint != "" {
+		beforePrintMethod = schema.Triggers.BeforePrint
+
+	}
+
+	return `BeforeFetch:` + beforeFetchMethod + `,
+			
+				AfterFetch:` + afterFetchMethod + `,
+				
+				BeforeDelete:` + beforeDeleteMethod + `,
+			
+				AfterDelete:` + afterDeleteMethod + `,
+				
+				BeforePrint:` + beforePrintMethod + `,`
 }
 func createAggergation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) string {
 	gridAggergation := ``
@@ -309,7 +291,6 @@ func createRelation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (st
 	microserviceClients := ""
 	dataFillers := ""
 
-	stringS := `"%v"`
 	microserviceFound := false
 	gridRelation := `[]models.GridRelation{`
 	for _, column := range schema.Schema {
@@ -325,14 +306,8 @@ func createRelation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (st
 %sIDs := []string{}
 `, column.Relation.Fields)
 				AppendIDvariables = AppendIDvariables + fmt.Sprintf(`
-
-			if strings.Contains(reflect.TypeOf(row.%s).String(), "*") {
-                %sIDs = append(%sIDs, fmt.Sprintf(%s, *row.%s))
-            } else {
-                %sIDs = append(%sIDs, fmt.Sprintf(%s, row.%s))
-            }
-
-`, connectionAlies, column.Relation.Fields, column.Relation.Fields, stringS, connectionAlies, column.Relation.Fields, column.Relation.Fields, stringS, connectionAlies)
+%sIDs = append(%sIDs, utils.GetString(row.%s))
+`, column.Relation.Fields, column.Relation.Fields, connectionAlies)
 
 				microserviceClients = microserviceClients + fmt.Sprintf(`
 %sRows, %sError := grpc.CallStringData("%s", "%s", "%s", "%s", %sIDs)

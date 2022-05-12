@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/tealeg/xlsx"
 	"net/http"
+	"reflect"
 	"sort"
 	"unicode/utf8"
-	"github.com/tealeg/xlsx"
-	"reflect"
 )
 
 func ExportExcel(c echo.Context, datagrid Datagrid) error {
@@ -25,7 +25,7 @@ func ExportExcel(c echo.Context, datagrid Datagrid) error {
 		query = query.Where(datagrid.Condition)
 	}
 
-	_, query, _ = CallTrigger("beforeFetch", datagrid, []map[string]interface{}{}, "", query, c)
+	_, query, _, _ = ExecTrigger("beforeFetch", []interface{}{}, datagrid, query, c)
 
 	query.Find(datagrid.Data)
 
@@ -74,7 +74,6 @@ func ExportExcel(c echo.Context, datagrid Datagrid) error {
 
 				value := getCellValue(row_[column.Model])
 
-
 				rowColumns = rowColumns + fmt.Sprintf(colTemplate, value)
 			}
 			data = data + fmt.Sprintf(rowTemplate, rowColumns)
@@ -106,14 +105,12 @@ func ExportExcel(c echo.Context, datagrid Datagrid) error {
 		}
 		/*HEADER*/
 
-
-
 		rows_json, _ := json.Marshal(datagrid.Data)
 
 		var rows []map[string]interface{}
-		json.Unmarshal(rows_json,&rows)
+		json.Unmarshal(rows_json, &rows)
 
-		for i := range rows{
+		for i := range rows {
 
 			row_ := rows[i]
 
@@ -127,8 +124,6 @@ func ExportExcel(c echo.Context, datagrid Datagrid) error {
 			}
 
 		}
-
-
 
 		var b bytes.Buffer
 		if err := file.Write(&b); err != nil {
@@ -144,13 +139,13 @@ func ExportExcel(c echo.Context, datagrid Datagrid) error {
 	}
 
 }
-func getCellValue(rawValue interface{}) string{
+func getCellValue(rawValue interface{}) string {
 	value := ""
 	if reflect.TypeOf(rawValue).String() == "float64" {
 
 		value = fmt.Sprintf("%.3f", rawValue)
 
-	}else if reflect.TypeOf(rawValue).String() == "float32" {
+	} else if reflect.TypeOf(rawValue).String() == "float32" {
 
 		value = fmt.Sprintf("%.3f", rawValue)
 
@@ -166,30 +161,29 @@ func getCellValue(rawValue interface{}) string{
 
 		value = fmt.Sprintf("%d", rawValue)
 
-	}else if reflect.TypeOf(rawValue).String() == "Int" {
+	} else if reflect.TypeOf(rawValue).String() == "Int" {
 
 		value = fmt.Sprintf("%d", rawValue)
 
-	}else if reflect.TypeOf(rawValue).String() == "Int8" {
+	} else if reflect.TypeOf(rawValue).String() == "Int8" {
 
 		value = fmt.Sprintf("%d", rawValue)
 
-	}else if reflect.TypeOf(rawValue).String() == "Int16" {
+	} else if reflect.TypeOf(rawValue).String() == "Int16" {
 
 		value = fmt.Sprintf("%d", rawValue)
 
-	}else if reflect.TypeOf(rawValue).String() == "Int32" {
+	} else if reflect.TypeOf(rawValue).String() == "Int32" {
 
 		value = fmt.Sprintf("%d", rawValue)
 
-	}else if reflect.TypeOf(rawValue).String() == "Int64" {
+	} else if reflect.TypeOf(rawValue).String() == "Int64" {
 
 		value = fmt.Sprintf("%d", rawValue)
 
 	} else {
 		value = fmt.Sprintf("%v", rawValue)
 	}
-
 
 	if value == "<nil>" {
 		value = ""

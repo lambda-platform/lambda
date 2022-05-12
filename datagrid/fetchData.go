@@ -15,7 +15,6 @@ func FetchData(c echo.Context, datagrid Datagrid) error {
 	sort := c.QueryParam("sort")
 	order := c.QueryParam("order")
 
-
 	query := DB.DB.Table(datagrid.DataTable)
 
 	query = query.Select(datagrid.ColumnList)
@@ -39,10 +38,17 @@ func FetchData(c echo.Context, datagrid Datagrid) error {
 	}
 	Limit_, _ := strconv.Atoi(pageLimit)
 
-	skipPagination := false
-	_, query, skipPagination = CallTrigger("beforeFetch", datagrid, []map[string]interface{}{}, "", query, c)
+	triggerData, query, skipPagination, returnData := ExecTrigger("beforeFetch", datagrid.Data, datagrid, query, c)
 
-	if skipPagination {
+	if returnData {
+
+		res := utils.Paginator{
+			Data:        triggerData,
+			Total:       len(triggerData.([]interface{})),
+			CurrentPage: 1,
+		}
+		return c.JSON(http.StatusOK, res)
+	} else if skipPagination {
 		data := query.Find(&datagrid.Data)
 		res := utils.Paginator{
 			Data:        data.Value,
@@ -52,20 +58,15 @@ func FetchData(c echo.Context, datagrid Datagrid) error {
 		return c.JSON(http.StatusOK, res)
 	} else {
 
-
-
-
 		data := utils.Paging(&utils.Param{
 			DB:    query,
 			Page:  Page_,
 			Limit: Limit_,
 		}, datagrid.Data)
 
-
-		if len(datagrid.Relations) >=1 {
+		if len(datagrid.Relations) >= 1 {
 			data.Data = datagrid.FillVirtualColumns(datagrid.Data)
 		}
-
 
 		return c.JSON(http.StatusOK, data)
 	}

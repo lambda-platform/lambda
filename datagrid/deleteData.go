@@ -20,7 +20,7 @@ func DeleteData(c echo.Context, datagrid Datagrid, id string) error {
 
 	} else {
 
-		CallTrigger("afterDelete", datagrid, []map[string]interface{}{}, id, qr, c)
+		ExecTrigger("afterDelete", []interface{}{}, datagrid, qr, c)
 
 		return c.JSON(http.StatusOK, map[string]string{
 			"status": "true",

@@ -11,39 +11,38 @@ import (
 
 // Constants for return types of golang
 const (
-	golangByteArray  = "[]byte"
+	golangByteArray = "[]byte"
 	//gureguNullInt    = "null.Int"
-	gureguNullInt    = "*int"
-	sqlNullInt       = "sql.NullInt64"
-	golangInt        = "int"
-	golangBool        = "bool"
-	golangInt64      = "int64"
-	gureguNullFloat  = "float32"
-	sqlNullFloat     = "sql.NullFloat64"
-	golangFloat      = "float"
-	golangFloat32    = "float32"
-	golangFloat64    = "float64"
+	gureguNullInt   = "*int"
+	sqlNullInt      = "sql.NullInt64"
+	golangInt       = "int"
+	golangBool      = "bool"
+	golangInt64     = "int64"
+	gureguNullFloat = "float32"
+	sqlNullFloat    = "sql.NullFloat64"
+	golangFloat     = "float"
+	golangFloat32   = "float32"
+	golangFloat64   = "float64"
 	//gureguNullString = "null.String"
 	gureguNullString = "*string"
 	sqlNullString    = "*string"
 	//gureguNullTime   = "null.Time"
-	gureguNullTime   = "*time.Time"
-	golangTime       = "time.Time"
-	date   = "DB.Date"
+	gureguNullTime = "*time.Time"
+	golangTime     = "time.Time"
+	date           = "DB.Date"
 	dateNull       = "*DB.Date"
 )
 const (
-	gqlNullInt   = "Int"
-	gqlInt       = "Int!"
-	gqlNullFloat   = "Float"
+	gqlNullInt    = "Int"
+	gqlInt        = "Int!"
+	gqlNullFloat  = "Float"
 	gqlFloat      = "Float!"
-	gqlNullString   = "String"
-	gqlString       = "String!"
-	gqlNullTime  = "Time"
+	gqlNullString = "String"
+	gqlString     = "String!"
+	gqlNullTime   = "Time"
 	gqlTime       = "Time!"
-	dbNullDate  = "Date"
-	dbDate       = "Date!"
-
+	dbNullDate    = "Date"
+	dbDate        = "Date!"
 )
 
 // commonInitialisms is a set of common initialisms.
@@ -113,7 +112,7 @@ func Generate(columnTypes map[string]map[string]string, tableName string, struct
 		importTime,
 		structName,
 		dbTypes,
-		extraColumns,extraStucts)
+		extraColumns, extraStucts)
 	if gormAnnotation == true {
 		tableNameFunc := "" +
 			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
@@ -132,12 +131,10 @@ func GenerateOnlyStruct(columnTypes map[string]map[string]string, tableName stri
 
 	dbTypes, _, _ = generateMysqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
-
-
 	src := fmt.Sprintf("\n  \ntype %s %s %s} %s",
 		structName,
 		dbTypes,
-		extraColumns,extraStucts)
+		extraColumns, extraStucts)
 	if gormAnnotation == true {
 		tableNameFunc := "" +
 			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
@@ -156,17 +153,16 @@ func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, 
 
 	dbTypes := generateQraphqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
-
 	subStchemas := ""
 
-	for _, sub := range Subs{
-		subStchemas = subStchemas+"\n    "+sub+":["+strcase.ToCamel(sub)+"!]"
+	for _, sub := range Subs {
+		subStchemas = subStchemas + "\n    " + sub + ":[" + strcase.ToCamel(sub) + "!]"
 	}
 
 	typeSchema := "type"
-	if(isInpute){
+	if isInpute {
 		typeSchema = "input"
-		structName = structName+"Input"
+		structName = structName + "Input"
 	}
 	src := fmt.Sprintf("%s %s %s %s %s \n} %s",
 		typeSchema,
@@ -174,20 +170,16 @@ func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, 
 		dbTypes,
 		extraColumns, subStchemas, extraStucts)
 
-
 	return []byte(src), nil
 }
 func GenerateGrapqlOrder(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 
 	dbTypes := generateQraphqlTypesOrder(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
-
-
 	src := fmt.Sprintf("\n  \ninput %s %s %s \n} %s",
 		structName,
 		dbTypes,
-		extraColumns,extraStucts)
-
+		extraColumns, extraStucts)
 
 	return []byte(src), nil
 }
@@ -195,7 +187,6 @@ func GenerateWithImports(otherPackage string, columnTypes map[string]map[string]
 	var dbTypes string
 
 	dbTypes, _, _ = generateMysqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
 
 	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \n"
 	src := fmt.Sprintf("package %s\n %s\n %s\n \ntype %s %s %s %s} %s",
@@ -234,7 +225,7 @@ func GenerateWithImportsNoTime(otherPackage string, columnTypes map[string]map[s
 		importTime,
 		structName,
 		dbTypes,
-		extraColumns,extraStucts)
+		extraColumns, extraStucts)
 	if gormAnnotation == true {
 		tableNameFunc := "//  TableName sets the insert table name for this struct type\n " +
 			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
@@ -256,7 +247,7 @@ func GenerateWithImportsNoTime(otherPackage string, columnTypes map[string]map[s
 // Output: FooID
 func FmtFieldName(s string) string {
 
-	if(s != ""){
+	if s != "" {
 		name := lintFieldName(s)
 		runes := []rune(name)
 		for i, c := range runes {
@@ -353,7 +344,7 @@ func lintFieldName(name string) string {
 
 // convert first character ints to strings
 func StringifyFirstChar(str string) string {
-	if(str != ""){
+	if str != "" {
 		first := str[:1]
 
 		i, err := strconv.ParseInt(first, 10, 8)
