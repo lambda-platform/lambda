@@ -41,8 +41,10 @@ func Set(e *echo.Echo, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	/*
 		OTHER
 	*/
-	g.POST("/upload", handlers.Upload, agentMW.IsLoggedInCookie)
-	g.OPTIONS("/upload", handlers.Upload, agentMW.IsLoggedInCookie)
+	g.POST("/upload", handlers.Upload)
+	g.OPTIONS("/upload", handlers.Upload)
+	//g.POST("/upload", handlers.Upload, agentMW.IsLoggedInCookie)
+	//g.OPTIONS("/upload", handlers.Upload, agentMW.IsLoggedInCookie)
 	g.POST("/unique", handlers.CheckUnique)
 	g.POST("/check_current_password", handlers.CheckCurrentPassword, agentMW.IsLoggedInCookie)
 	g.POST("/excel/:schemaId", handlers.ExportExcel(GetGridMODEL), agentMW.IsLoggedInCookie)
