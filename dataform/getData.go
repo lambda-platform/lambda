@@ -2,6 +2,7 @@ package dataform
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/labstack/echo/v4"
 	"github.com/lambda-platform/lambda/DBSchema"
@@ -32,6 +33,8 @@ func GetData(c echo.Context, action string, id string, dataform Dataform) (*map[
 
 				if action == "store" {
 					password, _ := agentUtils.Hash(value)
+					fmt.Println(fieldName)
+					fmt.Println(password)
 					dataform.setStringField(fieldName, password)
 				} else {
 

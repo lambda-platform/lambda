@@ -1,6 +1,7 @@
 package dataform
 
 import (
+	"fmt"
 	"github.com/lambda-platform/lambda/models"
 	"reflect"
 )
@@ -37,11 +38,14 @@ func (d *Dataform) getFieldType(field string) string {
 func (d *Dataform) setStringField(field string, value string) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
+	fmt.Println(f.Type())
+	fmt.Println(f.String())
 	f.SetString(value)
 }
 func (d *Dataform) setIntField(field string, value int) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
+
 	f.SetInt(int64(value))
 }
 
@@ -54,6 +58,7 @@ func Clear(v interface{}) {
 	p := reflect.ValueOf(v).Elem()
 	p.Set(reflect.Zero(p.Type()))
 }
+
 //
 //func (d *Dataform) getFloatField(field string) float64 {
 //	r := reflect.ValueOf(d.Model)
