@@ -150,6 +150,36 @@ func GetVB(c echo.Context) error {
 	})
 
 }
+func GetMenuVB(c echo.Context) error {
+
+	type_ := "menu"
+	id := c.Param("id")
+
+	VBSchema := models.VBSchema{}
+	if (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "form") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "grid") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "menu") {
+
+		schemaFile, err := os.Open("lambda/schemas/" + type_ + "/" + id + ".json")
+
+		if err == nil {
+			defer schemaFile.Close()
+			byteValue, _ := ioutil.ReadAll(schemaFile)
+			VBSchema.Schema = string(byteValue)
+			id_, _ := strconv.ParseUint(id, 0, 64)
+			VBSchema.ID = id_
+		}
+
+	} else {
+		VBSchema := models.VBSchema{}
+		DB.DB.Where("id = ?", id).First(&VBSchema)
+
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status": true,
+		"data":   VBSchema,
+	})
+
+}
 func SaveVB(modelName string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		type_ := c.Param("type")

@@ -7,13 +7,10 @@ import (
 	"github.com/lambda-platform/lambda/datagrid"
 	"github.com/lambda-platform/lambda/puzzle/handlers"
 	"github.com/lambda-platform/lambda/puzzle/utils"
-	templateUtils "github.com/lambda-platform/lambda/template/utils"
-	//"github.com/lambda-platform/lambda/lambda/plugins/dataanalytic"
 	lambdaUtils "github.com/lambda-platform/lambda/utils"
 	"html/template"
 )
 
-//
 func Set(e *echo.Echo, moduleName string, GetGridMODEL func(schema_id string) datagrid.Datagrid, isMicroservice bool, withUserRole bool) {
 
 	if isMicroservice {
@@ -27,17 +24,17 @@ func Set(e *echo.Echo, moduleName string, GetGridMODEL func(schema_id string) da
 	//if isMicroservice && withUserRole{
 	//	handlers.GetRoleData()
 	//}
+	if withUserRole || !isMicroservice {
+		templates := lambdaUtils.GetTemplates(e)
 
-	templates := lambdaUtils.GetTemplates(e)
-	AbsolutePath := utils.AbsolutePath()
-	TemplatePath := templateUtils.AbsolutePath()
-	//* REGISTER VIEWS */
-	templates["puzzle.html"] = template.Must(template.ParseFiles(
-		TemplatePath + "views/paper.html",
-	))
-	template.Must(templates["puzzle.html"].ParseFiles(
-		AbsolutePath + "views/puzzle.html",
-	))
+		//* REGISTER VIEWS */
+		templates["puzzle.html"] = template.Must(template.ParseFiles(
+			"views/paper.html",
+		))
+		template.Must(templates["puzzle.html"].ParseFiles(
+			"views/puzzle.html",
+		))
+	}
 
 	/*ROUTES */
 	e.GET("/build-me", handlers.BuildMe, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
@@ -58,6 +55,8 @@ func Set(e *echo.Echo, moduleName string, GetGridMODEL func(schema_id string) da
 	g.POST("/puzzle/schema/:type", handlers.SaveVB(moduleName), agentMW.IsLoggedInCookie, agentMW.IsAdmin)
 	g.POST("/puzzle/schema/:type/:id", handlers.SaveVB(moduleName), agentMW.IsLoggedInCookie, agentMW.IsAdmin)
 	g.DELETE("/puzzle/delete/vb_schemas/:type/:id", handlers.DeleteVB, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
+	//MENU SHOW
+	e.GET("/lambda/krud/menu_form/edit/:id", handlers.GetMenuVB, agentMW.IsLoggedInCookie)
 
 	//GRID
 	g.POST("/puzzle/grid/:action/:schemaId", handlers.GridVB(GetGridMODEL), agentMW.IsLoggedInCookie)

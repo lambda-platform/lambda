@@ -76,10 +76,8 @@ func SendForgotMail(c echo.Context) error {
 	DB.DB.NewRecord(&pReset)
 	DB.DB.Create(&pReset)
 
-	AbsolutePath := agentUtils.AbsolutePath()
-
 	mail := mailer.NewRequest([]string{data.Email}, StaticWords["passwordResetCode"].(string))
-	mailSent := mail.Send(AbsolutePath+"templates/email/forgot.html", map[string]string{
+	mailSent := mail.Send("views/email/forgot.html", map[string]string{
 		"keyword":           tokenPre,
 		"passwordReset":     StaticWords["passwordReset"].(string),
 		"passwordResetCode": StaticWords["passwordResetCode"].(string),

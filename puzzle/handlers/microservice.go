@@ -78,7 +78,6 @@ func GetLambdaSCHEMA() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-
 	r, err := c.LambdaSCHEMA(ctx, &pb.LambdaSchemaParams{
 		ProjectKey: config.LambdaConfig.ProjectKey,
 	})
@@ -123,6 +122,9 @@ func GetLambdaSCHEMA() {
 	}
 	for _, vb := range data.GridSchemas {
 		_ = ioutil.WriteFile("lambda/schemas/grid/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
+	}
+	for _, vb := range data.MenuSchemas {
+		_ = ioutil.WriteFile("lambda/schemas/menu/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
 	}
 
 	microservicesList := `
