@@ -4,6 +4,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	 lambdaPlayground "github.com/lambda-platform/lambda/graphql/playground"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/lambda-platform/lambda/graphql/gql"
@@ -17,6 +18,7 @@ func Set(e *echo.Echo) {
 	e.Use(gql.Process)
 	graphqlHandler := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{}}))
 	playgroundHandler := playground.Handler("GraphQL playground", "/query")
+	lambdaPlaygroundHandler := lambdaPlayground.Handler("GraphQL playground", "/query")
 
 	graphqlHandler.AddTransport(transport.POST{})
 	graphqlHandler.AddTransport(transport.Websocket{
@@ -43,5 +45,12 @@ func Set(e *echo.Echo) {
 		playgroundHandler.ServeHTTP(res, req)
 		return nil
 	})
+	e.GET("/play-full", func(c echo.Context) error {
+            cc := c.(*gql.CustomContext)
+            req := cc.Request()
+            res := cc.Response()
+            lambdaPlaygroundHandler.ServeHTTP(res, req)
+            return nil
+    })
 }
 

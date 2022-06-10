@@ -542,6 +542,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+    lambdaPlayground "github.com/lambda-platform/lambda/graphql/playground"
 	"github.com/go-redis/redis"
 	"github.com/gorilla/websocket"
 	"github.com/lambda-platform/lambda/graphql/gql"
@@ -573,6 +574,7 @@ func Set(e *echo.Echo) {
 	}}
 	graphqlHandler := handler.New(generated.NewExecutableSchema(graphqlConfig))
 	playgroundHandler := playground.Handler("GraphQL playground", "/query")
+	lambdaPlaygroundHandler := lambdaPlayground.Handler("GraphQL playground", "/query")
 
 
 	graphqlHandler.AddTransport(transport.Options{})
@@ -614,6 +616,13 @@ func Set(e *echo.Echo) {
 		playgroundHandler.ServeHTTP(res, req)
 		return nil
 	})
+	e.GET("/play-full", func(c echo.Context) error {
+        cc := c.(*gql.CustomContext)
+        req := cc.Request()
+        res := cc.Response()
+        lambdaPlaygroundHandler.ServeHTTP(res, req)
+        return nil
+    })
 }
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 func RandString(n int) string {
