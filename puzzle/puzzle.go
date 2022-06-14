@@ -7,6 +7,7 @@ import (
 	"github.com/lambda-platform/lambda/datagrid"
 	"github.com/lambda-platform/lambda/puzzle/handlers"
 	"github.com/lambda-platform/lambda/puzzle/utils"
+	templateUtils "github.com/lambda-platform/lambda/template/utils"
 	lambdaUtils "github.com/lambda-platform/lambda/utils"
 	"html/template"
 )
@@ -28,11 +29,15 @@ func Set(e *echo.Echo, moduleName string, GetGridMODEL func(schema_id string) da
 		templates := lambdaUtils.GetTemplates(e)
 
 		//* REGISTER VIEWS */
+		AbsolutePath := utils.AbsolutePath()
+		TemplatePath := templateUtils.AbsolutePath()
+
 		templates["puzzle.html"] = template.Must(template.ParseFiles(
-			"views/paper.html",
+			TemplatePath + "views/paper.html",
 		))
+
 		template.Must(templates["puzzle.html"].ParseFiles(
-			"views/puzzle.html",
+			AbsolutePath + "views/puzzle.html",
 		))
 	}
 

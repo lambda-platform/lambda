@@ -235,8 +235,8 @@ func createUUIDJwtToken(user UserUUIDData) (string, error) {
 	}
 	return t, nil
 }
-func checkRole(role int64) string {
 
+func checkRole(role int64) string {
 	for _, r := range config.LambdaConfig.RoleRedirects {
 		if role == r.RoleID {
 			return r.URL

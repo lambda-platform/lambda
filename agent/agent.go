@@ -18,10 +18,9 @@ func Set(e *echo.Echo) {
 	templates := vpUtils.GetTemplates(e)
 
 	/* REGISTER VIEWS */
-	//AbsolutePath := agentUtils.AbsolutePath()
-
-	templates["login.html"] = template.Must(template.ParseFiles("views/login.html"))
-	templates["forgot.html"] = template.Must(template.ParseFiles("views/email/forgot.html"))
+	AbsolutePath := agentUtils.AbsolutePath()
+	templates["login.html"] = template.Must(template.ParseFiles(AbsolutePath + "views/login.html"))
+	templates["forgot.html"] = template.Must(template.ParseFiles(AbsolutePath + "views/email/forgot.html"))
 
 	/* ROUTES */
 	a := e.Group("/auth")

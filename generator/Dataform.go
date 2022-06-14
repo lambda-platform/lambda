@@ -11,11 +11,10 @@ import (
 )
 
 func WriteFormsModelData(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.ProjectSchemas, copyClienModels bool) {
-
 	WriteFormModel(dbSchema, schemas)
 	WriteModelCaller(dbSchema, schemas, copyClienModels)
-
 }
+
 func WriteFormModel(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.ProjectSchemas) {
 
 	for _, vb := range schemas {
@@ -43,22 +42,17 @@ func WriteFormModel(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.Pro
 		for _, field := range schema.Schema {
 			if field.FormType == "SubForm" {
 				if field.SubType != "Form" {
-
 					subAlis := GetModelAlias(field.Model)
 					subForm := subAlis + modelAlias + strconv.FormatInt(int64(vb.ID), 10)
-
 					subHiddenColumns := []string{}
 					for _, sColumn := range field.Schema {
-
 						if (sColumn.Hidden == true && sColumn.Default == nil && sColumn.Label == "") || (sColumn.Hidden == true && sColumn.Default == "" && sColumn.Label == "") {
 							subHiddenColumns = append(subHiddenColumns, sColumn.Model)
 						}
 					}
 
 					subColumnDataTypes := GetColumnsFromTableMeta(dbSchema.TableMeta[field.Model], subHiddenColumns)
-
 					subStructs, _ := DBSchema.GenerateOnlyStruct(*subColumnDataTypes, field.Model, subForm, "", true, true, true, "", "")
-
 					gormStructs = gormStructs + string(subStructs)
 				}
 			}
@@ -73,7 +67,6 @@ func WriteFormModel(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.Pro
 		triggersNamespace := ""
 
 		if schema.Triggers.Namespace != "" {
-
 			if schema.Triggers.Insert.Before != "" {
 				beforInsertTrigger = schema.Triggers.Insert.Before
 			}
@@ -203,6 +196,7 @@ func %sDataform() dataform.Dataform {
 	subForms = subForms + `}`
 	return subForms, gridSubFroms
 }
+
 func createFieldTypes(schema lambdaModels.SCHEMA) string {
 	formFields := `map[string]string{
 			`
@@ -214,6 +208,7 @@ func createFieldTypes(schema lambdaModels.SCHEMA) string {
 			}`
 	return formFields
 }
+
 func createFomulas(schema lambdaModels.SCHEMA) string {
 	formulas := `[]models.Formula{
 			`
@@ -243,6 +238,7 @@ func createFomulas(schema lambdaModels.SCHEMA) string {
 			}`
 	return formulas
 }
+
 func createValidation(schema lambdaModels.SCHEMA, columnDataTypes map[string]map[string]string) (string, string) {
 
 	rules := `govalidator.MapData{
