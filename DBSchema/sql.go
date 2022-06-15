@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lambda-platform/lambda/DB"
-	"github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/config"
+	"github.com/lambda-platform/lambda/models"
 	"sort"
 	"strings"
 )
@@ -19,20 +19,19 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 
 	var pkColumn models.PKColumn
 
-	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable+"' AND table_schema = '" + config.Config.Database.Database+"'"
+	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable + "' AND table_schema = '" + config.Config.Database.Database + "'"
 
-	if config.Config.Database.Connection == "mssql"{
+	if config.Config.Database.Connection == "mssql" {
 
-		DB.DB.Raw("SELECT COLUMN_NAME FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '"+dbTable+"' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
+		DB.DB.Raw("SELECT COLUMN_NAME FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '" + dbTable + "' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
 
-		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable+"'"
-	} else if config.Config.Database.Connection == "postgres"{
-
+		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable + "'"
+	} else if config.Config.Database.Connection == "postgres" {
 
 		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", dbTable, config.Config.Database.Database, "'%_pkey'")).Row()
 		rowPK.Scan(&pkColumn)
 
-		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database,  dbTable)
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
 	}
 
 	if Debug {
@@ -64,22 +63,20 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 
 		var isHidden bool = false
 
-		for _, hiddenColumn := range hiddenColumns{
-			if hiddenColumn == column{
+		for _, hiddenColumn := range hiddenColumns {
+			if hiddenColumn == column {
 				isHidden = true
 			}
 		}
-		if isHidden == false{
+		if isHidden == false {
 			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
-				if pkColumn.ColumnName == column{
+				if pkColumn.ColumnName == column {
 					columnKey = "PRI"
 				}
 			}
 
-
 			columnDataTypes[column] = map[string]string{"value": dataType, "nullable": nullable, "primary": columnKey}
 		}
-
 
 	}
 
@@ -94,20 +91,19 @@ func GetColumns(db *sql.DB, dbTable string, hiddenColumns []string) (string, err
 
 	var pkColumn models.PKColumn
 
-	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable+"' AND table_schema = '" + config.Config.Database.Database+"'"
+	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable + "' AND table_schema = '" + config.Config.Database.Database + "'"
 
-	if config.Config.Database.Connection == "mssql"{
+	if config.Config.Database.Connection == "mssql" {
 
-		DB.DB.Raw("SELECT COLUMN_NAME FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '"+dbTable+"' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
+		DB.DB.Raw("SELECT COLUMN_NAME FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '" + dbTable + "' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
 
-		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable+"'"
-	} else if config.Config.Database.Connection == "postgres"{
-
+		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable + "'"
+	} else if config.Config.Database.Connection == "postgres" {
 
 		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", dbTable, config.Config.Database.Database, "'%_pkey'")).Row()
 		rowPK.Scan(&pkColumn)
 
-		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database,  dbTable)
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
 	}
 
 	if Debug {
@@ -139,26 +135,25 @@ func GetColumns(db *sql.DB, dbTable string, hiddenColumns []string) (string, err
 
 		var isHidden bool = false
 
-		for _, hiddenColumn := range hiddenColumns{
-			if hiddenColumn == column{
+		for _, hiddenColumn := range hiddenColumns {
+			if hiddenColumn == column {
 				isHidden = true
 			}
 		}
-		if isHidden == false{
+		if isHidden == false {
 			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
-				if pkColumn.ColumnName == column{
+				if pkColumn.ColumnName == column {
 					columnKey = "PRI"
 				}
 			}
 
-			if(columns == ""){
-				columns =columns + "\""+column+"\""
+			if columns == "" {
+				columns = columns + "\"" + column + "\""
 			} else {
-				columns =  columns + ", "+ "\""+column+"\""
+				columns = columns + ", " + "\"" + column + "\""
 			}
-			
-		}
 
+		}
 
 	}
 
@@ -172,20 +167,19 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 
 	var pkColumn models.PKColumn
 
-	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable+"' AND table_schema = '" + config.Config.Database.Database+"'"
+	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable + "' AND table_schema = '" + config.Config.Database.Database + "'"
 
-	if config.Config.Database.Connection == "mssql"{
+	if config.Config.Database.Connection == "mssql" {
 
-		DB.DB.Raw("SELECT COLUMN_NAME FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '"+dbTable+"' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
+		DB.DB.Raw("SELECT COLUMN_NAME FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '" + dbTable + "' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
 
-		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable+"'"
-	} else if config.Config.Database.Connection == "postgres"{
-
+		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable + "'"
+	} else if config.Config.Database.Connection == "postgres" {
 
 		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", dbTable, config.Config.Database.Database, "'%_pkey'")).Row()
 		rowPK.Scan(&pkColumn)
 
-		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database,  dbTable)
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
 	}
 
 	if Debug {
@@ -209,7 +203,7 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 		var columnKey string
 		var dataType string
 		var nullable string
-		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres"{
+		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
 			rows.Scan(&column, &dataType, &nullable)
 		} else {
 			rows.Scan(&column, &columnKey, &dataType, &nullable)
@@ -217,18 +211,17 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 
 		var isHidden bool = false
 
-		for _, hiddenColumn := range hiddenColumns{
-			if hiddenColumn == column{
+		for _, hiddenColumn := range hiddenColumns {
+			if hiddenColumn == column {
 				isHidden = true
 			}
 		}
-		if isHidden == false{
-			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres"{
-				if pkColumn.ColumnName == column{
+		if isHidden == false {
+			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+				if pkColumn.ColumnName == column {
 					columnKey = "PRI"
 				}
 			}
-
 
 			newColumn := map[string]string{}
 
@@ -240,7 +233,6 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 
 		}
 
-
 	}
 
 	return columns, err
@@ -248,26 +240,24 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 
 func GetOnlyOneField(db *sql.DB, dbTable string, oneField string) (*map[string]map[string]string, error) {
 
-
 	// Store colum as map of maps
 	columnDataTypes := make(map[string]map[string]string)
 	// Select columnd data from INFORMATION_SCHEMA
 	var pkColumn models.PKColumn
 
-	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable+"' AND table_schema = '" + config.Config.Database.Database+"'"
+	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable + "' AND table_schema = '" + config.Config.Database.Database + "'"
 
-	if config.Config.Database.Connection == "mssql"{
+	if config.Config.Database.Connection == "mssql" {
 
-		DB.DB.Raw("SELECT COLUMN_NAME FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '"+dbTable+"' AND CONSTRAINT_NAME LIKE 'PK%'").Scan(&pkColumn)
+		DB.DB.Raw("SELECT COLUMN_NAME FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '" + dbTable + "' AND CONSTRAINT_NAME LIKE 'PK%'").Scan(&pkColumn)
 
-		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM "+config.Config.Database.Database+".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable+"'"
-	}  else if config.Config.Database.Connection == "postgres"{
-
+		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable + "'"
+	} else if config.Config.Database.Connection == "postgres" {
 
 		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", dbTable, config.Config.Database.Database, "'%_pkey'")).Row()
 		rowPK.Scan(&pkColumn)
 
-		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database,  dbTable)
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
 	}
 
 	if Debug {
@@ -297,17 +287,15 @@ func GetOnlyOneField(db *sql.DB, dbTable string, oneField string) (*map[string]m
 			rows.Scan(&column, &columnKey, &dataType, &nullable)
 		}
 
-
-		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres"{
-			if pkColumn.ColumnName == column{
+		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+			if pkColumn.ColumnName == column {
 				columnKey = "PRI"
 			}
 		}
 
-	//	if oneField == column {
-			columnDataTypes[column] = map[string]string{"value": dataType, "nullable": nullable, "primary": columnKey}
-	//	}
-
+		//	if oneField == column {
+		columnDataTypes[column] = map[string]string{"value": dataType, "nullable": nullable, "primary": columnKey}
+		//	}
 
 	}
 
@@ -333,7 +321,7 @@ func generateMysqlTypes(obj map[string]map[string]string, depth int, jsonAnnotat
 		if mysqlType["nullable"] == "YES" {
 			nullable = true
 		}
-		if mysqlType["value"] == "timestamp" || mysqlType["value"] == "timestamptz" || mysqlType["value"] == "datetime"  || mysqlType["value"] == "year"  || mysqlType["value"] == "time"{
+		if mysqlType["value"] == "timestamp" || mysqlType["value"] == "timestamptz" || mysqlType["value"] == "datetime" || mysqlType["value"] == "year" || mysqlType["value"] == "time" {
 
 			//if key == "created_at" ||  key == "updated_at" ||  key == "deleted_at"{
 			time_found = true
@@ -343,7 +331,7 @@ func generateMysqlTypes(obj map[string]map[string]string, depth int, jsonAnnotat
 			//}
 
 		}
-		if(mysqlType["value"] == "date"){
+		if mysqlType["value"] == "date" {
 			date_found = true
 		}
 		primary := ""
@@ -399,7 +387,7 @@ func generateMysqlTypesNoTime(obj map[string]map[string]string, depth int, jsonA
 		if mysqlType["nullable"] == "YES" {
 			nullable = true
 		}
-		if mysqlType["value"] == "timestamp" || mysqlType["value"] == "timestamptz" || mysqlType["value"] == "datetime" || mysqlType["value"] == "date"  || mysqlType["value"] == "year"  || mysqlType["value"] == "time"{
+		if mysqlType["value"] == "timestamp" || mysqlType["value"] == "timestamptz" || mysqlType["value"] == "datetime" || mysqlType["value"] == "date" || mysqlType["value"] == "year" || mysqlType["value"] == "time" {
 
 			mysqlType["value"] = "text"
 
@@ -441,7 +429,7 @@ func generateMysqlTypesNoTime(obj map[string]map[string]string, depth int, jsonA
 
 	return structure, time_found
 }
-func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string) {
+func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
 
 	structure := " {"
 
@@ -486,7 +474,6 @@ func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnot
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
 
-
 		if len(annotations) > 0 {
 			structure += fmt.Sprintf("\n%s    %s: `%s`",
 				fieldName,
@@ -503,7 +490,7 @@ func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnot
 	return structure
 }
 
-func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string) {
+func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
 
 	structure := " {"
 
@@ -517,13 +504,11 @@ func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, json
 		//fmt.Println(key)
 		mysqlType := obj[key]
 
-
 		primary := ""
 		if mysqlType["primary"] == "PRI" {
 			primary = ";primary_key"
 			//primary = ""
 		}
-
 
 		fieldName := key
 		var annotations []string
@@ -534,7 +519,6 @@ func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, json
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
-
 
 		if len(annotations) > 0 {
 			structure += fmt.Sprintf("\n%s    %s: order_by",
@@ -577,7 +561,7 @@ func sqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string {
 			return sqlNullInt
 		}
 		return golangInt64
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext",  "tinytext", "geometry", "uuid":
+	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar":
 		if nullable {
 			if gureguTypes {
 				return gureguNullString
@@ -618,7 +602,7 @@ func sqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string {
 }
 func sqlTypeToGraphyType(mysqlType string, nullable bool, gureguTypes bool) string {
 	switch mysqlType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4",  "int2","year":
+	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year":
 		if nullable {
 			if gureguTypes {
 				return gqlNullInt
@@ -634,7 +618,7 @@ func sqlTypeToGraphyType(mysqlType string, nullable bool, gureguTypes bool) stri
 			return gqlNullInt
 		}
 		return gqlInt
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext",  "tinytext", "geometry", "uuid":
+	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar":
 		if nullable {
 			if gureguTypes {
 				return gqlNullString
