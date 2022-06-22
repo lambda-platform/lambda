@@ -105,7 +105,7 @@ func TableMetaToStruct(columns []lambdaModels.TableMeta, table string, hiddenCol
 		subStchemas := ""
 
 		for _, sub := range Subs {
-			subStchemas = subStchemas + "\n    " + strcase.ToCamel(sub) + " []*" + strcase.ToCamel(sub) + ""
+			subStchemas = subStchemas + "\n    " + strcase.ToCamel(sub) + " []*" + strcase.ToCamel(sub) + "`gorm:\"-:all\"`"
 		}
 
 		struc_, _ := DBSchema.GenerateWithImports("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, subStchemas, "", "")

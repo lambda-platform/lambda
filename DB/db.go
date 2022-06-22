@@ -18,9 +18,12 @@ var onceDb sync.Once
 func init() {
 	onceDb.Do(func() {
 
-		Config := &gorm.Config{}
+		Config := &gorm.Config{
+			DisableNestedTransaction: true,
+		}
 		if config.Config.Database.Debug {
 			Config.Logger = logger.Default.LogMode(logger.Info)
+
 		}
 
 		if config.Config.Database.Connection == "mssql" {
