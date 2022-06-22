@@ -1,9 +1,9 @@
 package datagrid
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	"github.com/lambda-platform/lambda/models"
+	"gorm.io/gorm"
 )
 
 type Datagrid struct {

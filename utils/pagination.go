@@ -1,10 +1,9 @@
 package utils
 
 import (
+	"gorm.io/gorm"
 	"math"
-	"github.com/jinzhu/gorm"
 )
-
 
 type Param struct {
 	DB      *gorm.DB
@@ -16,30 +15,30 @@ type Param struct {
 // Paginator
 type Paginator struct {
 	//To int         `json:"to"`
-	Total int         `json:"total"`
-	LastPage   int         `json:"last_page"`
-	Data     interface{} `json:"data"`
+	Total       int64       `json:"total"`
+	LastPage    int         `json:"last_page"`
+	Data        interface{} `json:"data"`
 	Offset      int         `json:"offset"`
 	Limit       int         `json:"limit"`
-	CurrentPage        int         `json:"current_page"`
+	CurrentPage int         `json:"current_page"`
 	PrevPage    int         `json:"prev_page"`
 	NextPage    int         `json:"next_page"`
 }
 
 type gridResult struct {
-	CurrentPage string `json:"current_page"`
-	Data interface{} `json:"data"`
+	CurrentPage string      `json:"current_page"`
+	Data        interface{} `json:"data"`
 	//Data map[string]map[string]string `json:"data"`
 	FirstPageUrl string `json:"first_page_url"`
-	From int `json:"from"`
-	LastPage int `json:"last_page"`
-	LastPageUrl string `json:"last_page_url"`
-	NextPageUrl string `json:"next_page_url"`
-	Path string `json:"path"`
-	PerPage string `json:"per_page"`
-	PrevPageUrl string `json:"prev_page_url"`
-	To int `json:"to"`
-	Total int `json:"total"`
+	From         int    `json:"from"`
+	LastPage     int    `json:"last_page"`
+	LastPageUrl  string `json:"last_page_url"`
+	NextPageUrl  string `json:"next_page_url"`
+	Path         string `json:"path"`
+	PerPage      string `json:"per_page"`
+	PrevPageUrl  string `json:"prev_page_url"`
+	To           int    `json:"to"`
+	Total        int    `json:"total"`
 }
 
 // Paging
@@ -56,10 +55,9 @@ func Paging(p *Param, result interface{}) *Paginator {
 		p.Limit = 10
 	}
 
-
 	done := make(chan bool, 1)
 	var paginator Paginator
-	var count int
+	var count int64
 	var offset int
 
 	go countRecords(db, result, done, &count)
@@ -73,11 +71,9 @@ func Paging(p *Param, result interface{}) *Paginator {
 	db.Limit(p.Limit).Offset(offset).Find(result)
 	<-done
 
-
 	paginator.Total = count
 	paginator.Data = result
 	paginator.CurrentPage = p.Page
-
 
 	paginator.Offset = offset
 	paginator.Limit = p.Limit
@@ -97,7 +93,7 @@ func Paging(p *Param, result interface{}) *Paginator {
 	return &paginator
 }
 
-func countRecords(db *gorm.DB, anyType interface{}, done chan bool, count *int) {
+func countRecords(db *gorm.DB, anyType interface{}, done chan bool, count *int64) {
 	db.Model(anyType).Count(count)
 	done <- true
 }

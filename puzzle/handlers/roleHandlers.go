@@ -116,7 +116,6 @@ func CreateRole(c echo.Context) error {
 	role.DisplayName = role_.DisplayName
 	role.Name = role_.Name
 
-	DB.DB.NewRecord(role)
 	err := DB.DB.Create(&role).Error
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{

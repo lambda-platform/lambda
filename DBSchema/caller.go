@@ -3,15 +3,15 @@ package DBSchema
 import (
 	"database/sql"
 	"fmt"
-	"github.com/lambda-platform/lambda/DB"
 	"github.com/iancoleman/strcase"
-
+	"github.com/lambda-platform/lambda/DB"
 )
+
 func GetStruct(table string) {
 
-	if(table != ""){
+	if table != "" {
 		var DB_ *sql.DB
-		DB_ = DB.DB.DB()
+		DB_, _ = DB.DB.DB()
 		hiddenColumns := []string{}
 		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
 		//fmt.Println(columnDataTypes)
@@ -24,14 +24,13 @@ func GetStruct(table string) {
 		fmt.Println(string(struc_))
 	}
 
-
 }
 
-func TableToStruct(table string, hiddenColumns []string, pkgName string, Subs []string) string{
+func TableToStruct(table string, hiddenColumns []string, pkgName string, Subs []string) string {
 
-	if(table != ""){
+	if table != "" {
 		var DB_ *sql.DB
-		DB_ = DB.DB.DB()
+		DB_, _ = DB.DB.DB()
 
 		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
 		//fmt.Println(columnDataTypes)
@@ -40,16 +39,13 @@ func TableToStruct(table string, hiddenColumns []string, pkgName string, Subs []
 			fmt.Println("Error in creating struct from json: " + err.Error())
 		}
 
-
-
 		subStchemas := ""
 
-		for _, sub := range Subs{
-			subStchemas = subStchemas+"\n    "+strcase.ToCamel(sub)+" []*"+strcase.ToCamel(sub)+""
+		for _, sub := range Subs {
+			subStchemas = subStchemas + "\n    " + strcase.ToCamel(sub) + " []*" + strcase.ToCamel(sub) + ""
 		}
 
 		struc_, _ := GenerateWithImports("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, subStchemas, "", "")
-
 
 		return string(struc_)
 	}
@@ -58,11 +54,11 @@ func TableToStruct(table string, hiddenColumns []string, pkgName string, Subs []
 
 }
 
-func TableToStructNoTime(table string, hiddenColumns []string, pkgName string) string{
+func TableToStructNoTime(table string, hiddenColumns []string, pkgName string) string {
 
-	if(table != ""){
+	if table != "" {
 		var DB_ *sql.DB
-		DB_ = DB.DB.DB()
+		DB_, _ = DB.DB.DB()
 
 		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
 		//fmt.Println(columnDataTypes)
@@ -73,7 +69,6 @@ func TableToStructNoTime(table string, hiddenColumns []string, pkgName string) s
 
 		struc_, _ := GenerateWithImportsNoTime("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, "", "")
 
-
 		return string(struc_)
 	}
 
@@ -81,11 +76,11 @@ func TableToStructNoTime(table string, hiddenColumns []string, pkgName string) s
 
 }
 
-func TableToGraphqlOrderBy(table string, hiddenColumns []string) string{
+func TableToGraphqlOrderBy(table string, hiddenColumns []string) string {
 
-	if(table != ""){
+	if table != "" {
 		var DB_ *sql.DB
-		DB_ = DB.DB.DB()
+		DB_, _ = DB.DB.DB()
 
 		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
 		//fmt.Println(columnDataTypes)
@@ -103,15 +98,13 @@ func TableToGraphqlOrderBy(table string, hiddenColumns []string) string{
 
 }
 
+func TableToGraphql(table string, hiddenColumns []string, Subs []string, isInpute bool) string {
 
-func TableToGraphql(table string, hiddenColumns []string, Subs []string, isInpute bool) string{
-
-	if(table != ""){
+	if table != "" {
 		var DB_ *sql.DB
-		DB_ = DB.DB.DB()
+		DB_, _ = DB.DB.DB()
 
 		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
-
 
 		if err != nil {
 			fmt.Println("Error in creating struct from json: " + err.Error())
@@ -126,11 +119,11 @@ func TableToGraphql(table string, hiddenColumns []string, Subs []string, isInput
 
 }
 
-func TableColumns(table string, hiddenColumns []string) string{
+func TableColumns(table string, hiddenColumns []string) string {
 
-	if(table != ""){
+	if table != "" {
 		var DB_ *sql.DB
-		DB_ = DB.DB.DB()
+		DB_, _ = DB.DB.DB()
 
 		columns, err := GetColumns(DB_, table, hiddenColumns)
 		if err != nil {
@@ -143,12 +136,11 @@ func TableColumns(table string, hiddenColumns []string) string{
 
 }
 
+func TableColumnsWithMeta(table string, hiddenColumns []string) []map[string]string {
 
-func TableColumnsWithMeta(table string, hiddenColumns []string) []map[string]string{
-
-	if(table != ""){
+	if table != "" {
 		var DB_ *sql.DB
-		DB_ = DB.DB.DB()
+		DB_, _ = DB.DB.DB()
 
 		columns, err := GetColumnsWithMeta(DB_, table, hiddenColumns)
 		if err != nil {

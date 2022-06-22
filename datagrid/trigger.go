@@ -1,8 +1,8 @@
 package datagrid
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func ExecTrigger(action string, data interface{}, datagrid Datagrid, query *gorm.DB, c echo.Context) (interface{}, *gorm.DB, bool, bool) {

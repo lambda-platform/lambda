@@ -52,7 +52,7 @@ func AuthUserObject(c echo.Context) map[string]interface{} {
 	} else {
 		query = fmt.Sprintf("SELECT * FROM users WHERE id = %d", int(Id.(float64)))
 	}
-	rows, _ := DB.DB.DB().Query(query)
+	rows, _ := DB.DB.Raw(query).Rows()
 
 	columns, _ := rows.Columns()
 	count := len(columns)
@@ -134,7 +134,7 @@ func AuthUserObject(c echo.Context) map[string]interface{} {
 func AuthUserObjectByLogin(login string) map[string]interface{} {
 	userData := map[string]interface{}{}
 
-	rows, errorDB := DB.DB.DB().Query(fmt.Sprintf("SELECT * FROM users WHERE login = '%s'", login))
+	rows, errorDB := DB.DB.Raw(fmt.Sprintf("SELECT * FROM users WHERE login = '%s'", login)).Rows()
 
 	//fmt.Println(login)
 	fmt.Println(errorDB)
@@ -200,7 +200,7 @@ func AuthUserObjectByLogin(login string) map[string]interface{} {
 }
 func AuthUserObjectByEmail(login string) map[string]interface{} {
 
-	rows, _ := DB.DB.DB().Query(fmt.Sprintf("SELECT * FROM users WHERE email = '%s'", login))
+	rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT * FROM users WHERE email = '%s'", login)).Rows()
 
 	columns, _ := rows.Columns()
 	count := len(columns)

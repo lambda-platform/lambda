@@ -453,7 +453,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 		}, &data)
 		Paginate.%s = data
 		Paginate.LastPage = pagination.LastPage
-		Paginate.Total = pagination.Total
+		Paginate.Total = int(pagination.Total)
 		%s
 	}`, strings.ToLower(table.Table), authCheck, table.Identity, parentConnectsions, modelAlias, modelAlias, modelAlias, paginationReturn) + "\n"
 

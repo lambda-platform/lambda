@@ -44,18 +44,18 @@ func Import(c echo.Context) error {
 			if data.Kruds[index].Form >= 1 {
 
 				data.Kruds[index].FormSchema.ID = 0
-				DB.DB.Table(schemaTable).NewRecord(&data.Kruds[index].FormSchema)
+
 				DB.DB.Table(schemaTable).Create(&data.Kruds[index].FormSchema)
 				data.Kruds[index].Form = data.Kruds[index].FormSchema.ID
 			}
 			if data.Kruds[index].Grid >= 1 {
 				data.Kruds[index].GridSchema.ID = 0
-				DB.DB.Table(schemaTable).NewRecord(&data.Kruds[index].GridSchema)
+
 				DB.DB.Table(schemaTable).Create(&data.Kruds[index].GridSchema)
 				data.Kruds[index].Grid = data.Kruds[index].GridSchema.ID
 			}
 			data.Kruds[index].ID = 0
-			DB.DB.Table(krudTable).NewRecord(&data.Kruds[index])
+
 			DB.DB.Table(krudTable).Create(&data.Kruds[index])
 
 		}

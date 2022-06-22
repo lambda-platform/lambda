@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"github.com/lambda-platform/lambda/DB"
+	"gorm.io/gorm"
 	"strings"
 )
 
@@ -55,7 +56,7 @@ func Filter(filtersPre interface{}, query *gorm.DB, columns []string) (*gorm.DB,
 			k := filter["column"]
 			v := filter["value"]
 
-			if(v != ""){
+			if v != "" {
 				switch filter["condition"] {
 
 				case "equals":
@@ -79,9 +80,9 @@ func Filter(filtersPre interface{}, query *gorm.DB, columns []string) (*gorm.DB,
 				case "lessThanOrEqual":
 					query = query.Where(k+" <= ?", v)
 				case "isNull":
-					query = query.Where(k+" IS NULL")
+					query = query.Where(k + " IS NULL")
 				case "notNull":
-					query = query.Where(k+" IS NOT NULL")
+					query = query.Where(k + " IS NOT NULL")
 				case "whereIn":
 					query = query.Where(k+" IN (?)", strings.Split(v, ","))
 
@@ -97,20 +98,21 @@ func Filter(filtersPre interface{}, query *gorm.DB, columns []string) (*gorm.DB,
 
 	return query, nil
 }
-func GroupFilter(filterGroupsPre interface{}, query *gorm.DB, columns []string) (*gorm.DB, error) {
+func GroupFilter(filterGroupsPre interface{}, queryMain *gorm.DB, columns []string) (*gorm.DB, error) {
 
 	var filterGroups []map[string]interface{}
 	order, err := json.Marshal(filterGroupsPre)
 	if err != nil {
-		return query, errors.New("Please insert correct filter group value")
+		return queryMain, errors.New("Please insert correct filter group value")
 	}
 	err2 := json.Unmarshal(order, &filterGroups)
 
 	if err2 != nil {
-		return query, errors.New("Please insert correct filter group value")
+		return queryMain, errors.New("Please insert correct filter group value")
 	}
 
 	if len(filterGroups) >= 1 {
+		query := DB.DB
 		for _, filterGroup := range filterGroups {
 
 			var combine string = filterGroup["combine"].(string)
@@ -120,12 +122,12 @@ func GroupFilter(filterGroupsPre interface{}, query *gorm.DB, columns []string) 
 				var filters []map[string]string
 				order, err := json.Marshal(filterGroup["filters"])
 				if err != nil {
-					return query, errors.New("Please insert correct filter value")
+					return queryMain, errors.New("Please insert correct filter value")
 				}
 				err2 := json.Unmarshal(order, &filters)
 
 				if err2 != nil {
-					return query, errors.New("Please insert correct filter value")
+					return queryMain, errors.New("Please insert correct filter value")
 				}
 
 				if len(filters) >= 1 {
@@ -139,7 +141,7 @@ func GroupFilter(filterGroupsPre interface{}, query *gorm.DB, columns []string) 
 						k := filter["column"]
 						v := filter["value"]
 
-						if(v != ""){
+						if v != "" {
 							switch filter["condition"] {
 
 							case "equals":
@@ -242,17 +244,17 @@ func GroupFilter(filterGroupsPre interface{}, query *gorm.DB, columns []string) 
 
 				}
 
-
-
 			} else {
-				return query, errors.New("Combine value must be OR, AND")
+				return queryMain, errors.New("combine value must be OR, AND")
 			}
 
 		}
 
+		return queryMain.Where(query), nil
+	} else {
+		return queryMain, nil
 	}
 
-	return query, nil
 }
 func CheckColumns(column string, columns []string) error {
 	for _, value := range columns {
@@ -265,8 +267,9 @@ func CheckColumns(column string, columns []string) error {
 
 type CustomContext struct {
 	echo.Context
-	ctx    context.Context
+	ctx context.Context
 }
+
 func Process(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := context.WithValue(c.Request().Context(), "EchoContextKey", c)

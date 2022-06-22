@@ -44,15 +44,15 @@ func FetchData(c echo.Context, datagrid Datagrid) error {
 
 		res := utils.Paginator{
 			Data:        triggerData,
-			Total:       len(triggerData.([]interface{})),
+			Total:       int64(len(triggerData.([]interface{}))),
 			CurrentPage: 1,
 		}
 		return c.JSON(http.StatusOK, res)
 	} else if skipPagination {
 		data := query.Find(&datagrid.Data)
 		res := utils.Paginator{
-			Data:        data.Value,
-			Total:       int(data.RowsAffected),
+			Data:        &datagrid.Data,
+			Total:       int64(int(data.RowsAffected)),
 			CurrentPage: 1,
 		}
 		return c.JSON(http.StatusOK, res)

@@ -16,7 +16,7 @@ import (
 )
 
 func GetNewNotifications(c echo.Context) error {
-	var unseenCount int
+	var unseenCount int64
 	user_id := c.Param("user_id")
 	DB.DB.Table("notification_status").Where("receiver_id = ? and seen = 0", user_id).Count(&unseenCount)
 
@@ -242,7 +242,7 @@ func CreateNotification(data models.NotificationData) int64 {
 		Body:      data.Data.Body,
 		CreatedAt: time.Now(),
 	}
-	DB.DB.NewRecord(notification)
+
 	DB.DB.Create(&notification)
 
 	if data.Data.FirstName == "" {
@@ -261,7 +261,7 @@ func CreateNotification(data models.NotificationData) int64 {
 			Seen:       0,
 			SeenTime:   time.Now(),
 		}
-		DB.DB.NewRecord(NotificationStatus)
+
 		DB.DB.Create(&NotificationStatus)
 	}
 

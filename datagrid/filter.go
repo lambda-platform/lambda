@@ -3,10 +3,10 @@ package datagrid
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/utils"
+	"gorm.io/gorm"
 	"reflect"
 	"strings"
 )

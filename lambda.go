@@ -2,7 +2,6 @@ package lambda
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
 )
 
@@ -13,7 +12,7 @@ type Lambda struct {
 
 func (app *Lambda) Start() {
 	app.Echo.Logger.Fatal(app.Echo.Start(":" + config.Config.App.Port))
-	defer DB.DB.Close()
+	//defer DB.DB.Close()
 }
 
 type Settings struct {

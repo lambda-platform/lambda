@@ -1,13 +1,12 @@
 package mailer
 
-
 import (
 	"bytes"
 	"fmt"
+	"github.com/lambda-platform/lambda/config"
 	"html/template"
 	"log"
 	"net/smtp"
-	"github.com/lambda-platform/lambda/config"
 )
 
 type Request struct {
@@ -55,6 +54,15 @@ func (r *Request) Send(templateName string, items interface{}) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if ok := r.sendMail(); ok {
+		return true
+	} else {
+		return false
+	}
+}
+func (r *Request) SendByTemplate(templateString string) bool {
+
+	r.body = templateString
 	if ok := r.sendMail(); ok {
 		return true
 	} else {

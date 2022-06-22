@@ -73,7 +73,6 @@ func SendForgotMail(c echo.Context) error {
 	pReset.Token = token
 	pReset.CreatedAt = time.Now()
 
-	DB.DB.NewRecord(&pReset)
 	DB.DB.Create(&pReset)
 
 	mail := mailer.NewRequest([]string{data.Email}, StaticWords["passwordResetCode"].(string))

@@ -16,7 +16,7 @@ func CountData(c echo.Context) (err error) {
 	}
 
 	if len(request.CountFields) == 1 {
-		var count int
+		var count int64
 		DB.DB.Table(request.CountFields[0].Table).Count(&count)
 		return c.JSON(http.StatusOK, count)
 	} else {
@@ -248,8 +248,8 @@ func GetTableData(Table string, Columns string, Condition string, GroupBy string
 	}
 
 	//fmt.Println("SELECT " + Columns + "  FROM " + Table + filter + GroupBySting + OrderQr + LimitQr)
-	qr := "SELECT " + Columns + "  FROM " + Table + filter + GroupBySting + OrderQr+ LimitQr
-	rows, _ := DB.DB.DB().Query(qr)
+	qr := "SELECT " + Columns + "  FROM " + Table + filter + GroupBySting + OrderQr + LimitQr
+	rows, _ := DB.DB.Raw(qr).Rows()
 
 	/*start*/
 	columns, _ := rows.Columns()

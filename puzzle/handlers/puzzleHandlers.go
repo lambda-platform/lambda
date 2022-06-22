@@ -250,8 +250,6 @@ func SaveVB(modelName string) echo.HandlerFunc {
 
 			//err := vb.Insert(context.Background(), DB, boil.Infer())
 
-			DB.DB.NewRecord(vb) // => returns `true` as primary key is blank
-
 			err := DB.DB.Create(&vb).Error
 
 			if type_ == "form" {
@@ -458,8 +456,6 @@ func SaveProjectVB(modelName string) echo.HandlerFunc {
 			}
 
 			//err := vb.Insert(context.Background(), DB, boil.Infer())
-
-			DB.DB.NewRecord(vb) // => returns `true` as primary key is blank
 
 			err := DB.DB.Create(&vb).Error
 
