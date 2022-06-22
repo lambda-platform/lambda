@@ -741,7 +741,7 @@ func createActions(table models.GqlTable, modelAlias string, colunms []map[strin
 func Create%s(ctx context.Context, input model.%sInput) (*models.%s, error) {
 			row := models.%s{}
 			%s
-			DB.DB.NewRecord(row)
+			
 			err := DB.DB.Create(&row).Error
 			return &row, err
 		}`
