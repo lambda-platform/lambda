@@ -55,12 +55,11 @@ func Paging(p *Param, result interface{}) *Paginator {
 		p.Limit = 10
 	}
 
-	done := make(chan bool, 1)
 	var paginator Paginator
 	var count int64
 	var offset int
 
-	go countRecords(db, result, done, &count)
+	countRecords(db, result, &count)
 
 	if p.Page == 1 {
 		offset = 0
@@ -69,7 +68,6 @@ func Paging(p *Param, result interface{}) *Paginator {
 	}
 
 	db.Limit(p.Limit).Offset(offset).Find(result)
-	<-done
 
 	paginator.Total = count
 	paginator.Data = result
@@ -93,7 +91,6 @@ func Paging(p *Param, result interface{}) *Paginator {
 	return &paginator
 }
 
-func countRecords(db *gorm.DB, anyType interface{}, done chan bool, count *int64) {
+func countRecords(db *gorm.DB, anyType interface{}, count *int64) {
 	db.Model(anyType).Count(count)
-	done <- true
 }

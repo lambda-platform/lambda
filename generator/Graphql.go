@@ -429,6 +429,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 		%s
 		requestColumns = append(requestColumns, "%s")
 		requestColumns = append(requestColumns, []string{%s}...)
+ 		requestColumns = utils.RemoveDuplicateStr(requestColumns)
 		query = query.Select(requestColumns)
 		data := []*models.%s{}
 		
