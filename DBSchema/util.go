@@ -2,52 +2,12 @@ package DBSchema
 
 import (
 	"fmt"
-	"github.com/iancoleman/strcase"
 	"go/format"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
-// Constants for return types of golang
-const (
-	golangByteArray = "[]byte"
-	//gureguNullInt    = "null.Int"
-	gureguNullInt   = "*int"
-	sqlNullInt      = "sql.NullInt64"
-	golangInt       = "int"
-	golangBool      = "bool"
-	golangInt64     = "int64"
-	gureguNullFloat = "float32"
-	sqlNullFloat    = "sql.NullFloat64"
-	golangFloat     = "float"
-	golangFloat32   = "float32"
-	golangFloat64   = "float64"
-	//gureguNullString = "null.String"
-	gureguNullString = "*string"
-	sqlNullString    = "*string"
-	//gureguNullTime   = "null.Time"
-	gureguNullTime = "*time.Time"
-	golangTime     = "time.Time"
-	date           = "DB.Date"
-	dateNull       = "*DB.Date"
-)
-const (
-	gqlNullInt    = "Int"
-	gqlInt        = "Int!"
-	gqlNullFloat  = "Float"
-	gqlFloat      = "Float!"
-	gqlNullString = "String"
-	gqlString     = "String!"
-	gqlNullTime   = "Time"
-	gqlTime       = "Time!"
-	dbNullDate    = "Date"
-	dbDate        = "Date!"
-)
-
-// commonInitialisms is a set of common initialisms.
-// Only add entries that are highly unlikely to be non-initialisms.
-// For instance, "ID" is fine (Freudian code is rare), but "AND" is not.
 var commonInitialisms = map[string]bool{
 	"API":   true,
 	"ASCII": true,
@@ -95,15 +55,12 @@ var intToWordMap = []string{
 	"nine",
 }
 
-//Debug level logging
 var Debug = false
 
-// Generate Given a Column map with datatypes and a name structName,
-// attempts to generate a struct definition
 func Generate(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
-	dbTypes, _, _ = generateMysqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
+	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
 	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \n"
 
@@ -126,125 +83,7 @@ func Generate(columnTypes map[string]map[string]string, tableName string, struct
 	}
 	return formatted, err
 }
-func GenerateOnlyStruct(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
-	var dbTypes string
 
-	dbTypes, _, _ = generateMysqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
-	src := fmt.Sprintf("\n  \ntype %s %s %s} %s",
-		structName,
-		dbTypes,
-		extraColumns, extraStucts)
-	if gormAnnotation == true {
-		tableNameFunc := "" +
-			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
-			"	return \"" + tableName + "\"" +
-			"}"
-		src = fmt.Sprintf("%s\n%s", src, tableNameFunc)
-	}
-	formatted, err := format.Source([]byte(src))
-	if err != nil {
-
-		err = fmt.Errorf("error formatting: %s, was formatting\n%s", err, src)
-	}
-	return formatted, err
-}
-func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
-
-	dbTypes := generateQraphqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
-	subStchemas := ""
-
-	for _, sub := range Subs {
-		subStchemas = subStchemas + "\n    " + sub + ":[" + strcase.ToCamel(sub) + "!]"
-	}
-
-	typeSchema := "type"
-	if isInpute {
-		typeSchema = "input"
-		structName = structName + "Input"
-	}
-	src := fmt.Sprintf("%s %s %s %s %s \n} %s",
-		typeSchema,
-		structName,
-		dbTypes,
-		extraColumns, subStchemas, extraStucts)
-
-	return []byte(src), nil
-}
-func GenerateGrapqlOrder(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
-
-	dbTypes := generateQraphqlTypesOrder(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
-	src := fmt.Sprintf("\n  \ninput %s %s %s \n} %s",
-		structName,
-		dbTypes,
-		extraColumns, extraStucts)
-
-	return []byte(src), nil
-}
-func GenerateWithImports(otherPackage string, columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, virtualColums string) ([]byte, error) {
-	var dbTypes string
-
-	dbTypes, _, _ = generateMysqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
-	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \n"
-	src := fmt.Sprintf("package %s\n %s\n %s\n \ntype %s %s %s %s} %s",
-		pkgName,
-		otherPackage,
-		importTime,
-		structName,
-		dbTypes,
-		extraColumns, virtualColums, extraStucts)
-	if gormAnnotation == true {
-		tableNameFunc := "//  TableName sets the insert table name for this struct type\n " +
-			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
-			"	return \"" + tableName + "\"" +
-			"}"
-		src = fmt.Sprintf("%s\n%s", src, tableNameFunc)
-	}
-	formatted, err := format.Source([]byte(src))
-	if err != nil {
-		err = fmt.Errorf("error formatting: %s, was formatting\n%s", err, src)
-	}
-	return formatted, err
-}
-func GenerateWithImportsNoTime(otherPackage string, columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
-	var dbTypes string
-
-	dbTypes, timeFound := generateMysqlTypesNoTime(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
-	var _ = timeFound
-	importTime := ""
-	//if time_found {
-	//	importTime = "import \"time\" \n var _ = time.Time{}  \n"
-	//}
-	src := fmt.Sprintf("package %s\n %s\n %s\n \ntype %s %s %s} %s",
-		pkgName,
-		otherPackage,
-		importTime,
-		structName,
-		dbTypes,
-		extraColumns, extraStucts)
-	if gormAnnotation == true {
-		tableNameFunc := "//  TableName sets the insert table name for this struct type\n " +
-			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
-			"	return \"" + tableName + "\"" +
-			"}"
-		src = fmt.Sprintf("%s\n%s", src, tableNameFunc)
-	}
-	formatted, err := format.Source([]byte(src))
-	if err != nil {
-		err = fmt.Errorf("error formatting: %s, was formatting\n%s", err, src)
-	}
-	return formatted, err
-}
-
-// fmtFieldName formats a string as a struct key
-//
-// Example:
-// 	fmtFieldName("foo_id")
-// Output: FooID
 func FmtFieldName(s string) string {
 
 	if s != "" {
@@ -342,7 +181,6 @@ func lintFieldName(name string) string {
 	return string(runes)
 }
 
-// convert first character ints to strings
 func StringifyFirstChar(str string) string {
 	if str != "" {
 		first := str[:1]

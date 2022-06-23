@@ -11,7 +11,7 @@ var _ = DB.Date{}
 type NotificationTargets struct {
 	Body          string `gorm:"column:body" json:"body"`
 	Condition     string `gorm:"column:condition" json:"condition"`
-	ID            int    `gorm:"column:id;primary_key" json:"id"`
+	ID            int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Link          string `gorm:"column:link" json:"link"`
 	SchemaID      int    `gorm:"column:schema_id" json:"schema_id"`
 	TargetActions string `gorm:"column:target_actions" json:"target_actions"`

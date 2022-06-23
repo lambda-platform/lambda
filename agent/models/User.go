@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	ID             int64      `gorm:"column:id;primary_key" json:"id"`
+	ID             int64      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	CreatedAt      *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
@@ -31,7 +31,7 @@ func (v *User) TableName() string {
 }
 
 type UserUUID struct {
-	ID             string     `gorm:"column:id;primary_key;type:varchar;default:gen_random_uuid()" json:"id"`
+	ID             string     `gorm:"column:id;primaryKey;autoIncrement;type:varchar;default:gen_random_uuid()" json:"id"`
 	CreatedAt      *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
@@ -57,7 +57,7 @@ func (v *UserUUID) TableName() string {
 }
 
 type UserWithoutPassword struct {
-	ID             int64      `gorm:"column:id;primary_key" json:"id"`
+	ID             int64      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	CreatedAt      *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
@@ -82,7 +82,7 @@ func (v *UserWithoutPassword) TableName() string {
 }
 
 type UserWithoutPasswordUUID struct {
-	ID             string     `gorm:"column:id;primary_key" json:"id"`
+	ID             string     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	CreatedAt      *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      *time.Time `gorm:"column:deleted_at" json:"deleted_at"`

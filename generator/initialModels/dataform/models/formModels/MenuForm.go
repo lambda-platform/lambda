@@ -9,7 +9,7 @@ var _ = time.Time{}
 var _ = DB.Date{}
 
 type VbSchemas struct {
-	ID        int        `gorm:"column:id;primary_key" json:"id"`
+	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name      string     `gorm:"column:name" json:"name"`
 	Schema    string     `gorm:"column:schema" json:"schema"`
 	Type      string     `gorm:"column:type" json:"type"`

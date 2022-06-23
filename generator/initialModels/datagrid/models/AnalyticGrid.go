@@ -53,13 +53,13 @@ var AnalyticGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 }
 
 type AnalyticGrid struct {
-	ID     int    `gorm:"column:id;primary_key" json:"id"`
+	ID     int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Source string `gorm:"column:source" json:"source"`
 	Title  string `gorm:"column:title" json:"title"`
 }
 
 type AnalyticMainTable struct {
-	ID     int    `gorm:"column:id;primary_key" json:"id"`
+	ID     int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Source string `gorm:"column:source" json:"source"`
 	Title  string `gorm:"column:title" json:"title"`
 }

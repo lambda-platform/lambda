@@ -1,6 +1,9 @@
 package grid
 
-import "github.com/lambda-platform/lambda/datagrid"
+import (
+	"github.com/lambda-platform/lambda/datagrid"
+	"github.com/lambda-platform/lambda/models"
+)
 
 import (
 	"github.com/lambda-platform/lambda/DB"
@@ -14,7 +17,7 @@ type CrudLog struct {
 	Action    string     `gorm:"column:action" json:"action"`
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
 	FirstName string     `gorm:"column:first_name" json:"first_name"`
-	ID        int        `gorm:"column:id" json:"id"`
+	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Input     string     `gorm:"column:input" json:"input"`
 	IP        string     `gorm:"column:ip" json:"ip"`
 	LastName  string     `gorm:"column:last_name" json:"last_name"`
@@ -26,7 +29,7 @@ type CrudLog struct {
 type CrudLogMainTable struct {
 	Action    string     `gorm:"column:action" json:"action"`
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
-	ID        int        `gorm:"column:id;primary_key" json:"id"`
+	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Input     string     `gorm:"column:input" json:"input"`
 	IP        string     `gorm:"column:ip" json:"ip"`
 	RowID     string     `gorm:"column:row_id" json:"row_id"`
@@ -69,7 +72,7 @@ var CrudLogDatagrid datagrid.Datagrid = datagrid.Datagrid{
 
 		"schemaId": "Select",
 	},
-	Relations:   []datagrid.Relation{},
+	Relations:   []models.GridRelation{},
 	Condition:   "",
 	Aggergation: "",
 	Triggers: map[string]interface{}{

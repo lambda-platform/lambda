@@ -3,17 +3,16 @@ package models
 import "time"
 
 type Role struct {
-	ID        int     `gorm:"column:id;primary_key" json:"id"`
-	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
-	Name      string    `gorm:"column:name;not null;unique" json:"name"`
-	DisplayName    string    `gorm:"column:display_name" json:"display_name"`
-	Description    string    `gorm:"column:description" json:"description"`
-	Permissions    string    `gorm:"column:permissions;type:TEXT" json:"permissions"`
-	Extra    string    `gorm:"column:extra;type:TEXT" json:"extra"`
-	Menu    string    `gorm:"column:menu" json:"menu"`
-
+	ID          int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	CreatedAt   *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt   *time.Time `gorm:"column:updated_at" json:"updated_at"`
+	DeletedAt   *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
+	Name        string     `gorm:"column:name;not null;unique" json:"name"`
+	DisplayName string     `gorm:"column:display_name" json:"display_name"`
+	Description string     `gorm:"column:description" json:"description"`
+	Permissions string     `gorm:"column:permissions;type:TEXT" json:"permissions"`
+	Extra       string     `gorm:"column:extra;type:TEXT" json:"extra"`
+	Menu        string     `gorm:"column:menu" json:"menu"`
 }
 
 //  TableName sets the insert table name for this struct type

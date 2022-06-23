@@ -29,7 +29,7 @@ type CrudLog struct {
 type CrudLogMainTable struct {
 	Action    string     `gorm:"column:action" json:"action"`
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
-	ID        int        `gorm:"column:id;primary_key" json:"id"`
+	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Input     string     `gorm:"column:input" json:"input"`
 	IP        string     `gorm:"column:ip" json:"ip"`
 	RowID     string     `gorm:"column:row_id" json:"row_id"`

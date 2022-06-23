@@ -1,6 +1,9 @@
 package grid
 
-import "github.com/lambda-platform/lambda/datagrid"
+import (
+	"github.com/lambda-platform/lambda/datagrid"
+	"github.com/lambda-platform/lambda/models"
+)
 
 import (
 	"github.com/lambda-platform/lambda/DB"
@@ -11,14 +14,14 @@ var _ = time.Time{}
 var _ = DB.Date{}
 
 type NotificationTarget struct {
-	ID    int64  `gorm:"column:id;primary_key" json:"id"`
+	ID    int64  `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Title string `gorm:"column:title" json:"title"`
 }
 
 type NotificationTargetMainTable struct {
 	Body       string `gorm:"column:body" json:"body"`
 	Condition  string `gorm:"column:condition" json:"condition"`
-	ID         int64  `gorm:"column:id;primary_key" json:"id"`
+	ID         int64  `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Link       string `gorm:"column:link" json:"link"`
 	SchemaID   int    `gorm:"column:schema_id" json:"schema_id"`
 	TargetRole int    `gorm:"column:target_role" json:"target_role"`
@@ -47,7 +50,7 @@ var NotificationTargetDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	},
 	ColumnList:  []string{"title"},
 	Filters:     map[string]string{},
-	Relations:   []datagrid.Relation{},
+	Relations:   []models.GridRelation{},
 	Condition:   "",
 	Aggergation: "",
 	Triggers: map[string]interface{}{

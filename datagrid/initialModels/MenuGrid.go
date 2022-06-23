@@ -1,6 +1,9 @@
 package grid
 
-import "github.com/lambda-platform/lambda/datagrid"
+import (
+	"github.com/lambda-platform/lambda/datagrid"
+	"github.com/lambda-platform/lambda/models"
+)
 
 import (
 	"github.com/lambda-platform/lambda/DB"
@@ -12,7 +15,7 @@ var _ = DB.Date{}
 
 type MenuGrid struct {
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	ID        int64     `gorm:"column:id;primary_key" json:"id"`
+	ID        int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name      string    `gorm:"column:name" json:"name"`
 	Schema    string    `gorm:"column:schema" json:"schema"`
 	Type      string    `gorm:"column:type" json:"type"`
@@ -26,7 +29,7 @@ func (v *MenuGrid) TableName() string {
 
 type MenuGridMain struct {
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-	ID        int64     `gorm:"column:id;primary_key" json:"id"`
+	ID        int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name      string    `gorm:"column:name" json:"name"`
 	Schema    string    `gorm:"column:schema" json:"schema"`
 	Type      string    `gorm:"column:type" json:"type"`
@@ -52,7 +55,7 @@ var MenuGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	},
 	ColumnList:  []string{"name", "created_at"},
 	Filters:     map[string]string{},
-	Relations:   []datagrid.Relation{},
+	Relations:   []models.GridRelation{},
 	Condition:   "type = 'menu'",
 	Aggergation: "",
 	Triggers: map[string]interface{}{

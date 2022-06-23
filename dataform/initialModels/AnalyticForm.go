@@ -13,7 +13,7 @@ type AnalyticForm struct {
 type AnalyticFilterAnalyticForm struct {
 	AnalyticID        int    `gorm:"column:analytic_id" json:"analytic_id"`
 	FilterField       string `gorm:"column:filter_field" json:"filter_field"`
-	ID                int    `gorm:"column:id" json:"id"`
+	ID                int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	NameFeild         string `gorm:"column:name_feild" json:"name_feild"`
 	ParentFeild       string `gorm:"column:parent_feild" json:"parent_feild"`
 	Source            string `gorm:"column:source" json:"source"`
@@ -32,10 +32,10 @@ type AnalyticRowsColumnAnalyticForm struct {
 	CompareFeild       string `gorm:"column:compare_feild" json:"compare_feild"`
 	Comparison         string `gorm:"column:comparison" json:"comparison"`
 	DataCondition      string `gorm:"column:data_condition" json:"data_condition"`
-	ID                 int    `gorm:"column:id" json:"id"`
+	ID                 int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	NameFeild          string `gorm:"column:name_feild" json:"name_feild"`
 	SourceCompareField string `gorm:"column:source_compare_field" json:"source_compare_field"`
-	SourceTable          string `gorm:"column:table_name" json:"table_name"`
+	SourceTable        string `gorm:"column:table_name" json:"table_name"`
 	Title              string `gorm:"column:title" json:"title"`
 	Type               string `gorm:"column:type" json:"type"`
 }
@@ -66,7 +66,7 @@ type AnalyticRangeRowColumnAnalyticForm struct {
 	ID                 int    `gorm:"column:id" json:"id"`
 	SourceCompareField string `gorm:"column:source_compare_field" json:"source_compare_field"`
 	StartField         string `gorm:"column:start_field" json:"start_field"`
-	SourceTable          string `gorm:"column:table_name" json:"table_name"`
+	SourceTable        string `gorm:"column:table_name" json:"table_name"`
 	Title              string `gorm:"column:title" json:"title"`
 	Type               string `gorm:"column:type" json:"type"`
 }
@@ -78,7 +78,7 @@ func (a *AnalyticRangeRowColumnAnalyticForm) TableName() string {
 type AnalyticDateFilterAnalyticForm struct {
 	AnalyticID int    `gorm:"column:analytic_id" json:"analytic_id"`
 	DateField  string `gorm:"column:date_field" json:"date_field"`
-	ID         int    `gorm:"column:id;primary_key" json:"id"`
+	ID         int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Title      string `gorm:"column:title" json:"title"`
 }
 
@@ -93,78 +93,71 @@ func (a *AnalyticForm) TableName() string {
 func (a *AnalyticForm) GetSubForms() []map[string]interface{} {
 	subForms := []map[string]interface{}{
 		map[string]interface{}{
-			"connection_field":"analytic_id",
-			"table":"analytic_filter",
-			"parentIdentity":"id",
-			"subIdentity":"id",
-			"subForm":new([]AnalyticFilterAnalyticForm),
-			"subFormModel":new(AnalyticFilterAnalyticForm),
-
+			"connection_field": "analytic_id",
+			"table":            "analytic_filter",
+			"parentIdentity":   "id",
+			"subIdentity":      "id",
+			"subForm":          new([]AnalyticFilterAnalyticForm),
+			"subFormModel":     new(AnalyticFilterAnalyticForm),
 		},
 		map[string]interface{}{
-			"connection_field":"analytic_id",
-			"table":"analytic_rows_columns",
-			"parentIdentity":"id",
-			"subIdentity":"id",
-			"subForm":new([]AnalyticRowsColumnAnalyticForm),
-			"subFormModel":new(AnalyticRowsColumnAnalyticForm),
-
+			"connection_field": "analytic_id",
+			"table":            "analytic_rows_columns",
+			"parentIdentity":   "id",
+			"subIdentity":      "id",
+			"subForm":          new([]AnalyticRowsColumnAnalyticForm),
+			"subFormModel":     new(AnalyticRowsColumnAnalyticForm),
 		},
 		map[string]interface{}{
-			"connection_field":"analytic_id",
-			"table":"analytic_range_filter",
-			"parentIdentity":"id",
-			"subIdentity":"id",
-			"subForm":new([]AnalyticRangeFilterAnalyticForm),
-			"subFormModel":new(AnalyticRangeFilterAnalyticForm),
-
+			"connection_field": "analytic_id",
+			"table":            "analytic_range_filter",
+			"parentIdentity":   "id",
+			"subIdentity":      "id",
+			"subForm":          new([]AnalyticRangeFilterAnalyticForm),
+			"subFormModel":     new(AnalyticRangeFilterAnalyticForm),
 		},
 		map[string]interface{}{
-			"connection_field":"analytic_id",
-			"table":"analytic_range_row_columns",
-			"parentIdentity":"id",
-			"subIdentity":"id",
-			"subForm":new([]AnalyticRangeRowColumnAnalyticForm),
-			"subFormModel":new(AnalyticRangeRowColumnAnalyticForm),
-
+			"connection_field": "analytic_id",
+			"table":            "analytic_range_row_columns",
+			"parentIdentity":   "id",
+			"subIdentity":      "id",
+			"subForm":          new([]AnalyticRangeRowColumnAnalyticForm),
+			"subFormModel":     new(AnalyticRangeRowColumnAnalyticForm),
 		},
 		map[string]interface{}{
-			"connection_field":"analytic_id",
-			"table":"analytic_date_filter",
-			"parentIdentity":"id",
-			"subIdentity":"id",
-			"subForm":new([]AnalyticDateFilterAnalyticForm),
-			"subFormModel":new(AnalyticDateFilterAnalyticForm),
-
-		},}
-	return subForms }
-func (v *AnalyticForm) GetFromTypes() map[string]string{
-
+			"connection_field": "analytic_id",
+			"table":            "analytic_date_filter",
+			"parentIdentity":   "id",
+			"subIdentity":      "id",
+			"subForm":          new([]AnalyticDateFilterAnalyticForm),
+			"subFormModel":     new(AnalyticDateFilterAnalyticForm),
+		}}
+	return subForms
+}
+func (v *AnalyticForm) GetFromTypes() map[string]string {
 
 	fields := map[string]string{
 
+		"id": "Text",
 
-		"id":"Text",
+		"title": "Text",
 
-		"title":"Text",
+		"source": "Text",
 
-		"source":"Text",
+		"analytic_filter": "SubForm",
 
-		"analytic_filter":"SubForm",
+		"analytic_rows_columns": "SubForm",
 
-		"analytic_rows_columns":"SubForm",
+		"analytic_range_filter": "SubForm",
 
-		"analytic_range_filter":"SubForm",
+		"analytic_range_row_columns": "SubForm",
 
-		"analytic_range_row_columns":"SubForm",
-
-		"analytic_date_filter":"SubForm",
-
+		"analytic_date_filter": "SubForm",
 	}
 
 	return fields
 }
-func (v *AnalyticForm) GetFormula() string{
+func (v *AnalyticForm) GetFormula() string {
 
 	return ""
 }

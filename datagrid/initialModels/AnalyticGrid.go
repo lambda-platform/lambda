@@ -3,6 +3,7 @@ package grid
 import (
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/datagrid"
+	"github.com/lambda-platform/lambda/models"
 	"time"
 )
 
@@ -33,7 +34,7 @@ var AnalyticGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	},
 	ColumnList:  []string{"id", "title", "source"},
 	Filters:     map[string]string{},
-	Relations:   []datagrid.Relation{},
+	Relations:   []models.GridRelation{},
 	Condition:   "",
 	Aggergation: "",
 	Triggers: map[string]interface{}{
@@ -52,13 +53,13 @@ var AnalyticGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 }
 
 type AnalyticGrid struct {
-	ID     int    `gorm:"column:id;primary_key" json:"id"`
+	ID     int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Source string `gorm:"column:source" json:"source"`
 	Title  string `gorm:"column:title" json:"title"`
 }
 
 type AnalyticMainTable struct {
-	ID     int    `gorm:"column:id;primary_key" json:"id"`
+	ID     int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Source string `gorm:"column:source" json:"source"`
 	Title  string `gorm:"column:title" json:"title"`
 }

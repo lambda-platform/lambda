@@ -21,7 +21,7 @@ import (
 )
 
 type vb_schema struct {
-	ID     int    `gorm:"column:id;primary_key" json:"id"`
+	ID     int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name   string `json:"name"`
 	Schema string `json:"schema"`
 }
