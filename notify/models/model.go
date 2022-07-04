@@ -11,9 +11,28 @@ type Notification struct {
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 }
 
-//  TableName sets the insert table name for this struct type
 func (n *Notification) TableName() string {
 	return "notifications"
+}
+
+type UserFcmTokens struct {
+	FcmToken string `gorm:"column:fcm_token" json:"fcm_token"`
+	ID       int64  `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	UserID   int    `gorm:"column:user_id" json:"user_id"`
+}
+
+func (u *UserFcmTokens) TableName() string {
+	return "user_fcm_tokens"
+}
+
+type UserFcmTokensUUID struct {
+	FcmToken string `gorm:"column:fcm_token" json:"fcm_token"`
+	ID       string `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	UserID   string `gorm:"column:user_id" json:"user_id"`
+}
+
+func (u *UserFcmTokensUUID) TableName() string {
+	return "user_fcm_tokens"
 }
 
 type NotificationUUID struct {

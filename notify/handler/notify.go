@@ -11,6 +11,7 @@ import (
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/notify/models"
 	"net/http"
+	"strconv"
 	"time"
 	//"io/ioutil"
 )
@@ -117,35 +118,38 @@ func SetToken(c echo.Context) error {
 	token := c.Param("token")
 
 	if config.Config.SysAdmin.UUID {
-		var User agentModels.UserUUID
+		var savedToken models.UserFcmTokensUUID
 
-		DB.DB.Where("id = ?", user_id).First(&User)
+		DB.DB.Where("user_id = ? AND fcm_token = ?", user_id, token).First(&savedToken)
 
-		if User.ID != "" {
-			User.FcmToken = token
-			DB.DB.Save(&User)
+		if savedToken.ID == "" {
+			savedToken.FcmToken = token
+			savedToken.UserID = user_id
+			DB.DB.Save(&savedToken)
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"status": true,
 			})
 		} else {
 			return c.JSON(http.StatusOK, map[string]interface{}{
-				"status": false,
+				"status": true,
 			})
 		}
 	} else {
-		var User agentModels.User
+		var savedToken models.UserFcmTokens
 
-		DB.DB.Where("id = ?", user_id).First(&User)
+		DB.DB.Where("user_id = ? AND fcm_token", user_id, token).First(&savedToken)
 
-		if User.ID >= 1 {
-			User.FcmToken = token
-			DB.DB.Save(&User)
+		if savedToken.ID == 0 {
+			savedToken.FcmToken = token
+			intID, _ := strconv.Atoi(user_id)
+			savedToken.UserID = intID
+			DB.DB.Save(&savedToken)
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"status": true,
 			})
 		} else {
 			return c.JSON(http.StatusOK, map[string]interface{}{
-				"status": false,
+				"status": true,
 			})
 		}
 	}
