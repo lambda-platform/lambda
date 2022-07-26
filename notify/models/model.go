@@ -41,6 +41,7 @@ type NotificationUUID struct {
 	Sender    string    `gorm:"column:sender" json:"sender"`
 	Title     string    `gorm:"column:title" json:"title"`
 	Body      string    `gorm:"column:body" json:"body"`
+	Data      string    `gorm:"column:data" json:"data"`
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 }
 
@@ -63,7 +64,7 @@ func (n *NotificationStatus) TableName() string {
 }
 
 type NotificationStatusUUID struct {
-	ID         int64     `gorm:"column:id;primaryKey;autoIncrement;default:gen_random_uuid();type:uuid" json:"id"`
+	ID         string    `gorm:"column:id;primaryKey;autoIncrement;default:gen_random_uuid();type:uuid" json:"id"`
 	NotifID    string    `gorm:"column:notif_id;type:uuid" json:"notif_id"`
 	ReceiverID string    `gorm:"column:receiver_id;type:uuid" json:"receiver_id"`
 	Seen       int       `gorm:"column:seen" json:"seen"`
@@ -112,7 +113,7 @@ func (n *UserNotifactionsUUID) TableName() string {
 
 type Payload struct {
 	RegistrationIds []string        `json:"registration_ids"`
-	Data            FCMData         `json:"data"`
+	Data            interface{}     `json:"data"`
 	Notification    FCMNotification `json:"notification"`
 }
 type FCMData struct {
@@ -129,6 +130,8 @@ type FCMData struct {
 type FCMNotification struct {
 	Title       string `json:"title"`
 	Body        string `gorm:"column:body" json:"body"`
+	Sound       string `json:"sound"`
+	Link        string `gorm:"column:link" json:"link"`
 	ClickAction string `gorm:"column:click_action" json:"click_action"`
 	Icon        string `json:"icon"`
 }

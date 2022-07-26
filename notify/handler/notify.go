@@ -77,7 +77,7 @@ func SetSeen(c echo.Context) error {
 
 		DB.DB.Where("notif_id = ? AND receiver_id = ?", id, authUser.ID).First(&status)
 
-		if status.ID >= 1 {
+		if status.ID != "" {
 			status.Seen = 1
 			status.SeenTime = time.Now()
 			DB.DB.Save(&status)
@@ -273,7 +273,7 @@ func CreateNotification(data models.NotificationData) int64 {
 
 }
 
-func SendNotification(receivers []string, msg models.FCMData, notification models.FCMNotification) {
+func SendNotification(receivers []string, msg interface{}, notification models.FCMNotification) {
 
 	data := models.Payload{
 		RegistrationIds: receivers,
