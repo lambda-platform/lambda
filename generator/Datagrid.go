@@ -9,6 +9,7 @@ import (
 	lambdaModels "github.com/lambda-platform/lambda/models"
 	lambdaUtils "github.com/lambda-platform/lambda/utils"
 	"strconv"
+	"strings"
 )
 
 func WriteGridsModel(dbSchema lambdaModels.DBSCHEMA, grids []genertarModels.ProjectSchemas, copyClienModels bool) {
@@ -251,7 +252,7 @@ func createTrigger(schema lambdaModels.SCHEMAGRID, modelAliasWithID string, mode
 	afterDeleteMethod := `nil`
 
 	if schema.Triggers.AfterDelete != "" {
-		afterDeleteMethod = schema.Triggers.AfterDelete
+		afterDeleteMethod = strings.ReplaceAll(schema.Triggers.AfterDelete, "@", ".")
 
 	}
 
