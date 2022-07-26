@@ -8,6 +8,7 @@ import (
 	"github.com/lambda-platform/lambda/generator/utils"
 	lambdaModels "github.com/lambda-platform/lambda/models"
 	"strconv"
+	"strings"
 )
 
 func WriteFormsModelData(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.ProjectSchemas, copyClienModels bool) {
@@ -68,16 +69,16 @@ func WriteFormModel(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.Pro
 
 		if schema.Triggers.Namespace != "" {
 			if schema.Triggers.Insert.Before != "" {
-				beforInsertTrigger = schema.Triggers.Insert.Before
+				beforInsertTrigger = strings.ReplaceAll(schema.Triggers.Insert.Before, "@", ".")
 			}
 			if schema.Triggers.Update.Before != "" {
-				beforUpdateTrigger = schema.Triggers.Update.Before
+				beforUpdateTrigger = strings.ReplaceAll(schema.Triggers.Update.Before, "@", ".")
 			}
 			if schema.Triggers.Insert.After != "" {
-				afterInsertTrigger = schema.Triggers.Insert.After
+				afterInsertTrigger = strings.ReplaceAll(schema.Triggers.Insert.After, "@", ".")
 			}
 			if schema.Triggers.Update.After != "" {
-				afterUpdateTrigger = schema.Triggers.Update.After
+				afterUpdateTrigger = strings.ReplaceAll(schema.Triggers.Update.After, "@", ".")
 			}
 
 			triggersNamespace = "\"" + schema.Triggers.Namespace + "\""
