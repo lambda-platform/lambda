@@ -1,14 +1,13 @@
 package crudlogger
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/lambda-platform/lambda/config"
-	"github.com/lambda-platform/lambda/crudlogger/handler"
 	"github.com/lambda-platform/lambda/crudlogger/utils"
 )
 
-func Set(e *echo.Echo) {
+func Set(c *fiber.Ctx) {
 
 	if config.Config.App.Migrate == "true" {
 		utils.AutoMigrateSeed()
@@ -16,8 +15,9 @@ func Set(e *echo.Echo) {
 
 }
 
-func MW() echo.MiddlewareFunc {
-
-	return middleware.BodyDump(handler.CrudLogger)
-
-}
+//
+//func MW() echo.MiddlewareFunc {
+//
+//	return middleware.BodyDump(handler.CrudLogger)
+//
+//}

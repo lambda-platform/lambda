@@ -1,7 +1,7 @@
 package krud
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/dataform"
@@ -11,13 +11,13 @@ import (
 	"github.com/lambda-platform/lambda/krud/utils"
 )
 
-func Set(e *echo.Echo, GetGridMODEL func(schema_id string) datagrid.Datagrid, GetMODEL func(schema_id string) dataform.Dataform, krudMiddleWares []echo.MiddlewareFunc, KrudWithPermission bool) {
+func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, GetMODEL func(schema_id string) dataform.Dataform, krudMiddleWares []fiber.Handler, KrudWithPermission bool) {
 	if config.Config.App.Migrate == "true" {
 		utils.AutoMigrateSeed()
 	}
 
 	g := e.Group("/lambda/krud")
-	//g.Use(agentMW.IsLoggedInCookie)
+	//g.Use(agentMW.IsLoggedIn())
 
 	if len(krudMiddleWares) >= 1 {
 		for _, krudMiddleWare := range krudMiddleWares {
@@ -26,34 +26,34 @@ func Set(e *echo.Echo, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	}
 
 	if KrudWithPermission {
-		g.POST("/update-row/:schemaId", handlers.UpdateRow(GetGridMODEL), agentMW.IsLoggedInCookie, krudMW.PermissionDelete)
-		g.POST("/:schemaId/:action", handlers.Crud(GetMODEL), agentMW.IsLoggedInCookie, krudMW.PermissionCreate)
-		g.POST("/:schemaId/:action/:id", handlers.Crud(GetMODEL), agentMW.IsLoggedInCookie, krudMW.PermissionEdit)
-		g.DELETE("/delete/:schemaId/:id", handlers.Delete(GetGridMODEL), agentMW.IsLoggedInCookie, krudMW.PermissionDelete)
+		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.UpdateRow(GetGridMODEL))
+		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), krudMW.PermissionCreate, handlers.Crud(GetMODEL))
+		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), krudMW.PermissionEdit, handlers.Crud(GetMODEL))
+		g.Delete("/delete/:schemaId/:id", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.Delete(GetGridMODEL))
 
 	} else {
-		g.POST("/update-row/:schemaId", handlers.UpdateRow(GetGridMODEL), agentMW.IsLoggedInCookie)
-		g.POST("/:schemaId/:action", handlers.Crud(GetMODEL), agentMW.IsLoggedInCookie)
-		g.POST("/:schemaId/:action/:id", handlers.Crud(GetMODEL), agentMW.IsLoggedInCookie)
-		g.DELETE("/delete/:schemaId/:id", handlers.Delete(GetGridMODEL), agentMW.IsLoggedInCookie)
+		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), handlers.UpdateRow(GetGridMODEL))
+		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), handlers.Crud(GetMODEL))
+		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), handlers.Crud(GetMODEL))
+		g.Delete("/delete/:schemaId/:id", agentMW.IsLoggedIn(), handlers.Delete(GetGridMODEL))
 	}
 
 	/*
 		OTHER
 	*/
-	g.POST("/upload", handlers.Upload)
-	g.OPTIONS("/upload", handlers.Upload)
-	//g.POST("/upload", handlers.Upload, agentMW.IsLoggedInCookie)
-	//g.OPTIONS("/upload", handlers.Upload, agentMW.IsLoggedInCookie)
-	g.POST("/unique", handlers.CheckUnique)
-	g.POST("/check_current_password", handlers.CheckCurrentPassword, agentMW.IsLoggedInCookie)
-	g.POST("/excel/:schemaId", handlers.ExportExcel(GetGridMODEL), agentMW.IsLoggedInCookie)
+	g.Post("/upload", handlers.Upload)
+	g.Options("/upload", handlers.Upload)
+	//g.Post("/upload", handlers.Upload, agentMW.IsLoggedIn())
+	//g.OPTIONS("/upload", handlers.Upload, agentMW.IsLoggedIn())
+	g.Post("/unique", handlers.CheckUnique)
+	g.Post("/check_current_password", agentMW.IsLoggedIn(), handlers.CheckCurrentPassword)
+	g.Post("/excel/:schemaId", agentMW.IsLoggedIn(), handlers.ExportExcel(GetGridMODEL))
 
 	/*
 		PUBLIC CURDS
 	*/
 	public := e.Group("/lambda/krud-public")
-	public.POST("/:schemaId/:action", handlers.Crud(GetMODEL))
+	public.Post("/:schemaId/:action", handlers.Crud(GetMODEL))
 	p := e.Group("lambda/krud-public")
-	p.POST("/:schemaId/:action", handlers.Crud(GetMODEL))
+	p.Post("/:schemaId/:action", handlers.Crud(GetMODEL))
 }

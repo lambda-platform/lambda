@@ -1,19 +1,19 @@
 package datagrid
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/utils"
-	"net/http"
+
 	"strconv"
 )
 
-func FetchData(c echo.Context, datagrid Datagrid) error {
+func FetchData(c *fiber.Ctx, datagrid Datagrid) error {
 
-	pageLimit := c.QueryParam("paginate")
-	page := c.QueryParam("page")
-	sort := c.QueryParam("sort")
-	order := c.QueryParam("order")
+	pageLimit := c.Query("paginate")
+	page := c.Query("page")
+	sort := c.Query("sort")
+	order := c.Query("order")
 
 	query := DB.DB.Table(datagrid.DataTable)
 
@@ -42,7 +42,7 @@ func FetchData(c echo.Context, datagrid Datagrid) error {
 
 	if returnData {
 
-		return c.JSON(http.StatusOK, triggerData)
+		return c.JSON(triggerData)
 
 	} else if skipPagination {
 		data := query.Find(&datagrid.Data)
@@ -51,7 +51,7 @@ func FetchData(c echo.Context, datagrid Datagrid) error {
 			Total:       int64(int(data.RowsAffected)),
 			CurrentPage: 1,
 		}
-		return c.JSON(http.StatusOK, res)
+		return c.JSON(res)
 
 	} else {
 
@@ -65,7 +65,7 @@ func FetchData(c echo.Context, datagrid Datagrid) error {
 			data.Data = datagrid.FillVirtualColumns(datagrid.Data)
 		}
 
-		return c.JSON(http.StatusOK, data)
+		return c.JSON(data)
 	}
 
 }

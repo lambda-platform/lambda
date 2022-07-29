@@ -1,11 +1,11 @@
 package datagrid
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-func ExecTrigger(action string, data interface{}, datagrid Datagrid, query *gorm.DB, c echo.Context) (interface{}, *gorm.DB, bool, bool) {
+func ExecTrigger(action string, data interface{}, datagrid Datagrid, query *gorm.DB, c *fiber.Ctx) (interface{}, *gorm.DB, bool, bool) {
 
 	switch action {
 	case "afterDelete":

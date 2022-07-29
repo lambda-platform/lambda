@@ -1,15 +1,12 @@
 package handlers
 
 import (
-	//"fmt"
-	"github.com/labstack/echo/v4"
-	"net/http"
+	"github.com/gofiber/fiber/v2"
 	//"os/exec"
 	//"github.com/lambda-platform/lambda/tools"
-
 )
 
-func BuildMe(c echo.Context) (err error) {
+func BuildMe(c *fiber.Ctx) (err error) {
 
 	//AbsolutePath  := utils.AbsolutePath()
 	//
@@ -20,6 +17,6 @@ func BuildMe(c echo.Context) (err error) {
 	//output := string(cmd)
 	//
 	//fmt.Println(output)
-	return c.Redirect(http.StatusSeeOther, "/auth/login")
+	return c.Redirect("/auth/login")
 
 }

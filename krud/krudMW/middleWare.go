@@ -2,8 +2,8 @@ package krudMW
 
 import (
 	"encoding/json"
-	"github.com/golang-jwt/jwt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
 	agentModels "github.com/lambda-platform/lambda/agent/models"
 	"net/http"
@@ -30,78 +30,78 @@ type Permissions struct {
 	Permissions map[string]PermissionData `json:"permissions"`
 }
 
-func PermissionEdit(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		page_id := c.QueryParam("page_id")
-		action := c.QueryParam("action")
-		if page_id != "" {
-			editPermission := GetPermission(c)
+func PermissionEdit(c *fiber.Ctx) error {
 
-			if action == "edit" {
-				if editPermission.R {
-					return next(c)
-				} else {
-					return c.JSON(http.StatusBadRequest, map[string]interface{}{
-						"error":  "Засах эрх олгогдоогүй байна",
-						"status": false,
-					})
-				}
-			}
-			if action == "update" {
-				if editPermission.U {
-					return next(c)
-				} else {
-					return c.JSON(http.StatusBadRequest, map[string]interface{}{
-						"error":  "Засах эрх олгогдоогүй байна",
-						"status": false,
-					})
-				}
-			}
+	page_id := c.Query("page_id")
+	action := c.Query("action")
+	if page_id != "" {
+		editPermission := GetPermission(c)
 
-		}
-		return next(c)
-	}
-}
-func PermissionCreate(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		page_id := c.QueryParam("page_id")
-		if page_id != "" {
-			editPermission := GetPermission(c)
-			if editPermission.C {
-				return next(c)
+		if action == "edit" {
+			if editPermission.R {
+				return c.Next()
 			} else {
-				return c.JSON(http.StatusBadRequest, map[string]interface{}{
-					"error":  "Нэмэх эрх олгогдоогүй байна",
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"error":  "Засах эрх олгогдоогүй байна",
 					"status": false,
 				})
 			}
 		}
-		return next(c)
-	}
-}
-func PermissionDelete(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		page_id := c.QueryParam("page_id")
-		if page_id != "" {
-			editPermission := GetPermission(c)
-
-			if editPermission.D {
-				return next(c)
+		if action == "update" {
+			if editPermission.U {
+				return c.Next()
 			} else {
-				return c.JSON(http.StatusBadRequest, map[string]interface{}{
-					"error":  "Устгах эрх олгогдоогүй байна",
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"error":  "Засах эрх олгогдоогүй байна",
 					"status": false,
 				})
 			}
 		}
-		return next(c)
+
 	}
+	return c.Next()
+
+}
+func PermissionCreate(c *fiber.Ctx) error {
+
+	page_id := c.Query("page_id")
+	if page_id != "" {
+		editPermission := GetPermission(c)
+		if editPermission.C {
+			return c.Next()
+		} else {
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"error":  "Нэмэх эрх олгогдоогүй байна",
+				"status": false,
+			})
+		}
+	}
+	return c.Next()
+
+}
+func PermissionDelete(c *fiber.Ctx) error {
+
+	page_id := c.Query("page_id")
+	if page_id != "" {
+		editPermission := GetPermission(c)
+
+		if editPermission.D {
+			return c.Next()
+		} else {
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"error":  "Устгах эрх олгогдоогүй байна",
+				"status": false,
+			})
+		}
+	}
+	return c.Next()
+
 }
 
-func GetPermission(c echo.Context) PermissionData {
+func GetPermission(c *fiber.Ctx) PermissionData {
 
-	page_id := c.QueryParam("page_id")
-	user := c.Get("user").(*jwt.Token)
+	page_id := c.Query("page_id")
+	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	role := claims["role"]
 

@@ -2,35 +2,34 @@ package gql
 
 import (
 	"fmt"
-	"strconv"
 	"github.com/dgrijalva/jwt-go"
+	"strconv"
 )
-import "github.com/labstack/echo/v4"
+import "github.com/gofiber/fiber/v2"
 import "context"
 
-func EchoContextFromContext(ctx context.Context) (echo.Context, error) {
+func EchoContextFromContext(ctx context.Context) (*fiber.Ctx, error) {
 	echoContext := ctx.Value("EchoContextKey")
 	if echoContext == nil {
 		err := fmt.Errorf("could not retrieve echo.Context")
 		return nil, err
 	}
 
-	ec, ok := echoContext.(echo.Context)
+	ec, ok := echoContext.(*fiber.Ctx)
 	if !ok {
 		err := fmt.Errorf("echo.Context has wrong type")
 		return nil, err
 	}
 	return ec, nil
 }
- func Auth(c echo.Context) (jwt.Claims, error ) {
+func Auth(c *fiber.Ctx) (jwt.Claims, error) {
 
-	 token, err := JWTFromCookie("token", c)
-	 if err != nil {
-		 return nil, err
-	 }
+	token, err := JWTFromCookie("token", c)
+	if err != nil {
+		return nil, err
+	}
 
-	 fmt.Println(token)
-
+	fmt.Println(token)
 
 	return nil, nil
 }
@@ -38,23 +37,23 @@ func CheckAuth(ctx context.Context, roles []int) (jwt.MapClaims, error) {
 	echoContext := ctx.Value("EchoContextKey")
 	if echoContext == nil {
 		err := fmt.Errorf("could not retrieve echo.Context")
-		return  nil, err
+		return nil, err
 	}
 
-	ec, ok := echoContext.(echo.Context)
+	ec, ok := echoContext.(*fiber.Ctx)
 	if !ok {
 		err := fmt.Errorf("echo.Context has wrong type")
-		return  nil, err
+		return nil, err
 	}
 	userClaims, authError := IsLoggedIn(ec)
 	if authError != nil {
-		return  nil, authError
+		return nil, authError
 	}
 	user := userClaims.(jwt.MapClaims)
-	if(len(roles) >= 1){
+	if len(roles) >= 1 {
 		userRole := GetRole(user["role"])
-		for _, role :=range roles{
-			if(role ==userRole){
+		for _, role := range roles {
+			if role == userRole {
 				return user, nil
 			}
 		}
@@ -64,7 +63,7 @@ func CheckAuth(ctx context.Context, roles []int) (jwt.MapClaims, error) {
 	}
 
 }
-func GetRole(role interface{}) int{
+func GetRole(role interface{}) int {
 	statusID := 1
 
 	switch v := role.(type) {

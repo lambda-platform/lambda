@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/agent/models"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
@@ -26,12 +26,12 @@ type passwordResetPost struct {
 	PasswordConfirm string `json:"password_confirm"`
 }
 
-func SendForgotMail(c echo.Context) error {
+func SendForgotMail(c *fiber.Ctx) error {
 
 	data := new(mailPost)
-	if err := c.Bind(data); err != nil {
+	if err := c.BodyParser(data); err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 			"msg":    "Post data error ",
@@ -44,7 +44,7 @@ func SendForgotMail(c echo.Context) error {
 
 	StaticWords := reflect.ValueOf(config.LambdaConfig.StaticWords[data.Lang]).Interface().(map[string]interface{})
 	if data.Email == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  StaticWords["emailRequired"],
 			"msg":    StaticWords["emailRequired"],
@@ -54,7 +54,7 @@ func SendForgotMail(c echo.Context) error {
 	foundUser := agentUtils.AuthUserObjectByEmail(data.Email)
 
 	if len(foundUser) == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"error":  StaticWords["userNotFound"],
 			"msg":    StaticWords["userNotFound"],
 			"status": false,
@@ -76,7 +76,7 @@ func SendForgotMail(c echo.Context) error {
 	DB.DB.Create(&pReset)
 
 	mail := mailer.NewRequest([]string{data.Email}, StaticWords["passwordResetCode"].(string))
-	mailSent := mail.Send("views/email/forgot.html", map[string]string{
+	mailSent := mail.Send("views/forgot.html", map[string]string{
 		"keyword":           tokenPre,
 		"passwordReset":     StaticWords["passwordReset"].(string),
 		"passwordResetCode": StaticWords["passwordResetCode"].(string),
@@ -89,13 +89,13 @@ func SendForgotMail(c echo.Context) error {
 
 		delete(foundUser, "password")
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"msg":    StaticWords["passwordResetCodeSent"],
 			"status": true,
 			"data":   foundUser,
 		})
 	} else {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  "Mail error please contact system administrator",
 			"msg":    "Mail error please contact system administrator",
@@ -103,12 +103,12 @@ func SendForgotMail(c echo.Context) error {
 	}
 
 }
-func PasswordReset(c echo.Context) error {
+func PasswordReset(c *fiber.Ctx) error {
 
 	data := new(passwordResetPost)
-	if err := c.Bind(data); err != nil {
+	if err := c.BodyParser(data); err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 			"msg":    "Post data error ",
@@ -121,7 +121,7 @@ func PasswordReset(c echo.Context) error {
 
 	StaticWords := reflect.ValueOf(config.LambdaConfig.StaticWords[data.Lang]).Interface().(map[string]interface{})
 	if data.Email == "" || data.Code == "" || data.Password == "" || data.PasswordConfirm == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  StaticWords["passwordResetCodeRequired"],
 			"msg":    StaticWords["passwordResetCodeRequired"],
@@ -137,14 +137,14 @@ func PasswordReset(c echo.Context) error {
 		errR := DB.DB.Where("email = ?", data.Email).First(&pReset).Error
 
 		if errU != nil || foundUser.Login == "" {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"error":  StaticWords["userNotFound"],
 				"msg":    StaticWords["userNotFound"],
 				"status": false,
 			})
 		}
 		if errR != nil || pReset.Email == "" {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"error":  StaticWords["userNotFound"],
 				"msg":    StaticWords["userNotFound"],
 				"status": false,
@@ -168,12 +168,12 @@ func PasswordReset(c echo.Context) error {
 					err := DB.DB.Save(foundUser).Error
 					if err != nil {
 
-						return c.JSON(http.StatusOK, map[string]interface{}{
+						return c.JSON(map[string]interface{}{
 							"status": false,
 						})
 					} else {
 						DB.DB.Where("email = ?", data.Email).Delete(pReset)
-						return c.JSON(http.StatusOK, map[string]interface{}{
+						return c.JSON(map[string]interface{}{
 							"msg":    StaticWords["passwordResetSuccess"],
 							"status": true,
 						})
@@ -181,7 +181,7 @@ func PasswordReset(c echo.Context) error {
 
 				} else {
 
-					return c.JSON(http.StatusBadRequest, map[string]interface{}{
+					return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 						"error":  StaticWords["passwordConfirmError"],
 						"msg":    StaticWords["passwordConfirmError"],
 						"status": false,
@@ -191,14 +191,14 @@ func PasswordReset(c echo.Context) error {
 			} else {
 				pReset.Wrong = pReset.Wrong + 1
 				DB.DB.Save(pReset)
-				return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"error":  StaticWords["passwordResetCodeIncorrect"],
 					"msg":    StaticWords["passwordResetCodeIncorrect"],
 					"status": false,
 				})
 			}
 		} else {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"error":  StaticWords["passwordResetCodeTimeout"],
 				"msg":    StaticWords["passwordResetCodeTimeout"],
 				"status": false,
@@ -213,14 +213,14 @@ func PasswordReset(c echo.Context) error {
 		errR := DB.DB.Where("email = ?", data.Email).First(&pReset).Error
 
 		if errU != nil || foundUser.Login == "" {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"error":  StaticWords["userNotFound"],
 				"msg":    StaticWords["userNotFound"],
 				"status": false,
 			})
 		}
 		if errR != nil || pReset.Email == "" {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"error":  StaticWords["userNotFound"],
 				"msg":    StaticWords["userNotFound"],
 				"status": false,
@@ -244,12 +244,12 @@ func PasswordReset(c echo.Context) error {
 					err := DB.DB.Save(foundUser).Error
 					if err != nil {
 
-						return c.JSON(http.StatusOK, map[string]interface{}{
+						return c.JSON(map[string]interface{}{
 							"status": false,
 						})
 					} else {
 						DB.DB.Where("email = ?", data.Email).Delete(pReset)
-						return c.JSON(http.StatusOK, map[string]interface{}{
+						return c.JSON(map[string]interface{}{
 							"msg":    StaticWords["passwordResetSuccess"],
 							"status": true,
 						})
@@ -257,7 +257,7 @@ func PasswordReset(c echo.Context) error {
 
 				} else {
 
-					return c.JSON(http.StatusBadRequest, map[string]interface{}{
+					return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 						"error":  StaticWords["passwordConfirmError"],
 						"msg":    StaticWords["passwordConfirmError"],
 						"status": false,
@@ -267,14 +267,14 @@ func PasswordReset(c echo.Context) error {
 			} else {
 				pReset.Wrong = pReset.Wrong + 1
 				DB.DB.Save(pReset)
-				return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"error":  StaticWords["passwordResetCodeIncorrect"],
 					"msg":    StaticWords["passwordResetCodeIncorrect"],
 					"status": false,
 				})
 			}
 		} else {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"error":  StaticWords["passwordResetCodeTimeout"],
 				"msg":    StaticWords["passwordResetCodeTimeout"],
 				"status": false,
@@ -282,7 +282,7 @@ func PasswordReset(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(map[string]interface{}{
 		"status": false,
 	})
 }

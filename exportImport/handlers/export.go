@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/exportImport/models"
 	"io/ioutil"
@@ -11,9 +11,9 @@ import (
 	"net/http"
 )
 
-func Export(c echo.Context) error {
-	idsPre := c.QueryParam("ids")
-	isMicroservice := c.QueryParam("isMicroservice")
+func Export(c *fiber.Ctx) error {
+	idsPre := c.Query("ids")
+	isMicroservice := c.Query("isMicroservice")
 	schemaTable := "vb_schemas"
 	krudTable := "krud"
 	if isMicroservice == "true" {
@@ -37,17 +37,19 @@ func Export(c echo.Context) error {
 
 	byteData, err := json.Marshal(exportData)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, map[string]string{
+		c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"error": err.Error(),
 		})
 	}
 
 	err = ioutil.WriteFile("lambda/crud-export.json", byteData, 0755)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, map[string]string{
+		c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	return c.Attachment("lambda/crud-export.json", "crud-export.json")
+	c.Attachment("lambda/crud-export.json")
+
+	return nil
 }

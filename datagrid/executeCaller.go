@@ -1,11 +1,11 @@
 package datagrid
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
-func Exec(c echo.Context, schemaId string, action string, id string, GetGridMODEL func(schema_id string) Datagrid) error {
+func Exec(c *fiber.Ctx, schemaId string, action string, id string, GetGridMODEL func(schema_id string) Datagrid) error {
 
 	datagrid := GetGridMODEL(schemaId)
 
@@ -21,13 +21,7 @@ func Exec(c echo.Context, schemaId string, action string, id string, GetGridMODE
 	case "update-row":
 		return UpdateRow(c, datagrid)
 	}
-	return c.JSON(http.StatusBadRequest, map[string]string{
+	return c.Status(http.StatusBadRequest).JSON(map[string]string{
 		"status": "false",
 	})
 }
-
-
-
-
-
-

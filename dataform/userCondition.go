@@ -2,15 +2,14 @@ package dataform
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	lbModel "github.com/lambda-platform/lambda/models"
-	"net/http"
 	"net/url"
 	"reflect"
 )
 
-func SetCondition(condition string, c echo.Context, VBSchema lbModel.VBSchema) error {
+func SetCondition(condition string, c *fiber.Ctx, VBSchema lbModel.VBSchema) error {
 
 	con, _ := url.ParseQuery(condition)
 	var schema lbModel.SCHEMA
@@ -41,8 +40,8 @@ func SetCondition(condition string, c echo.Context, VBSchema lbModel.VBSchema) e
 	schemaString, _ := json.Marshal(schema)
 	VBSchema.Schema = string(schemaString)
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"status": "true",
+	return c.JSON(map[string]interface{}{
+		"status": true,
 		"data":   VBSchema,
 	})
 }

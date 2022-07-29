@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/DBSchema"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
@@ -26,7 +26,7 @@ type vb_schema struct {
 	Schema string `json:"schema"`
 }
 
-func Index(c echo.Context) error {
+func Index(c *fiber.Ctx) error {
 	dbSchema := models.DBSCHEMA{}
 
 	if config.LambdaConfig.SchemaLoadMode == "auto" {
@@ -55,7 +55,7 @@ func Index(c echo.Context) error {
 
 	//csrfToken := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	csrfToken := ""
-	return c.Render(http.StatusOK, "puzzle.html", map[string]interface{}{
+	return c.Render("puzzle", map[string]interface{}{
 		"lambda_config":             config.LambdaConfig,
 		"title":                     config.LambdaConfig.Title,
 		"favicon":                   config.LambdaConfig.Favicon,
@@ -74,18 +74,18 @@ func Index(c echo.Context) error {
 
 }
 
-func GetTableSchema(c echo.Context) error {
-	table := c.Param("table")
+func GetTableSchema(c *fiber.Ctx) error {
+	table := c.Params("table")
 	tableMetas := DBSchema.TableMetas(table)
-	return c.JSON(http.StatusOK, tableMetas)
+	return c.JSON(tableMetas)
 
 }
 
-func GetVB(c echo.Context) error {
+func GetVB(c *fiber.Ctx) error {
 
-	type_ := c.Param("type")
-	id := c.Param("id")
-	condition := c.Param("condition")
+	type_ := c.Params("type")
+	id := c.Params("id")
+	condition := c.Params("condition")
 
 	if id != "" {
 
@@ -96,7 +96,7 @@ func GetVB(c echo.Context) error {
 
 			DB.DB.Where("id = ?", id).First(&VBSchema)
 
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 				"data":   VBSchema,
 			})
@@ -126,7 +126,7 @@ func GetVB(c echo.Context) error {
 				}
 			}
 
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 				"data":   VBSchema,
 			})
@@ -139,21 +139,21 @@ func GetVB(c echo.Context) error {
 
 		DB.DB.Select("id, name, type, created_at, updated_at").Where("type = ?", type_).Order("id ASC").Find(&VBSchemas)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": true,
 			"data":   VBSchemas,
 		})
 	}
 
-	return c.JSON(http.StatusBadRequest, map[string]interface{}{
+	return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 		"status": false,
 	})
 
 }
-func GetMenuVB(c echo.Context) error {
+func GetMenuVB(c *fiber.Ctx) error {
 
 	type_ := "menu"
-	id := c.Param("id")
+	id := c.Params("id")
 
 	VBSchema := models.VBSchema{}
 	if (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "form") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "grid") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "menu") {
@@ -174,21 +174,21 @@ func GetMenuVB(c echo.Context) error {
 
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(map[string]interface{}{
 		"status": true,
 		"data":   VBSchema,
 	})
 
 }
-func SaveVB(modelName string) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		type_ := c.Param("type")
-		id := c.Param("id")
-		//condition := c.Param("condition")
+func SaveVB(modelName string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		type_ := c.Params("type")
+		id := c.Params("id")
+		//condition := c.Params("condition")
 
 		vbs := new(vb_schema)
-		if err := c.Bind(vbs); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		if err := c.BodyParser(vbs); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"status": false,
 				"error":  err.Error(),
 			})
@@ -220,7 +220,7 @@ func SaveVB(modelName string) echo.HandlerFunc {
 
 			if err != nil {
 
-				return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"status": false,
 					"error":  err.Error(),
 				})
@@ -229,12 +229,12 @@ func SaveVB(modelName string) echo.HandlerFunc {
 				error := AfterSave(vb, type_)
 
 				if error != nil {
-					return c.JSON(http.StatusOK, map[string]interface{}{
+					return c.JSON(map[string]interface{}{
 						"status": false,
 						"error":  error.Error(),
 					})
 				} else {
-					return c.JSON(http.StatusOK, map[string]interface{}{
+					return c.JSON(map[string]interface{}{
 						"status": true,
 					})
 				}
@@ -262,19 +262,19 @@ func SaveVB(modelName string) echo.HandlerFunc {
 			}
 
 			if err != nil {
-				return c.JSON(http.StatusBadRequest, map[string]string{
+				return c.Status(http.StatusBadRequest).JSON(map[string]string{
 					"status": "false",
 				})
 			} else {
 				error := AfterSave(vb, type_)
 
 				if error != nil {
-					return c.JSON(http.StatusOK, map[string]interface{}{
+					return c.JSON(map[string]interface{}{
 						"status": false,
 						"error":  error.Error(),
 					})
 				} else {
-					return c.JSON(http.StatusOK, map[string]interface{}{
+					return c.JSON(map[string]interface{}{
 						"status": true,
 					})
 				}
@@ -283,16 +283,16 @@ func SaveVB(modelName string) echo.HandlerFunc {
 
 		}
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 		})
 	}
 }
-func DeleteVB(c echo.Context) error {
+func DeleteVB(c *fiber.Ctx) error {
 
-	type_ := c.Param("type")
-	id := c.Param("id")
-	//condition := c.Param("condition")
+	type_ := c.Params("type")
+	id := c.Params("id")
+	//condition := c.Params("condition")
 
 	vbs := new(vb_schema)
 	id_, _ := strconv.ParseUint(id, 0, 64)
@@ -302,21 +302,21 @@ func DeleteVB(c echo.Context) error {
 	err := DB.DB.Where("id = ?", id).Where("type = ?", type_).Delete(&vbs).Error
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status": "false",
 		})
 	} else {
-		return c.JSON(http.StatusOK, map[string]string{
+		return c.JSON(map[string]string{
 			"status": "true",
 		})
 	}
 
 }
 
-func GetProjectVBs(c echo.Context) error {
+func GetProjectVBs(c *fiber.Ctx) error {
 
-	type_ := c.Param("type")
-	id := c.Param("id")
+	type_ := c.Params("type")
+	id := c.Params("id")
 	VBSchemas := []models.ProjectVBSchema{}
 
 	if id != "" {
@@ -324,7 +324,7 @@ func GetProjectVBs(c echo.Context) error {
 
 		DB.DB.Table("project_schemas").Where("id = ?", id).First(&VBSchema)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": true,
 			"data":   VBSchema,
 		})
@@ -332,19 +332,19 @@ func GetProjectVBs(c echo.Context) error {
 	} else {
 		DB.DB.Table("project_schemas").Select("id, name, type, created_at, updated_at, projects_id").Where("type = ?", type_).Order("id ASC").Find(&VBSchemas)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": true,
 			"data":   VBSchemas,
 		})
 	}
 
 }
-func GetProjectVB(c echo.Context) error {
+func GetProjectVB(c *fiber.Ctx) error {
 
-	pid := c.Param("pid")
-	type_ := c.Param("type")
-	id := c.Param("id")
-	condition := c.Param("condition")
+	pid := c.Params("pid")
+	type_ := c.Params("type")
+	id := c.Params("id")
+	condition := c.Params("condition")
 
 	if id != "" {
 
@@ -361,7 +361,7 @@ func GetProjectVB(c echo.Context) error {
 			}
 		}
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": true,
 			"data":   VBSchema,
 		})
@@ -371,29 +371,29 @@ func GetProjectVB(c echo.Context) error {
 
 		DB.DB.Table("project_schemas").Select("id, name, type, created_at, updated_at").Where("type = ? AND projects_id = ?", type_, pid).Order("id ASC").Find(&VBSchemas)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": true,
 			"data":   VBSchemas,
 		})
 	}
 
-	return c.JSON(http.StatusBadRequest, map[string]interface{}{
+	return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 		"status": false,
 	})
 
 }
 
-func SaveProjectVB(modelName string) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		pid := c.Param("pid")
+func SaveProjectVB(modelName string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		pid := c.Params("pid")
 		ProjectID, _ := strconv.Atoi(pid)
-		type_ := c.Param("type")
-		id := c.Param("id")
-		//condition := c.Param("condition")
+		type_ := c.Params("type")
+		id := c.Params("id")
+		//condition := c.Params("condition")
 
 		vbs := new(vb_schema)
-		if err := c.Bind(vbs); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		if err := c.BodyParser(vbs); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"status": false,
 				"error":  err.Error(),
 			})
@@ -426,7 +426,7 @@ func SaveProjectVB(modelName string) echo.HandlerFunc {
 
 			if err != nil {
 
-				return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"status": false,
 					"error":  err.Error(),
 				})
@@ -435,12 +435,12 @@ func SaveProjectVB(modelName string) echo.HandlerFunc {
 				//error := AfterSave(vb, type_)
 				//
 				//if(error != nil){
-				//	return c.JSON(http.StatusOK, map[string]interface{}{
+				//	return c.JSON(map[string]interface{}{
 				//		"status": false,
 				//		"error":error.Error(),
 				//	})
 				//} else {
-				return c.JSON(http.StatusOK, map[string]interface{}{
+				return c.JSON(map[string]interface{}{
 					"status": true,
 				})
 				//}
@@ -469,19 +469,19 @@ func SaveProjectVB(modelName string) echo.HandlerFunc {
 			}
 
 			if err != nil {
-				return c.JSON(http.StatusBadRequest, map[string]string{
+				return c.Status(http.StatusBadRequest).JSON(map[string]string{
 					"status": "false",
 				})
 			} else {
 				//error := AfterSave(vb, type_)
 				//
 				//if(error != nil){
-				//	return c.JSON(http.StatusOK, map[string]interface{}{
+				//	return c.JSON(map[string]interface{}{
 				//		"status": false,
 				//		"error":error.Error(),
 				//	})
 				//} else {
-				return c.JSON(http.StatusOK, map[string]interface{}{
+				return c.JSON(map[string]interface{}{
 					"status": true,
 				})
 				//}
@@ -490,17 +490,17 @@ func SaveProjectVB(modelName string) echo.HandlerFunc {
 
 		}
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 		})
 	}
 }
-func DeleteProjectVB(c echo.Context) error {
+func DeleteProjectVB(c *fiber.Ctx) error {
 
-	pid := c.Param("pid")
-	type_ := c.Param("type")
-	id := c.Param("id")
-	//condition := c.Param("condition")
+	pid := c.Params("pid")
+	type_ := c.Params("type")
+	id := c.Params("id")
+	//condition := c.Params("condition")
 
 	vbs := new(vb_schema)
 	//id_, _ := strconv.ParseUint(id, 0, 64)
@@ -510,11 +510,11 @@ func DeleteProjectVB(c echo.Context) error {
 	err := DB.DB.Table("project_schemas").Where("id = ? AND projects_id = ? AND type = ?", id, pid, type_).Delete(&vbs).Error
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status": "false",
 		})
 	} else {
-		return c.JSON(http.StatusOK, map[string]string{
+		return c.JSON(map[string]string{
 			"status": "true",
 		})
 	}
@@ -555,11 +555,11 @@ func AfterSave(vb models.VBSchema, type_ string) error {
 
 /*GRID*/
 
-func GridVB(GetGridMODEL func(schema_id string) datagrid.Datagrid) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		schemaId := c.Param("schemaId")
-		action := c.Param("action")
-		id := c.Param("id")
+func GridVB(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		schemaId := c.Params("schemaId")
+		action := c.Params("action")
+		id := c.Params("id")
 
 		return datagrid.Exec(c, schemaId, action, id, GetGridMODEL)
 	}
@@ -567,12 +567,12 @@ func GridVB(GetGridMODEL func(schema_id string) datagrid.Datagrid) echo.HandlerF
 
 /*FROM*/
 
-func GetOptions(c echo.Context) error {
+func GetOptions(c *fiber.Ctx) error {
 
 	r := new(dataform.Relations)
-	if err := c.Bind(r); err != nil {
+	if err := c.BodyParser(r); err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 		})
@@ -585,6 +585,6 @@ func GetOptions(c echo.Context) error {
 		optionsData[table] = data
 
 	}
-	return c.JSON(http.StatusOK, optionsData)
+	return c.JSON(optionsData)
 
 }

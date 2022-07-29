@@ -1,53 +1,53 @@
 package handlers
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/dataform"
 	"github.com/lambda-platform/lambda/datagrid"
 )
 
-func Crud(GetMODEL func(schema_id string) dataform.Dataform) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		schemaId := c.Param("schemaId")
-		action := c.Param("action")
-		id := c.Param("id")
+func Crud(GetMODEL func(schema_id string) dataform.Dataform) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		schemaId := c.Params("schemaId")
+		action := c.Params("action")
+		id := c.Params("id")
 
 		return dataform.Exec(c, schemaId, action, id, GetMODEL)
 	}
 }
 
-func CheckUnique(c echo.Context) error {
+func CheckUnique(c *fiber.Ctx) error {
 	return dataform.CheckUnique(c)
 }
-func Upload(c echo.Context) error {
+func Upload(c *fiber.Ctx) error {
 
 	return dataform.Upload(c)
 
 }
-func CheckCurrentPassword(c echo.Context) error {
+func CheckCurrentPassword(c *fiber.Ctx) error {
 	return utils.CheckCurrentPassword(c)
 }
 
-func UpdateRow(GetGridMODEL func(schema_id string) datagrid.Datagrid) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		schemaId := c.Param("schemaId")
+func UpdateRow(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		schemaId := c.Params("schemaId")
 
 		return datagrid.Exec(c, schemaId, "update-row", "", GetGridMODEL)
 	}
 }
 
-func Delete(GetGridMODEL func(schema_id string) datagrid.Datagrid) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		schemaId := c.Param("schemaId")
-		id := c.Param("id")
+func Delete(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		schemaId := c.Params("schemaId")
+		id := c.Params("id")
 
 		return datagrid.Exec(c, schemaId, "delete", id, GetGridMODEL)
 	}
 }
-func ExportExcel(GetGridMODEL func(schema_id string) datagrid.Datagrid) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		schemaId := c.Param("schemaId")
+func ExportExcel(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		schemaId := c.Params("schemaId")
 
 		return datagrid.Exec(c, schemaId, "excel", "", GetGridMODEL)
 	}

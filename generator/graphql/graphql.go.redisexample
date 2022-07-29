@@ -6,7 +6,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/graphql/gql"
 	"PROJECTNAME/app/graph/generated"
 	"github.com/go-redis/redis"
@@ -52,7 +52,7 @@ func (c *Cache) Get(ctx context.Context, key string) (interface{}, bool) {
 	return s, true
 }
 
-func Set(e *echo.Echo) {
+func Set(c *fiber.Ctx) {
 
 	e.Use(gql.Process)
 

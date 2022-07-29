@@ -2,8 +2,8 @@ package utils
 
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/agent/models"
 	"github.com/lambda-platform/lambda/config"
@@ -12,8 +12,8 @@ import (
 	"strconv"
 )
 
-func AuthUser(c echo.Context) *models.User {
-	user := c.Get("user").(*jwt.Token)
+func AuthUser(c *fiber.Ctx) *models.User {
+	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 
 	Id := claims["id"]
@@ -25,8 +25,8 @@ func AuthUser(c echo.Context) *models.User {
 	//User.Password = ""
 	return &User
 }
-func AuthUserUUID(c echo.Context) *models.UserUUID {
-	user := c.Get("user").(*jwt.Token)
+func AuthUserUUID(c *fiber.Ctx) *models.UserUUID {
+	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 
 	Id := claims["id"]
@@ -38,9 +38,9 @@ func AuthUserUUID(c echo.Context) *models.UserUUID {
 	//User.Password = ""
 	return &User
 }
-func AuthUserObject(c echo.Context) map[string]interface{} {
+func AuthUserObject(c *fiber.Ctx) map[string]interface{} {
 
-	user := c.Get("user").(*jwt.Token)
+	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 
 	Id := claims["id"]
@@ -259,12 +259,12 @@ type passwordPost struct {
 	Password string `json:"password"`
 }
 
-func CheckCurrentPassword(c echo.Context) error {
+func CheckCurrentPassword(c *fiber.Ctx) error {
 
 	post := new(passwordPost)
-	if err := c.Bind(post); err != nil {
+	if err := c.BodyParser(post); err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status": "false from json",
 		})
 	}
@@ -273,12 +273,12 @@ func CheckCurrentPassword(c echo.Context) error {
 		user := AuthUserUUID(c)
 
 		if IsSame(post.Password, user.Password) {
-			return c.JSON(http.StatusOK, map[string]string{
-				"status": "true",
+			return c.JSON(map[string]interface{}{
+				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusBadRequest, map[string]string{
-				"status": "false",
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
 				"msg":    "Нууц үг буруу байна !!!",
 			})
 
@@ -287,12 +287,12 @@ func CheckCurrentPassword(c echo.Context) error {
 		user := AuthUser(c)
 
 		if IsSame(post.Password, user.Password) {
-			return c.JSON(http.StatusOK, map[string]string{
-				"status": "true",
+			return c.JSON(map[string]interface{}{
+				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusBadRequest, map[string]string{
-				"status": "false",
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
 				"msg":    "Нууц үг буруу байна !!!",
 			})
 

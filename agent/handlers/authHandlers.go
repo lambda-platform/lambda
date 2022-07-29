@@ -3,15 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/agent/models"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/utils"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -45,11 +44,11 @@ type jwtUUIDClaims struct {
 	jwt.StandardClaims
 }
 
-func Login(c echo.Context) error {
+func Login(c *fiber.Ctx) error {
 
 	u := new(User)
-	if err := c.Bind(u); err != nil {
-		return c.JSON(http.StatusUnauthorized, models.Unauthorized{
+	if err := c.BodyParser(u); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
 			Error:  "Username & password required",
 			Status: false,
 		})
@@ -59,7 +58,7 @@ func Login(c echo.Context) error {
 
 	if len(foundUser) == 0 {
 
-		return c.JSON(http.StatusUnauthorized, models.Unauthorized{
+		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
 			Error:  "User not found",
 			Status: false,
 		})
@@ -103,13 +102,13 @@ func Login(c echo.Context) error {
 			token, err := createUUIDJwtToken(UserUUIDData{Id: userUUID, Login: foundUser["login"].(string), Role: roleID})
 			if err != nil {
 				//log.Println("Error Creating JWT token", err)
-				return c.JSON(http.StatusUnauthorized, models.Unauthorized{
+				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
 					Error:  "Unauthorized",
 					Status: false,
 				})
 			}
 
-			cookie := new(http.Cookie)
+			cookie := new(fiber.Cookie)
 			cookie.Name = "token"
 			cookie.Path = "/"
 			cookie.Value = token
@@ -121,9 +120,9 @@ func Login(c echo.Context) error {
 
 			foundUser["jwt"] = token
 
-			c.SetCookie(cookie)
+			c.Cookie(cookie)
 
-			return c.JSON(http.StatusOK, models.LoginData{
+			return c.Status(fiber.StatusOK).JSON(models.LoginData{
 				Token:  token,
 				Path:   checkRole(roleID),
 				Status: true,
@@ -134,13 +133,13 @@ func Login(c echo.Context) error {
 			token, err := createJwtToken(UserData{Id: userID, Login: foundUser["login"].(string), Role: roleID})
 			if err != nil {
 				//log.Println("Error Creating JWT token", err)
-				return c.JSON(http.StatusUnauthorized, models.Unauthorized{
+				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
 					Error:  "Unauthorized",
 					Status: false,
 				})
 			}
 
-			cookie := new(http.Cookie)
+			cookie := new(fiber.Cookie)
 			cookie.Name = "token"
 			cookie.Path = "/"
 			cookie.Value = token
@@ -150,9 +149,9 @@ func Login(c echo.Context) error {
 
 			foundUser["jwt"] = token
 
-			c.SetCookie(cookie)
+			c.Cookie(cookie)
 
-			return c.JSON(http.StatusOK, models.LoginData{
+			return c.Status(fiber.StatusOK).JSON(models.LoginData{
 				Token:  token,
 				Path:   checkRole(roleID),
 				Status: true,
@@ -162,23 +161,23 @@ func Login(c echo.Context) error {
 
 	}
 
-	return c.JSON(http.StatusUnauthorized, models.Unauthorized{
+	return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
 		Error:  "Unauthorized",
 		Status: false,
 	})
 
 }
 
-func Logout(c echo.Context) error {
+func Logout(c *fiber.Ctx) error {
 
-	cookie := new(http.Cookie)
+	cookie := new(fiber.Cookie)
 	cookie.Name = "token"
 	cookie.Path = "/"
 	cookie.Value = ""
 	cookie.Expires = time.Now()
 
-	c.SetCookie(cookie)
-	return c.JSON(http.StatusOK, map[string]string{
+	c.Cookie(cookie)
+	return c.JSON(map[string]string{
 		"status": "true",
 		"data":   "",
 		"path":   "auth/login",
@@ -187,10 +186,10 @@ func Logout(c echo.Context) error {
 
 }
 
-func LoginPage(c echo.Context) error {
+func LoginPage(c *fiber.Ctx) error {
 	//csrfToken := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	csrfToken := ""
-	return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+	return c.Render("login", map[string]interface{}{
 		"title":         config.LambdaConfig.Title,
 		"favicon":       config.LambdaConfig.Favicon,
 		"lambda_config": config.LambdaConfig,
@@ -201,13 +200,11 @@ func LoginPage(c echo.Context) error {
 
 func createJwtToken(user UserData) (string, error) {
 	// Set custom claims
-	claims := &jwtClaims{
-		user.Id,
-		user.Login,
-		user.Role,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl)).Unix(),
-		},
+	claims := jwt.MapClaims{
+		"id":    user.Id,
+		"login": user.Login,
+		"role":  user.Role,
+		"exp":   time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl)).Unix(),
 	}
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -219,13 +216,11 @@ func createJwtToken(user UserData) (string, error) {
 }
 func createUUIDJwtToken(user UserUUIDData) (string, error) {
 	// Set custom claims
-	claims := &jwtUUIDClaims{
-		user.Id,
-		user.Login,
-		user.Role,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl)).Unix(),
-		},
+	claims := jwt.MapClaims{
+		"id":    user.Id,
+		"login": user.Login,
+		"role":  user.Role,
+		"exp":   time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl)).Unix(),
 	}
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -2,45 +2,44 @@ package dataform
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"github.com/thedevsaddam/govalidator"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
 	"net/http"
-	"github.com/labstack/echo/v4"
 	"os"
 	"path/filepath"
 	"strings"
-	"github.com/thedevsaddam/govalidator"
 	"time"
 )
 
-
-
-func CheckFileExist(filepath string, fileName string, fileType string, ext string, i int) string{
+func CheckFileExist(filepath string, fileName string, fileType string, ext string, i int) string {
 
 	newFileName := ""
-	if i > 0{
-		newFileName = fmt.Sprintf("%v", i)+"-"+fileName+ext
+	if i > 0 {
+		newFileName = fmt.Sprintf("%v", i) + "-" + fileName + ext
 	} else {
-		newFileName = fileName+ext
+		newFileName = fileName + ext
 	}
-	_, err := os.Stat(filepath+newFileName)
+	_, err := os.Stat(filepath + newFileName)
 
 	if os.IsNotExist(err) {
 		return newFileName
 	} else {
-		i = i+1
-		return CheckFileExist(filepath, fileName,fileType, ext, i)
+		i = i + 1
+		return CheckFileExist(filepath, fileName, fileType, ext, i)
 	}
 }
 
-func makeUploadable(src io.Reader, fileType string, ext string, fileName string) map[string]string  {
+func makeUploadable(src io.Reader, fileType string, ext string, fileName string) map[string]string {
 	var name = strings.TrimRight(fileName, ext)
 	currentTime := time.Now()
 	year := fmt.Sprintf("%v", currentTime.Year())
 	month := fmt.Sprintf("%v", currentTime.Month())
 
 	var publicPath string = "public"
-	var uploadPath string = "/uploaded/"+fileType+"/"+year+"/"+month+"/"
-	var fullPath string = publicPath+uploadPath
+	var uploadPath string = "/uploaded/" + fileType + "/" + year + "/" + month + "/"
+	var fullPath string = publicPath + uploadPath
 
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		os.MkdirAll(fullPath, 0755)
@@ -50,12 +49,12 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 	var i int = 0
 	newFileName := CheckFileExist(fullPath, name, fileType, ext, i)
 	// Destination
-	dst, err := os.Create(fullPath+newFileName)
+	dst, err := os.Create(fullPath + newFileName)
 	if err != nil {
 		return map[string]string{
-			"httpPath":"",
-			"basePath":"",
-			"fileName":"",
+			"httpPath": "",
+			"basePath": "",
+			"fileName": "",
 		}
 	}
 	defer dst.Close()
@@ -63,54 +62,47 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 	// Copy
 	if _, err = io.Copy(dst, src); err != nil {
 		return map[string]string{
-			"httpPath":"",
-			"basePath":"",
-			"fileName":"",
+			"httpPath": "",
+			"basePath": "",
+			"fileName": "",
 		}
 	}
 
-
-
-
 	return map[string]string{
-		"httpPath":uploadPath+newFileName,
-		"basePath":fullPath,
-		"fileName":newFileName,
+		"httpPath": uploadPath + newFileName,
+		"basePath": fullPath,
+		"fileName": newFileName,
 	}
 
 }
 
-func Upload(c echo.Context) error {
+func Upload(c *fiber.Ctx) error {
 	// Source
 	file, err := c.FormFile("file")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"status": "false",
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
+			"status":  "false",
 			"message": "file not found",
 		})
 	}
 
-
-
 	//
 	src, err := file.Open()
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"status": "false",
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
+			"status":  "false",
 			"message": "server error",
 		})
 	}
 	defer src.Close()
 	//srcMime := src
 
-
-
 	var ext_ = filepath.Ext(file.Filename)
 	ext := strings.ToLower(strings.TrimPrefix(ext_, "."))
 	var fileType string = "images"
 	rules := govalidator.MapData{
 		//"file:file": []string{"ext:jpg,png,jpeg,svg,JPG,PNG,JPEG,SVG", "size:100000", "mime:jpg,png,jpeg,svg,JPG,PNG,JPEG,SVG", "required"},
-		"file:file": []string{"ext:jpg,png,jpeg,svg,gif,JPG,PNG,JPEG,SVG,GIF", "size:100000000",  "required"},
+		"file:file": []string{"ext:jpg,png,jpeg,svg,gif,JPG,PNG,JPEG,SVG,GIF", "size:100000000", "required"},
 	}
 	mimeTypes := []string{
 		"image/svg+xml",
@@ -119,10 +111,9 @@ func Upload(c echo.Context) error {
 		"image/gif",
 	}
 
-
-	if ext == "dwg" || ext == "pdf"  || ext == "zip" || ext == "swf" || ext == "doc" || ext == "docx" || ext == "csv" || ext == "xls" || ext == "xlsx" || ext == "ppt" || ext == "pptx" {
+	if ext == "dwg" || ext == "pdf" || ext == "zip" || ext == "swf" || ext == "doc" || ext == "docx" || ext == "csv" || ext == "xls" || ext == "xlsx" || ext == "ppt" || ext == "pptx" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:xls,xlsx,doc,docx,pdf,ppt,pptx,csv,zip,dwg,XLS,XLSX,DOC,DOCX,PDF,PPT,PPTX,CSV,ZIP,DWG", "size:8000000",  "required"},
+			"file:file": []string{"ext:xls,xlsx,doc,docx,pdf,ppt,pptx,csv,zip,dwg,XLS,XLSX,DOC,DOCX,PDF,PPT,PPTX,CSV,ZIP,DWG", "size:8000000", "required"},
 		}
 		mimeTypes = []string{
 			"application/acad",
@@ -139,9 +130,9 @@ func Upload(c echo.Context) error {
 		}
 		fileType = "documents"
 	}
-	if ext == "mp4" ||ext == "m4v" || ext == "avi"{
+	if ext == "mp4" || ext == "m4v" || ext == "avi" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:mp4,m4v,avi,MP4,M4V,AVI", "size:40000000",  "required"},
+			"file:file": []string{"ext:mp4,m4v,avi,MP4,M4V,AVI", "size:40000000", "required"},
 		}
 		mimeTypes = []string{
 			"video/mp4",
@@ -152,7 +143,7 @@ func Upload(c echo.Context) error {
 	}
 	if ext == "mp3" || ext == "wav" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:mp3,wav,MP3,WAV", "size:400000",  "required"},
+			"file:file": []string{"ext:mp3,wav,MP3,WAV", "size:400000", "required"},
 		}
 		mimeTypes = []string{
 			"audio/mpeg",
@@ -161,50 +152,52 @@ func Upload(c echo.Context) error {
 		fileType = "audios"
 	}
 
-
 	//mimeType, _, err  := mimetype.DetectReader(srcMime)
 
-	mimeType :="1"
-
+	mimeType := "1"
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"status": "false",
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
+			"status":  "false",
 			"message": "can't parse file mime, server error",
 		})
 	}
 	mimeAllowed := false
-	for _, m := range mimeTypes{
-		if m == mimeType{
+	for _, m := range mimeTypes {
+		if m == mimeType {
 			mimeAllowed = true
 		}
 	}
 
 	if mimeAllowed == false {
-		//return c.JSON(http.StatusBadRequest, map[string]string{
+		//return c.Status(http.StatusBadRequest).JSON(map[string]string{
 		//	"status": "false",
 		//	"message": "file mime not allowed",
 		//})
 	}
 
-
 	messages := govalidator.MapData{
-		"file:file": []string{"ext:file not allowed", "required:File required",  "size:File size too big"},
+		"file:file": []string{"ext:file not allowed", "required:File required", "size:File size too big"},
 	}
+
+	r := http.Request{}
+
+	fasthttpadaptor.ConvertRequest(c.Context(), &r, true)
+	r.Host = string(c.Request().Host())
 	opts := govalidator.Options{
-		Request:c.Request(),     // request object
-		Rules:   rules, // rules map,
+		Request:  &r,    // request object
+		Rules:    rules, // rules map,
 		Messages: messages,
 	}
 	v := govalidator.New(opts)
 	e := v.Validate()
 
-	if len(e) >= 1{
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status": "false",
+	if len(e) >= 1 {
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+			"status":  false,
 			"message": e,
 		})
 	}
 	upload := makeUploadable(src, fileType, ext_, file.Filename)
-	return c.String(http.StatusOK, upload["httpPath"])
+	return c.SendString(upload["httpPath"])
 }

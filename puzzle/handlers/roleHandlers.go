@@ -2,19 +2,18 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	agentModels "github.com/lambda-platform/lambda/agent/models"
 	"github.com/lambda-platform/lambda/config"
 	krudModels "github.com/lambda-platform/lambda/krud/models"
-
-	"github.com/labstack/echo/v4"
 	"github.com/lambda-platform/lambda/models"
 	"net/http"
 )
 
-func GetRolesMenus(c echo.Context) error {
+func GetRolesMenus(c *fiber.Ctx) error {
 
-	microserviceID := c.Param("microserviceID")
+	microserviceID := c.Params("microserviceID")
 	if microserviceID != "" {
 		roles := []agentModels.Role{}
 		menus := []models.ProjectVBSchema{}
@@ -24,8 +23,8 @@ func GetRolesMenus(c echo.Context) error {
 		DB.DB.Find(&kruds)
 		DB.DB.Where("type = 'menu'").Find(&menus)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status": "true",
+		return c.JSON(map[string]interface{}{
+			"status": true,
 			"roles":  roles,
 			"menus":  menus,
 			"cruds":  kruds,
@@ -39,8 +38,8 @@ func GetRolesMenus(c echo.Context) error {
 		DB.DB.Find(&kruds)
 		DB.DB.Where("type = 'menu'").Find(&menus)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status": "true",
+		return c.JSON(map[string]interface{}{
+			"status": true,
 			"roles":  roles,
 			"menus":  menus,
 			"cruds":  kruds,
@@ -65,11 +64,11 @@ func (v *Role) TableName() string {
 	return "roles"
 }
 
-func SaveRole(c echo.Context) error {
+func SaveRole(c *fiber.Ctx) error {
 
 	role := new(Role)
-	if err := c.Bind(role); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+	if err := c.BodyParser(role); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status": "false",
 		})
 	}
@@ -88,24 +87,24 @@ func SaveRole(c echo.Context) error {
 
 	if err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 		})
 	} else {
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": true,
 		})
 	}
 }
 
-func CreateRole(c echo.Context) error {
+func CreateRole(c *fiber.Ctx) error {
 
 	role_ := new(RoleNew)
 
-	if err := c.Bind(role_); err != nil {
+	if err := c.BodyParser(role_); err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"errer":  err.Error(),
 		})
@@ -118,23 +117,23 @@ func CreateRole(c echo.Context) error {
 
 	err := DB.DB.Create(&role).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 		})
 	} else {
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": true,
 		})
 	}
 }
 
-func UpdateRole(c echo.Context) error {
-	id := c.Param("id")
+func UpdateRole(c *fiber.Ctx) error {
+	id := c.Params("id")
 	role_ := new(RoleNew)
 
-	if err := c.Bind(role_); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+	if err := c.BodyParser(role_); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 		})
@@ -150,37 +149,37 @@ func UpdateRole(c echo.Context) error {
 	err := DB.DB.Save(&role).Error
 	if err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 		})
 	} else {
-		return c.JSON(http.StatusOK, map[string]string{
+		return c.JSON(map[string]string{
 			"status": "true",
 		})
 	}
 }
 
-func DeleteRole(c echo.Context) error {
-	id := c.Param("id")
+func DeleteRole(c *fiber.Ctx) error {
+	id := c.Params("id")
 	role := new(agentModels.Role)
 
 	err := DB.DB.Where("id = ?", id).Delete(&role).Error
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status": "false",
 		})
 	} else {
-		return c.JSON(http.StatusOK, map[string]string{
+		return c.JSON(map[string]string{
 			"status": "true",
 		})
 	}
 
 }
 
-func GetKrudFieldsConsole(c echo.Context) error {
-	id := c.Param("id")
+func GetKrudFieldsConsole(c *fiber.Ctx) error {
+	id := c.Params("id")
 	krud := krudModels.ProjectCruds{}
 	form := models.ProjectVBSchema{}
 	grid := models.ProjectVBSchema{}
@@ -205,7 +204,7 @@ func GetKrudFieldsConsole(c echo.Context) error {
 		gridFields = append(gridFields, field.Model)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(map[string]interface{}{
 		"status":           "true",
 		"user_fields":      config.LambdaConfig.UserDataFields,
 		"form_fields":      formFields,
@@ -214,8 +213,8 @@ func GetKrudFieldsConsole(c echo.Context) error {
 	})
 
 }
-func GetKrudFields(c echo.Context) error {
-	id := c.Param("id")
+func GetKrudFields(c *fiber.Ctx) error {
+	id := c.Params("id")
 	krud := krudModels.Krud{}
 	form := models.VBSchema{}
 	grid := models.VBSchema{}
@@ -240,7 +239,7 @@ func GetKrudFields(c echo.Context) error {
 		gridFields = append(gridFields, field.Model)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(map[string]interface{}{
 		"status":           "true",
 		"user_fields":      config.LambdaConfig.UserDataFields,
 		"form_fields":      formFields,

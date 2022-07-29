@@ -1,15 +1,15 @@
 package chart
 
 import (
-	echo "github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/chart/handler"
 )
 
-func Set(e *echo.Echo) {
+func Set(e *fiber.App) {
 	ve := e.Group("/ve")
-	ve.POST("/get-data-count", handler.CountData)
-	ve.POST("/get-data-pie", handler.PieData)
-	ve.POST("/get-data-table", handler.TableData)
-	ve.POST("/get-data", handler.LineData)
+	ve.Post("/get-data-count", handler.CountData)
+	ve.Post("/get-data-pie", handler.PieData)
+	ve.Post("/get-data-table", handler.TableData)
+	ve.Post("/get-data", handler.LineData)
 	/* ROUTES */
 }

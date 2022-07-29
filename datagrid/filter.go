@@ -3,7 +3,7 @@ package datagrid
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/utils"
 	"gorm.io/gorm"
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func Filter(c echo.Context, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) {
+func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) {
 
 	customHeader := ""
 	bodyBytes := utils.GetBody(c)
@@ -98,9 +98,9 @@ func Filter(c echo.Context, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string
 	return query, customHeader
 }
 
-func Search(c echo.Context, GridModel interface{}, query *gorm.DB) *gorm.DB {
+func Search(c *fiber.Ctx, GridModel interface{}, query *gorm.DB) *gorm.DB {
 
-	search := c.QueryParam("search")
+	search := c.Query("search")
 
 	if search != "" {
 

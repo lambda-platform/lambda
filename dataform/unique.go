@@ -1,27 +1,28 @@
 package dataform
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+
+	"fmt"
 	"github.com/lambda-platform/lambda/DB"
 	"net/http"
-	"fmt"
 )
 
 type UniquePost struct {
-	Table          string `json:"table"`
-	IdentityColumn string `json:"identityColumn"`
+	Table          string      `json:"table"`
+	IdentityColumn string      `json:"identityColumn"`
 	Identity       interface{} `json:"identity"`
-	Field          string `json:"field"`
-	Val            interface{}  `json:"val"`
+	Field          string      `json:"field"`
+	Val            interface{} `json:"val"`
 }
 
-func CheckUnique(c echo.Context) error {
+func CheckUnique(c *fiber.Ctx) error {
 
 	post := new(UniquePost)
-	if err := c.Bind(post); err != nil {
+	if err := c.BodyParser(post); err != nil {
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"msg": "false from json",
+		return c.JSON(map[string]interface{}{
+			"msg":    "false from json",
 			"status": false,
 		})
 	}
@@ -31,7 +32,7 @@ func CheckUnique(c echo.Context) error {
 
 	IdentityValue := fmt.Sprintf("%v", post.Identity)
 
-	if IdentityValue == "<nil>"{
+	if IdentityValue == "<nil>" {
 		IdentityValue = ""
 	}
 
@@ -43,7 +44,7 @@ func CheckUnique(c echo.Context) error {
 		value = fmt.Sprintf("%d", int(post.Val.(float32)))
 	} else if valueType == "int" {
 		value = fmt.Sprintf("%d", int(post.Val.(int)))
-	}else if valueType == "int32" {
+	} else if valueType == "int32" {
 		value = fmt.Sprintf("%d", int(post.Val.(int32)))
 	} else if valueType == "int64" {
 		value = fmt.Sprintf("%d", int(post.Val.(int64)))
@@ -56,20 +57,20 @@ func CheckUnique(c echo.Context) error {
 		err := DB_.QueryRow("SELECT COUNT(*) FROM " + post.Table + " WHERE " + post.IdentityColumn + " != '" + IdentityValue + "' AND " + post.Field + " = '" + value + "'").Scan(&count)
 
 		if err != nil {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": false,
-				"msg": err.Error(),
+				"msg":    err.Error(),
 			})
 		} else {
 
 			if count > 0 {
-				return c.JSON(http.StatusOK, map[string]interface{}{
+				return c.JSON(map[string]interface{}{
 					"status": false,
 					"msg":    "'" + fmt.Sprintf("%v", value) + "' утга бүртгэлтэй байна",
 				})
 			} else {
 
-				return c.JSON(http.StatusOK, map[string]interface{}{
+				return c.JSON(map[string]interface{}{
 					"status": true,
 				})
 			}
@@ -78,28 +79,27 @@ func CheckUnique(c echo.Context) error {
 		err := DB_.QueryRow("SELECT COUNT(*) FROM " + post.Table + " WHERE " + post.Field + " = '" + value + "'").Scan(&count)
 
 		if err != nil {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": false,
-				"msg": err.Error(),
+				"msg":    err.Error(),
 			})
 		} else {
 
 			if count > 0 {
-				return c.JSON(http.StatusOK, map[string]interface{}{
+				return c.JSON(map[string]interface{}{
 					"status": false,
 					"msg":    "'" + fmt.Sprintf("%v", value) + "' утга бүртгэлтэй байна",
 				})
 			} else {
 
-				return c.JSON(http.StatusOK, map[string]interface{}{
+				return c.JSON(map[string]interface{}{
 					"status": true,
 				})
 			}
 		}
 	}
 
-	return c.JSON(http.StatusBadRequest, map[string]interface{}{
+	return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 		"status": false,
 	})
 }
-

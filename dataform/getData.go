@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/PaesslerAG/gval"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/lambda-platform/lambda/DBSchema"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/utils"
@@ -12,17 +13,17 @@ import (
 	"regexp"
 )
 
-func GetData(c echo.Context, action string, id string, dataform Dataform) (*map[string]interface{}, error) {
+func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[string]interface{}, error) {
 
 	requestData := new(map[string]interface{})
 
 	bodyBytes := utils.GetBody(c)
 	json.Unmarshal([]byte(bodyBytes), requestData)
-
-	if err := c.Bind(dataform.Model); err != nil {
+	fmt.Println("hi3")
+	if err := c.BodyParser(dataform.Model); err != nil {
 		return requestData, err
 	}
-
+	fmt.Println("hi4")
 	if len(dataform.FieldTypes) >= 1 {
 
 		for field, fieldType := range dataform.FieldTypes {

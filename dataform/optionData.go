@@ -2,7 +2,7 @@ package dataform
 
 import (
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
@@ -12,11 +12,11 @@ import (
 	"strings"
 )
 
-func Options(c echo.Context) error {
+func Options(c *fiber.Ctx) error {
 	r := new(RalationOption)
-	if err := c.Bind(r); err != nil {
+	if err := c.BodyParser(r); err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"status": false,
 			"error":  err.Error(),
 		})
@@ -35,10 +35,10 @@ func Options(c echo.Context) error {
 	Relation.ParentFieldOfTable = r.ParentFieldOfTable
 
 	data := OptionsData(Relation, c)
-	return c.JSON(http.StatusOK, data)
+	return c.JSON(data)
 }
 
-func OptionsData(relation Ralation_, c echo.Context) []FormOption {
+func OptionsData(relation Ralation_, c *fiber.Ctx) []FormOption {
 
 	table := relation.Table
 	labels := strings.Join(relation.Fields[:], ",', ',")

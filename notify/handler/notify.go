@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/lambda-platform/lambda/DB"
 	agentModels "github.com/lambda-platform/lambda/agent/models"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
@@ -16,16 +17,16 @@ import (
 	//"io/ioutil"
 )
 
-func GetNewNotifications(c echo.Context) error {
+func GetNewNotifications(c *fiber.Ctx) error {
 	var unseenCount int64
-	user_id := c.Param("user_id")
+	user_id := c.Params("user_id")
 	DB.DB.Table("notification_status").Where("receiver_id = ? and seen = 0", user_id).Count(&unseenCount)
 
 	if config.Config.SysAdmin.UUID {
 		var notifications []models.UserNotifactionsUUID
 		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"count":         unseenCount,
 			"notifications": notifications,
 		})
@@ -33,23 +34,23 @@ func GetNewNotifications(c echo.Context) error {
 		var notifications []models.UserNotifactions
 		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"count":         unseenCount,
 			"notifications": notifications,
 		})
 	}
 
 }
-func GetAllNotifications(c echo.Context) error {
+func GetAllNotifications(c *fiber.Ctx) error {
 
-	user_id := c.Param("user_id")
+	user_id := c.Params("user_id")
 
 	if config.Config.SysAdmin.UUID {
 		var notifications []models.UserNotifactionsUUID
 
 		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user_id).Order("n.created_at DESC").Find(&notifications)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"count":         0,
 			"notifications": notifications,
 		})
@@ -58,16 +59,16 @@ func GetAllNotifications(c echo.Context) error {
 
 		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user_id).Order("n.created_at DESC").Find(&notifications)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"count":         0,
 			"notifications": notifications,
 		})
 	}
 
 }
-func SetSeen(c echo.Context) error {
+func SetSeen(c *fiber.Ctx) error {
 
-	id := c.Param("id")
+	id := c.Params("id")
 
 	if config.Config.SysAdmin.UUID {
 
@@ -81,11 +82,11 @@ func SetSeen(c echo.Context) error {
 			status.Seen = 1
 			status.SeenTime = time.Now()
 			DB.DB.Save(&status)
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": false,
 			})
 		}
@@ -101,21 +102,21 @@ func SetSeen(c echo.Context) error {
 			status.Seen = 1
 			status.SeenTime = time.Now()
 			DB.DB.Save(&status)
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": false,
 			})
 		}
 	}
 
 }
-func SetToken(c echo.Context) error {
+func SetToken(c *fiber.Ctx) error {
 
-	user_id := c.Param("user_id")
-	token := c.Param("token")
+	user_id := c.Params("user_id")
+	token := c.Params("token")
 
 	if config.Config.SysAdmin.UUID {
 		var savedToken models.UserFcmTokensUUID
@@ -126,11 +127,11 @@ func SetToken(c echo.Context) error {
 			savedToken.FcmToken = token
 			savedToken.UserID = user_id
 			DB.DB.Save(&savedToken)
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		}
@@ -144,21 +145,21 @@ func SetToken(c echo.Context) error {
 			intID, _ := strconv.Atoi(user_id)
 			savedToken.UserID = intID
 			DB.DB.Save(&savedToken)
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		}
 	}
 
 }
-func SetTokenUrlParam(c echo.Context) error {
+func SetTokenUrlParam(c *fiber.Ctx) error {
 
-	user_id := c.QueryParam("user")
-	token := c.QueryParam("token")
+	user_id := c.Query("user")
+	token := c.Query("token")
 	if config.Config.SysAdmin.UUID {
 		var User agentModels.UserUUID
 
@@ -167,11 +168,11 @@ func SetTokenUrlParam(c echo.Context) error {
 		if User.ID != "" {
 			User.FcmToken = token
 			DB.DB.Save(&User)
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": false,
 			})
 		}
@@ -184,18 +185,18 @@ func SetTokenUrlParam(c echo.Context) error {
 		if User.ID >= 1 {
 			User.FcmToken = token
 			DB.DB.Save(&User)
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": true,
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]interface{}{
+			return c.JSON(map[string]interface{}{
 				"status": false,
 			})
 		}
 	}
 
 }
-func Fcm(c echo.Context) error {
+func Fcm(c *fiber.Ctx) error {
 
 	receivers := []string{"d3hK8PY53VEUhO1sb2m0pr:APA91bGe_ZU_q91sq_AOgntrK_A_Dv-Piv-AesP5r7T2EgoS2m_ID_ifJ1cZrRdJGhXEABNqA3W-4hCNoJ_RoTnuZCdV9wlMfrDPo44CQHMuo8JQjlk5pgAY4YOM0-eHO6meS7WW8F88"}
 
@@ -215,7 +216,7 @@ func Fcm(c echo.Context) error {
 
 	SendNotification(receivers, msg, notification)
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(map[string]interface{}{
 		"status": true,
 	})
 

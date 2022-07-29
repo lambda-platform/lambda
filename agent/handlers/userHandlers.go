@@ -1,20 +1,19 @@
 package handlers
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/utils"
-	"net/http"
 	"strconv"
 
 	agentModels "github.com/lambda-platform/lambda/agent/models"
 )
 
-func GetUsers(c echo.Context) error {
-	role := c.QueryParam("role")
-	sort := c.QueryParam("sort")
-	direction := c.QueryParam("direction")
+func GetUsers(c *fiber.Ctx) error {
+	role := c.Query("role")
+	sort := c.Query("sort")
+	direction := c.Query("direction")
 
 	query := DB.DB.Table("users").Order(sort + " " + direction)
 
@@ -30,7 +29,7 @@ func GetUsers(c echo.Context) error {
 			Page:  GetPage(c),
 			Limit: 16,
 		}, &users)
-		return c.JSON(http.StatusOK, data)
+		return c.JSON(data)
 	} else {
 		users := []agentModels.UserWithoutPassword{}
 		data := utils.Paging(&utils.Param{
@@ -38,13 +37,13 @@ func GetUsers(c echo.Context) error {
 			Page:  GetPage(c),
 			Limit: 16,
 		}, &users)
-		return c.JSON(http.StatusOK, data)
+		return c.JSON(data)
 	}
 
 }
 
-func SearchUsers(c echo.Context) error {
-	q := c.Param("q")
+func SearchUsers(c *fiber.Ctx) error {
+	q := c.Params("q")
 
 	query := DB.DB.Table("users")
 
@@ -64,8 +63,8 @@ func SearchUsers(c echo.Context) error {
 			Limit: 16,
 		}, &users)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status": "true",
+		return c.JSON(map[string]interface{}{
+			"status": true,
 			"data":   data,
 		})
 	} else {
@@ -76,16 +75,16 @@ func SearchUsers(c echo.Context) error {
 			Limit: 16,
 		}, &users)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status": "true",
+		return c.JSON(map[string]interface{}{
+			"status": true,
 			"data":   data,
 		})
 	}
 }
-func GetDeletedUsers(c echo.Context) error {
-	role := c.QueryParam("role")
-	sort := c.QueryParam("sort")
-	direction := c.QueryParam("direction")
+func GetDeletedUsers(c *fiber.Ctx) error {
+	role := c.Query("role")
+	sort := c.Query("sort")
+	direction := c.Query("direction")
 
 	query := DB.DB.Table("users").Order(sort + " " + direction)
 
@@ -102,7 +101,7 @@ func GetDeletedUsers(c echo.Context) error {
 			Limit: 16,
 		}, &users)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": "true",
 			"data":   data,
 		})
@@ -114,7 +113,7 @@ func GetDeletedUsers(c echo.Context) error {
 			Limit: 16,
 		}, &users)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"status": "true",
 			"data":   data,
 		})
@@ -122,45 +121,45 @@ func GetDeletedUsers(c echo.Context) error {
 
 }
 
-func GetRoles(c echo.Context) error {
+func GetRoles(c *fiber.Ctx) error {
 
 	roles := []agentModels.Role{}
 	DB.DB.Where("id != 1").Find(&roles)
-	return c.JSON(http.StatusOK, roles)
+	return c.JSON(roles)
 }
 
-func DeleteUser(c echo.Context) error {
+func DeleteUser(c *fiber.Ctx) error {
 	if config.Config.SysAdmin.UUID {
-		id := c.Param("id")
+		id := c.Params("id")
 		user := new(agentModels.UserWithoutPasswordUUID)
 		err := DB.DB.Where("id = ?", id).Delete(&user).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{
+			return c.JSON(map[string]string{
 				"status": "false",
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]string{
+			return c.JSON(map[string]string{
 				"status": "true",
 			})
 		}
 	} else {
-		id := c.Param("id")
+		id := c.Params("id")
 		user := new(agentModels.UserWithoutPassword)
 		err := DB.DB.Where("id = ?", id).Delete(&user).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{
+			return c.JSON(map[string]string{
 				"status": "false",
 			})
 		} else {
-			return c.JSON(http.StatusOK, map[string]string{
+			return c.JSON(map[string]string{
 				"status": "true",
 			})
 		}
 	}
 
 }
-func GetPage(c echo.Context) int {
-	page := c.QueryParam("page")
+func GetPage(c *fiber.Ctx) int {
+	page := c.Query("page")
 
 	var Page_ int = 1
 	if page != "" {

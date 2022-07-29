@@ -1,12 +1,12 @@
 package datagrid
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"net/http"
 )
 
-func DeleteData(c echo.Context, datagrid Datagrid, id string) error {
+func DeleteData(c *fiber.Ctx, datagrid Datagrid, id string) error {
 
 	//fmt.Println(Identity, id, "Identity, id")
 	qr := DB.DB.Where(datagrid.Identity+" = ?", id)
@@ -14,7 +14,7 @@ func DeleteData(c echo.Context, datagrid Datagrid, id string) error {
 
 	if err != nil {
 
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status": "false",
 		})
 
@@ -22,7 +22,7 @@ func DeleteData(c echo.Context, datagrid Datagrid, id string) error {
 
 		ExecTrigger("afterDelete", []interface{}{}, datagrid, qr, c)
 
-		return c.JSON(http.StatusOK, map[string]string{
+		return c.JSON(map[string]string{
 			"status": "true",
 		})
 	}

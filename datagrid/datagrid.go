@@ -1,7 +1,7 @@
 package datagrid
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/models"
 	"gorm.io/gorm"
 )
@@ -21,11 +21,11 @@ type Datagrid struct {
 	Condition          string
 	Aggergation        string
 	Triggers           map[string]interface{}
-	BeforeFetch        func(interface{}, Datagrid, *gorm.DB, echo.Context) (interface{}, *gorm.DB, bool, bool)
-	AfterFetch         func(interface{}, Datagrid, *gorm.DB, echo.Context) (interface{}, *gorm.DB, bool, bool)
-	BeforeDelete       func(interface{}, Datagrid, *gorm.DB, echo.Context) (interface{}, *gorm.DB, bool, bool)
-	AfterDelete        func(interface{}, Datagrid, *gorm.DB, echo.Context) (interface{}, *gorm.DB, bool, bool)
-	BeforePrint        func(interface{}, Datagrid, *gorm.DB, echo.Context) (interface{}, *gorm.DB, bool, bool)
+	BeforeFetch        func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	AfterFetch         func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	BeforeDelete       func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	AfterDelete        func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	BeforePrint        func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
 	TriggerNameSpace   string
 	FillVirtualColumns func(interface{}) interface{}
 }

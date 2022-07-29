@@ -2,32 +2,31 @@ package handler
 
 import (
 	"fmt"
-	echo "github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
-	"net/http"
 	"strconv"
 	"unicode"
 )
 
-func CountData(c echo.Context) (err error) {
+func CountData(c *fiber.Ctx) (err error) {
 	request := new(CountRequest)
-	if err = c.Bind(request); err != nil {
+	if err = c.BodyParser(request); err != nil {
 		return
 	}
 
 	if len(request.CountFields) == 1 {
 		var count int64
 		DB.DB.Table(request.CountFields[0].Table).Count(&count)
-		return c.JSON(http.StatusOK, count)
+		return c.JSON(count)
 	} else {
-		return c.JSON(http.StatusOK, "0")
+		return c.JSON("0")
 	}
 }
 
-func PieData(c echo.Context) (err error) {
+func PieData(c *fiber.Ctx) (err error) {
 	request := new(PieRequest)
 
-	if err = c.Bind(request); err != nil {
+	if err = c.BodyParser(request); err != nil {
 		return
 	}
 
@@ -72,15 +71,15 @@ func PieData(c echo.Context) (err error) {
 		}
 
 		data := GetTableData(request.Value[0].Table, columns, conditions, groups, limitStr, "")
-		return c.JSON(http.StatusOK, data)
+		return c.JSON(data)
 	} else {
-		return c.JSON(http.StatusOK, "[]")
+		return c.JSON("[]")
 	}
 }
 
-func TableData(c echo.Context) (err error) {
+func TableData(c *fiber.Ctx) (err error) {
 	request := new(TableRequest)
-	if err = c.Bind(request); err != nil {
+	if err = c.BodyParser(request); err != nil {
 		return
 	}
 
@@ -95,9 +94,9 @@ func TableData(c echo.Context) (err error) {
 		}
 
 		data := GetTableData(request.Values[0].Table, columns, "", "", "", "")
-		return c.JSON(http.StatusOK, data)
+		return c.JSON(data)
 	} else {
-		return c.JSON(http.StatusOK, "[]")
+		return c.JSON("[]")
 	}
 }
 func getColumn(column Column) string {
@@ -168,9 +167,9 @@ func getFilter(filter Filter) string {
 	return ""
 }
 
-func LineData(c echo.Context) (err error) {
+func LineData(c *fiber.Ctx) (err error) {
 	request := new(LineRequest)
-	if err = c.Bind(request); err != nil {
+	if err = c.BodyParser(request); err != nil {
 		return
 	}
 
@@ -220,9 +219,9 @@ func LineData(c echo.Context) (err error) {
 		}
 
 		data := GetTableData(request.Axis[0].Table, columns, conditions, groups, limitStr, OrderStr)
-		return c.JSON(http.StatusOK, data)
+		return c.JSON(data)
 	} else {
-		return c.JSON(http.StatusOK, "[]")
+		return c.JSON("[]")
 	}
 }
 

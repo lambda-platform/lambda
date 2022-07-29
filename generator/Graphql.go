@@ -564,7 +564,7 @@ type Cache struct {
 	ttl    time.Duration
 }
 
-func Set(e *echo.Echo) {
+func Set(c *fiber.Ctx) {
 
 	e.Use(gql.Process)
 
@@ -887,8 +887,8 @@ func GQLInit(dbSchema lambdaModels.DBSCHEMA, graphqlchemas []models.ProjectSchem
 
 		}
 		utils.WriteFile(`package graph
-import "github.com/labstack/echo/v4"
-func Set(e *echo.Echo) {}
+import "github.com/gofiber/fiber/v2"
+func Set(e *fiber.App) {}
 `, "lambda/graph/graphql.go")
 	}
 

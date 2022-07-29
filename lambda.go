@@ -1,17 +1,18 @@
 package lambda
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html"
 	"github.com/lambda-platform/lambda/config"
 )
 
 type Lambda struct {
-	Echo       *echo.Echo
+	App        *fiber.App
 	ModuleName string
 }
 
-func (app *Lambda) Start() {
-	app.Echo.Logger.Fatal(app.Echo.Start(":" + config.Config.App.Port))
+func (lambda *Lambda) Start() {
+	lambda.App.Listen(":" + config.Config.App.Port)
 	//defer DB.DB.Close()
 }
 
@@ -24,12 +25,17 @@ func New(lambdaSettings ...*Settings) *Lambda {
 	if len(lambdaSettings) == 0 {
 		panic("Lambda settings required")
 	}
+
+	engine := html.New("./views", ".html")
+
 	lambda := &Lambda{
-		Echo:       echo.New(),
+		App: fiber.New(fiber.Config{
+			Views: engine,
+		}),
 		ModuleName: lambdaSettings[0].ModuleName,
 	}
 
-	lambda.Echo.Static("/", "public")
+	lambda.App.Static("/", "public")
 
 	return lambda
 }

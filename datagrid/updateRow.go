@@ -1,17 +1,17 @@
 package datagrid
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"net/http"
 )
 
-func UpdateRow(c echo.Context, datagrid Datagrid) error {
+func UpdateRow(c *fiber.Ctx, datagrid Datagrid) error {
 
 	RowUpdateData := new(RowUpdateData)
 
-	if err := c.Bind(RowUpdateData); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+	if err := c.BodyParser(RowUpdateData); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status": "false",
 			"error":  err.Error(),
 		})
@@ -23,7 +23,7 @@ func UpdateRow(c echo.Context, datagrid Datagrid) error {
 		}
 
 	}
-	return c.JSON(http.StatusOK, map[string]string{
+	return c.JSON(map[string]string{
 		"status": "true",
 	})
 }

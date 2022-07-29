@@ -1,17 +1,12 @@
 package gql
 
 import (
-	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"net/http"
 	"errors"
-	"reflect"
+	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/config"
-	"github.com/labstack/echo/v4"
-)
-
-var (
-	ErrJWTMissing = echo.NewHTTPError(http.StatusBadRequest, "missing or malformed jwt")
+	"reflect"
 )
 
 const (
@@ -22,12 +17,12 @@ var JWTconfig = JWTConfig{
 	Skipper:       DefaultSkipper,
 	SigningMethod: AlgorithmHS256,
 	ContextKey:    "user",
-	TokenLookup:   "header:" + echo.HeaderAuthorization,
+	TokenLookup:   "header:Authorization,",
 	AuthScheme:    "Bearer",
 	Claims:        jwt.MapClaims{},
 }
 
-func IsLoggedIn(c echo.Context) (jwt.Claims, error) {
+func IsLoggedIn(c *fiber.Ctx) (jwt.Claims, error) {
 	JWTconfig.SigningKey = []byte(config.Config.JWT.Secret)
 	JWTconfig.keyFunc = func(t *jwt.Token) (interface{}, error) {
 		// Check the signing method
@@ -58,7 +53,7 @@ func IsLoggedIn(c echo.Context) (jwt.Claims, error) {
 	}
 
 }
-func ParseToken(auth string, c echo.Context) (jwt.Claims, error) {
+func ParseToken(auth string, c *fiber.Ctx) (jwt.Claims, error) {
 	var err error = nil
 	token := new(jwt.Token)
 	// Issue #647, #656
@@ -70,8 +65,8 @@ func ParseToken(auth string, c echo.Context) (jwt.Claims, error) {
 		token, err = jwt.ParseWithClaims(auth, claims, JWTconfig.keyFunc)
 	}
 	if err == nil && token.Valid {
-		// Store user information from token into context.
-		c.Set(JWTconfig.ContextKey, token)
+		//// Store user information from token into context.
+		//c.Set(JWTconfig.ContextKey, token)
 		if JWTconfig.SuccessHandler != nil {
 			JWTconfig.SuccessHandler(c)
 		}
@@ -80,20 +75,20 @@ func ParseToken(auth string, c echo.Context) (jwt.Claims, error) {
 		return nil, errors.New("invalid or expired jwt")
 	}
 }
-func JWTFromCookie(name string, c echo.Context) (string, error) {
-	cookie, err := c.Cookie(name)
-	if err != nil {
-		return "", ErrJWTMissing
+func JWTFromCookie(name string, c *fiber.Ctx) (string, error) {
+	cookie := c.Cookies(name)
+	if cookie == "" {
+		return "", nil
 	}
-	return cookie.Value, nil
+	return cookie, nil
 }
-func JWTFromHeader(header string, authScheme string, c echo.Context) (string, error) {
-	auth := c.Request().Header.Get(header)
+func JWTFromHeader(header string, authScheme string, c *fiber.Ctx) (string, error) {
+	auth := c.Get(header)
 	l := len(authScheme)
 	if len(auth) > l+1 && auth[:l] == authScheme {
 		return auth[l+1:], nil
 	}
-	return "", ErrJWTMissing
+	return "", nil
 }
 
 type (
@@ -153,25 +148,25 @@ type (
 	}
 
 	// JWTSuccessHandler defines a function which is executed for a valid token.
-	JWTSuccessHandler func(echo.Context)
+	JWTSuccessHandler func(*fiber.Ctx)
 
 	// JWTErrorHandler defines a function which is executed for an invalid token.
 	JWTErrorHandler func(error) error
 
 	// JWTErrorHandlerWithContext is almost identical to JWTErrorHandler, but it's passed the current context.
-	JWTErrorHandlerWithContext func(error, echo.Context) error
+	JWTErrorHandlerWithContext func(error, *fiber.Ctx) error
 
-	jwtExtractor func(echo.Context) (string, error)
+	jwtExtractor func(*fiber.Ctx) (string, error)
 )
 type (
 	// Skipper defines a function to skip middleware. Returning true skips processing
 	// the middleware.
-	Skipper func(echo.Context) bool
+	Skipper func(*fiber.Ctx) bool
 
 	// BeforeFunc defines a function which is executed just before the middleware.
-	BeforeFunc func(echo.Context)
+	BeforeFunc func(*fiber.Ctx)
 )
 
-func DefaultSkipper(echo.Context) bool {
+func DefaultSkipper(*fiber.Ctx) bool {
 	return false
 }

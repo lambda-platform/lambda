@@ -1,17 +1,14 @@
 package utils
 
 import (
-	"github.com/labstack/echo/v4"
-	"bytes"
-	"io/ioutil"
+	"github.com/gofiber/fiber/v2"
 )
 
-func GetBody(c echo.Context) []byte {
+func GetBody(c *fiber.Ctx) []byte {
 	var bodyBytes []byte
 
-	if(c.Request().Body != nil){
-		bodyBytes, _ = ioutil.ReadAll(c.Request().Body)
-		c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	if c.Request().Body != nil {
+		bodyBytes = c.Body()
 	}
 
 	return bodyBytes

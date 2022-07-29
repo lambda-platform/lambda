@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/exportImport/models"
 	"io/ioutil"
@@ -10,11 +11,11 @@ import (
 	"os"
 )
 
-func Import(c echo.Context) error {
+func Import(c *fiber.Ctx) error {
 
 	data := models.LambdaExportData{}
 
-	isMicroservice := c.QueryParam("isMicroservice")
+	isMicroservice := c.Query("isMicroservice")
 	schemaTable := "vb_schemas"
 	krudTable := "krud"
 	if isMicroservice == "true" {
@@ -22,12 +23,12 @@ func Import(c echo.Context) error {
 		krudTable = "project_cruds"
 	}
 
-	file := c.Param("file")
+	file := c.Params("file")
 
 	jsonFile, err := os.Open("lambda/" + file)
 	defer jsonFile.Close()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, map[string]string{
+		c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"error": err.Error(),
 		})
 	}
@@ -62,7 +63,7 @@ func Import(c echo.Context) error {
 
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(map[string]interface{}{
 		"status":          true,
 		"converted-cruds": len(data.Kruds),
 	})

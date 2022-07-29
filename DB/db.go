@@ -43,7 +43,7 @@ func init() {
 			dbConnection, err := gorm.Open(postgres.Open("host="+config.Config.Database.Host+" port="+config.Config.Database.Port+" user="+config.Config.Database.UserName+" dbname="+config.Config.Database.Database+" password="+config.Config.Database.Password+" sslmode=disable"), Config)
 
 			if err != nil {
-				fmt.Println(err)
+
 				panic("failed to connect database")
 			}
 
@@ -55,7 +55,7 @@ func init() {
 			dbConnection, err := gorm.Open(mysql.Open(dbConfig+"?charset=utf8&parseTime=True&loc=Local"), Config)
 
 			if err != nil {
-				fmt.Println(err)
+
 				panic("failed to connect database")
 			}
 

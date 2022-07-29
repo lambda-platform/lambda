@@ -1,11 +1,11 @@
 package dataform
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
-func Exec(c echo.Context, schemaId string, action string, id string, GetMODEL func(schemaId string) Dataform) error {
+func Exec(c *fiber.Ctx, schemaId string, action string, id string, GetMODEL func(schemaId string) Dataform) error {
 	datform := GetMODEL(schemaId)
 
 	switch action {
@@ -19,12 +19,8 @@ func Exec(c echo.Context, schemaId string, action string, id string, GetMODEL fu
 		return Options(c)
 	}
 
-	return c.JSON(http.StatusBadRequest, map[string]string{
+	return c.Status(http.StatusBadRequest).JSON(map[string]string{
 		"status": "false",
 	})
 
 }
-
-
-
-

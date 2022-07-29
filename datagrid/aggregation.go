@@ -1,13 +1,12 @@
 package datagrid
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
-	"net/http"
 	"strconv"
 )
 
-func Aggregation(c echo.Context, datagrid Datagrid) error {
+func Aggregation(c *fiber.Ctx, datagrid Datagrid) error {
 
 	//GetAggregations := reflect.ValueOf(GridModel).MethodByName("GetAggregations")
 	//aggregationsRes := GetAggregations.Call([]reflect.Value{})
@@ -32,8 +31,6 @@ func Aggregation(c echo.Context, datagrid Datagrid) error {
 	//	return aggregations
 	//}
 
-
-
 	query := DB.DB.Table(datagrid.DataTable)
 
 	query, _ = Filter(c, datagrid, query)
@@ -43,8 +40,6 @@ func Aggregation(c echo.Context, datagrid Datagrid) error {
 	}
 
 	query = Search(c, datagrid.DataModel, query)
-
-
 
 	query = query.Select(datagrid.Aggergation)
 
@@ -96,5 +91,5 @@ func Aggregation(c echo.Context, datagrid Datagrid) error {
 
 	}
 
-	return c.JSON(http.StatusOK, data)
+	return c.JSON(data)
 }

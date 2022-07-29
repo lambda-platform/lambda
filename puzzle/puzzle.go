@@ -1,18 +1,15 @@
 package puzzle
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/datagrid"
 	"github.com/lambda-platform/lambda/puzzle/handlers"
 	"github.com/lambda-platform/lambda/puzzle/utils"
-	templateUtils "github.com/lambda-platform/lambda/template/utils"
-	lambdaUtils "github.com/lambda-platform/lambda/utils"
-	"html/template"
 )
 
-func Set(e *echo.Echo, moduleName string, GetGridMODEL func(schema_id string) datagrid.Datagrid, isMicroservice bool, withUserRole bool) {
+func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) datagrid.Datagrid, isMicroservice bool, withUserRole bool) {
 
 	if isMicroservice {
 
@@ -25,69 +22,69 @@ func Set(e *echo.Echo, moduleName string, GetGridMODEL func(schema_id string) da
 	//if isMicroservice && withUserRole{
 	//	handlers.GetRoleData()
 	//}
-	if withUserRole || !isMicroservice {
-		templates := lambdaUtils.GetTemplates(e)
-
-		//* REGISTER VIEWS */
-		AbsolutePath := utils.AbsolutePath()
-		TemplatePath := templateUtils.AbsolutePath()
-
-		templates["puzzle.html"] = template.Must(template.ParseFiles(
-			TemplatePath + "views/paper.html",
-		))
-
-		template.Must(templates["puzzle.html"].ParseFiles(
-			AbsolutePath + "views/puzzle.html",
-		))
-	}
+	//if withUserRole || !isMicroservice {
+	//	templates := lambdaUtils.GetTemplates(e)
+	//
+	//	//* REGISTER VIEWS */
+	//	AbsolutePath := utils.AbsolutePath()
+	//	TemplatePath := templateUtils.AbsolutePath()
+	//
+	//	templates["puzzle.html"] = template.Must(template.ParseFiles(
+	//		TemplatePath + "views/paper.html",
+	//	))
+	//
+	//	template.Must(templates["puzzle.html"].ParseFiles(
+	//		AbsolutePath + "views/puzzle.html",
+	//	))
+	//}
 
 	/*ROUTES */
-	e.GET("/build-me", handlers.BuildMe, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
+	e.Get("/build-me", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.BuildMe)
 
 	g := e.Group("/lambda")
 
-	//g.GET("/puzzle", handlers.Index, agentMW.IsLoggedInCookie)
-	g.GET("/puzzle", handlers.Index, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
+	//g.Get("/puzzle", handlers.Index, agentMW.IsLoggedIn())
+	g.Get("/puzzle", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.Index)
 
 	//Puzzle
-	g.GET("/puzzle/schema/:type", handlers.GetVB, agentMW.IsLoggedInCookie)
-	g.GET("/puzzle/schema/:type/:id", handlers.GetVB, agentMW.IsLoggedInCookie)
-	g.GET("/puzzle/schema-public/:type/:id", handlers.GetVB)
-	g.GET("/puzzle/schema/:type/:id/:condition", handlers.GetVB, agentMW.IsLoggedInCookie)
+	g.Get("/puzzle/schema/:type", agentMW.IsLoggedIn(), handlers.GetVB)
+	g.Get("/puzzle/schema/:type/:id", agentMW.IsLoggedIn(), handlers.GetVB)
+	g.Get("/puzzle/schema-public/:type/:id", handlers.GetVB)
+	g.Get("/puzzle/schema/:type/:id/:condition", agentMW.IsLoggedIn(), handlers.GetVB)
 
 	//VB SCHEMA
-	g.GET("/puzzle/table-schema/:table", handlers.GetTableSchema, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.POST("/puzzle/schema/:type", handlers.SaveVB(moduleName), agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.POST("/puzzle/schema/:type/:id", handlers.SaveVB(moduleName), agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.DELETE("/puzzle/delete/vb_schemas/:type/:id", handlers.DeleteVB, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
+	g.Get("/puzzle/table-schema/:table", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetTableSchema)
+	g.Post("/puzzle/schema/:type", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.SaveVB(moduleName))
+	g.Post("/puzzle/schema/:type/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.SaveVB(moduleName))
+	g.Delete("/puzzle/delete/vb_schemas/:type/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.DeleteVB)
 	//MENU SHOW
-	e.GET("/lambda/krud/menu_form/edit/:id", handlers.GetMenuVB, agentMW.IsLoggedInCookie)
+	e.Get("/lambda/krud/menu_form/edit/:id", agentMW.IsLoggedIn(), handlers.GetMenuVB)
 
 	//GRID
-	g.POST("/puzzle/grid/:action/:schemaId", handlers.GridVB(GetGridMODEL), agentMW.IsLoggedInCookie)
+	g.Post("/puzzle/grid/:action/:schemaId", agentMW.IsLoggedIn(), handlers.GridVB(GetGridMODEL))
 
 	//Get From Options
-	g.POST("/puzzle/get_options", handlers.GetOptions, agentMW.IsLoggedInCookie)
-	g.POST("/puzzle/get_options-public", handlers.GetOptions)
+	g.Post("/puzzle/get_options", agentMW.IsLoggedIn(), handlers.GetOptions)
+	g.Post("/puzzle/get_options-public", handlers.GetOptions)
 
 	//Roles
-	g.GET("/puzzle/roles-menus", handlers.GetRolesMenus, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.GET("/puzzle/roles-menus/:microserviceID", handlers.GetRolesMenus, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.GET("/puzzle/get-krud-fields/:id", handlers.GetKrudFields, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.GET("/puzzle/get-krud-fields-micro/:id", handlers.GetKrudFieldsConsole, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.POST("/puzzle/save-role", handlers.SaveRole, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.POST("/puzzle/roles/create", handlers.CreateRole, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.POST("/puzzle/roles/store/:id", handlers.UpdateRole, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	g.DELETE("/puzzle/roles/destroy/:id", handlers.DeleteRole, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
+	g.Get("/puzzle/roles-menus", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRolesMenus)
+	g.Get("/puzzle/roles-menus/:microserviceID", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRolesMenus)
+	g.Get("/puzzle/get-krud-fields/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetKrudFields)
+	g.Get("/puzzle/get-krud-fields-micro/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetKrudFieldsConsole)
+	g.Post("/puzzle/save-role", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.SaveRole)
+	g.Post("/puzzle/roles/create", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.CreateRole)
+	g.Post("/puzzle/roles/store/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.UpdateRole)
+	g.Delete("/puzzle/roles/destroy/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.DeleteRole)
 
 	//Puzzle with project
-	g.GET("/puzzle/projects/:type", handlers.GetProjectVBs, agentMW.IsLoggedInCookie)
-	g.GET("/puzzle/projects/:type/:id", handlers.GetProjectVBs, agentMW.IsLoggedInCookie)
-	g.GET("/puzzle/project/:pid/:type", handlers.GetProjectVB, agentMW.IsLoggedInCookie)
-	g.GET("/puzzle/project/:pid/:type/:id", handlers.GetProjectVB, agentMW.IsLoggedInCookie)
-	g.GET("/puzzle/project/:pid/:type/:id/builder", handlers.GetProjectVB, agentMW.IsLoggedInCookie)
-	g.POST("/puzzle/project/:pid/:type", handlers.SaveProjectVB(moduleName), agentMW.IsLoggedInCookie)
-	g.POST("/puzzle/project/:pid/:type/:id", handlers.SaveProjectVB(moduleName), agentMW.IsLoggedInCookie)
-	g.DELETE("/puzzle/delete/project/vb_schemas/:pid/:type/:id", handlers.DeleteProjectVB, agentMW.IsLoggedInCookie)
+	g.Get("/puzzle/projects/:type", agentMW.IsLoggedIn(), handlers.GetProjectVBs)
+	g.Get("/puzzle/projects/:type/:id", agentMW.IsLoggedIn(), handlers.GetProjectVBs)
+	g.Get("/puzzle/project/:pid/:type", agentMW.IsLoggedIn(), handlers.GetProjectVB)
+	g.Get("/puzzle/project/:pid/:type/:id", agentMW.IsLoggedIn(), handlers.GetProjectVB)
+	g.Get("/puzzle/project/:pid/:type/:id/builder", agentMW.IsLoggedIn(), handlers.GetProjectVB)
+	g.Post("/puzzle/project/:pid/:type", agentMW.IsLoggedIn(), handlers.SaveProjectVB(moduleName))
+	g.Post("/puzzle/project/:pid/:type/:id", agentMW.IsLoggedIn(), handlers.SaveProjectVB(moduleName))
+	g.Delete("/puzzle/delete/project/vb_schemas/:pid/:type/:id", agentMW.IsLoggedIn(), handlers.DeleteProjectVB)
 
 }

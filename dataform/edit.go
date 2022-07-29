@@ -2,17 +2,14 @@ package dataform
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
-	"github.com/lambda-platform/lambda/DB"
-	"net/http"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"github.com/lambda-platform/lambda/DB"
 )
 
-func Edit(c echo.Context, dataform Dataform, id string) error {
+func Edit(c *fiber.Ctx, dataform Dataform, id string) error {
 	DB.DB.Where(dataform.Identity+" = ?", id).Find(dataform.Model)
 	if len(dataform.SubForms) >= 1 {
-
-
 
 		data := make(map[string]interface{})
 		dataPre, _ := json.Marshal(dataform.Model)
@@ -44,7 +41,6 @@ func Edit(c echo.Context, dataform Dataform, id string) error {
 
 				parentId := fmt.Sprintf("%g", sData[subIdentity])
 
-
 				for _, Sub2 := range subForm.SubForms {
 
 					connectionField2 := Sub2["connection_field"].(string)
@@ -69,17 +65,16 @@ func Edit(c echo.Context, dataform Dataform, id string) error {
 
 		}
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status": "true",
+		return c.JSON(map[string]interface{}{
+			"status": true,
 			"data":   data,
 		})
 
 	} else {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status": "true",
+		return c.JSON(map[string]interface{}{
+			"status": true,
 			"data":   dataform.Model,
 		})
 	}
-
 
 }

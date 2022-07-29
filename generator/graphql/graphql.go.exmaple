@@ -6,14 +6,15 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	 lambdaPlayground "github.com/lambda-platform/lambda/graphql/playground"
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/graphql/gql"
 	"PROJECTNAME/app/graph/generated"
 	"net/http"
+	"github.com/gofiber/fiber/v2"
 	"time"
 )
 
-func Set(e *echo.Echo) {
+func Set(c *fiber.Ctx) {
 
 	e.Use(gql.Process)
 	graphqlHandler := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{}}))

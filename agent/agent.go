@@ -1,43 +1,40 @@
 package agent
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/agent/handlers"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
-	vpUtils "github.com/lambda-platform/lambda/utils"
-	"html/template"
 )
 
-func Set(e *echo.Echo) {
+func Set(e *fiber.App) {
 
 	if config.Config.App.Migrate == "true" {
 		agentUtils.AutoMigrateSeed()
 	}
-	templates := vpUtils.GetTemplates(e)
 
-	/* REGISTER VIEWS */
-	AbsolutePath := agentUtils.AbsolutePath()
-	templates["login.html"] = template.Must(template.ParseFiles(AbsolutePath + "views/login.html"))
-	templates["forgot.html"] = template.Must(template.ParseFiles(AbsolutePath + "views/email/forgot.html"))
+	//e.Use(jwtware.New(jwtware.Config{
+	//	KeyFunc: agentMW.KeyFunc(),
+	//}))
 
 	/* ROUTES */
 	a := e.Group("/auth")
-	a.GET("/", handlers.LoginPage)
-	a.GET("/login", handlers.LoginPage)
-	a.POST("/login", handlers.Login)
-	a.POST("/logout", handlers.Logout)
+	a.Get("/", handlers.LoginPage)
+	a.Get("/login", handlers.LoginPage)
+	a.Get("/forgot", handlers.LoginPage)
+	a.Post("/login", handlers.Login)
+	a.Post("/logout", handlers.Logout)
 
 	/*PASSWORD RESET*/
-	a.POST("/send-forgot-mail", handlers.SendForgotMail)
-	a.POST("/password-reset", handlers.PasswordReset)
+	a.Post("/send-forgot-mail", handlers.SendForgotMail)
+	a.Post("/password-reset", handlers.PasswordReset)
 
 	u := e.Group("/agent")
-	u.GET("/users", handlers.GetUsers, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	u.GET("/search/:q", handlers.SearchUsers, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	u.GET("/users/deleted", handlers.GetDeletedUsers, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	u.GET("/delete/:id", handlers.DeleteUser, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
-	u.GET("/roles", handlers.GetRoles, agentMW.IsLoggedInCookie, agentMW.IsAdmin)
+	u.Get("/users", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetUsers)
+	u.Get("/search/:q", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.SearchUsers)
+	u.Get("/users/deleted", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetDeletedUsers)
+	u.Get("/delete/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.DeleteUser)
+	u.Get("/roles", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRoles)
 
 }

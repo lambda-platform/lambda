@@ -1,21 +1,20 @@
 package handler
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/utils"
-	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
-func Moqup(c echo.Context) error  {
-	id := c.Param("id")
+func Moqup(c *fiber.Ctx) error {
+	id := c.Params("id")
 	//csrfToken := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	csrfToken := ""
-	return c.Render(http.StatusOK, "moqup.html", map[string]interface{}{
-		"title":                     config.LambdaConfig.Title,
-		"favicon":                   config.LambdaConfig.Favicon,
-		"id":                   id,
-		"csrfToken":                   csrfToken,
-		"mix":                       utils.Mix,
+	return c.Render("moqup.html", map[string]interface{}{
+		"title":     config.LambdaConfig.Title,
+		"favicon":   config.LambdaConfig.Favicon,
+		"id":        id,
+		"csrfToken": csrfToken,
+		"mix":       utils.Mix,
 	})
 }

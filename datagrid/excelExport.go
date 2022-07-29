@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/tealeg/xlsx"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 	"unicode/utf8"
 )
 
-func ExportExcel(c echo.Context, datagrid Datagrid) error {
+func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 
 	name := trim(datagrid.Name, 21)
 
@@ -80,7 +80,7 @@ func ExportExcel(c echo.Context, datagrid Datagrid) error {
 
 		}
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"name":      name,
 			"tableRows": data,
 		})
@@ -127,12 +127,12 @@ func ExportExcel(c echo.Context, datagrid Datagrid) error {
 
 		var b bytes.Buffer
 		if err := file.Write(&b); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{
+			return c.Status(http.StatusBadRequest).JSON(map[string]string{
 				"status": "false",
 			})
 		}
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
+		return c.JSON(map[string]interface{}{
 			"name": name + ".xlsx",
 			"file": b.Bytes(),
 		})

@@ -1,64 +1,77 @@
 package agentMW
 
 import (
-	"github.com/golang-jwt/jwt"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"fmt"
+	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/config"
-	"net/http"
 	"reflect"
-
 )
 
-var IsLoggedIn = middleware.JWTWithConfig(middleware.JWTConfig{
-	SigningKey: []byte(config.Config.JWT.Secret),
-})
-var IsLoggedInCookie = middleware.JWTWithConfig(middleware.JWTConfig{
-	SigningKey:  []byte(config.Config.JWT.Secret),
-	TokenLookup: "cookie:token,header:Authorization",
-	//ErrorHandlerWithContext: ErrorHandler,
-})
-
-func ErrorHandler(err error, c echo.Context) error {
-	return c.Redirect(http.StatusSeeOther, "/auth/login")
+func IsLoggedIn() fiber.Handler {
+	return jwtware.New(jwtware.Config{
+		SigningKey:   []byte(config.Config.JWT.Secret),
+		ErrorHandler: jwtError,
+		TokenLookup:  "cookie:token,header:Authorization",
+	})
 }
 
-func IsAdmin(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		user := c.Get("user").(*jwt.Token)
-		claims := user.Claims.(jwt.MapClaims)
-		role := GetUserRole(claims)
-
-		if len(config.LambdaConfig.AdminRoles) >= 1 {
-			for _, adminRole := range config.LambdaConfig.AdminRoles {
-				if adminRole == role {
-					return next(c)
-				}
-			}
-			return echo.ErrUnauthorized
-		} else {
-			if role != 1.0 {
-				return echo.ErrUnauthorized
-			}
+func jwtError(c *fiber.Ctx, err error) error {
+	if err.Error() == "Missing or malformed JWT" {
+		return c.Status(fiber.StatusBadRequest).
+			JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
+	}
+	return c.Status(fiber.StatusUnauthorized).
+		JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
+}
+func KeyFunc() jwt.Keyfunc {
+	return func(t *jwt.Token) (interface{}, error) {
+		// Always check the signing method
+		if t.Method.Alg() != jwtware.HS256 {
+			return nil, fmt.Errorf("Unexpected jwt signing method=%v", t.Header["alg"])
 		}
-		return next(c)
+
+		return []byte(config.Config.JWT.Secret), nil
 	}
 }
 
-func GetUserRole(claims jwt.MapClaims)int64 {
+func IsAdmin(c *fiber.Ctx) error {
+
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	role := GetUserRole(claims)
+
+	if len(config.LambdaConfig.AdminRoles) >= 1 {
+		for _, adminRole := range config.LambdaConfig.AdminRoles {
+			if adminRole == role {
+				return c.Next()
+			}
+		}
+		return c.Status(fiber.StatusUnauthorized).SendString("Invalid or expired JWT")
+	} else {
+		if role != 1.0 {
+			return c.Status(fiber.StatusUnauthorized).SendString("Invalid or expired JWT")
+		}
+	}
+	return c.Next()
+
+}
+
+func GetUserRole(claims jwt.MapClaims) int64 {
 	var role int64
 
 	roleDataType := reflect.TypeOf(claims["role"]).String()
 
 	if roleDataType == "float64" {
 		role = int64(claims["role"].(float64))
-	} else if roleDataType == "float32"{
+	} else if roleDataType == "float32" {
 		role = int64(claims["role"].(float32))
-	} else if roleDataType == "int"{
+	} else if roleDataType == "int" {
 		role = int64(claims["role"].(int))
-	} else if roleDataType == "int32"{
+	} else if roleDataType == "int32" {
 		role = int64(claims["role"].(int32))
-	} else if roleDataType == "int64"{
+	} else if roleDataType == "int64" {
 		role = claims["role"].(int64)
 	} else {
 		role = int64(claims["role"].(int))
