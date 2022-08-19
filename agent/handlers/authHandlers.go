@@ -6,9 +6,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/agent/models"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
+	krudModels "github.com/lambda-platform/lambda/krud/models"
+	puzzleModels "github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/utils"
 	"io/ioutil"
 	"os"
@@ -42,6 +45,12 @@ type jwtUUIDClaims struct {
 	Login string `json:"login"`
 	Role  int64  `json:"role"`
 	jwt.StandardClaims
+}
+type Permissions struct {
+	DefaultMenu string      `json:"default_menu"`
+	Extra       interface{} `json:"extra"`
+	MenuID      int         `json:"menu_id"`
+	Permissions interface{} `json:"permissions"`
 }
 
 func Login(c *fiber.Ctx) error {
@@ -168,6 +177,174 @@ func Login(c *fiber.Ctx) error {
 
 }
 
+func LoginWithPermissions(c *fiber.Ctx) error {
+
+	u := new(User)
+	if err := c.BodyParser(u); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+			Error:  "Username & password required",
+			Status: false,
+		})
+	}
+
+	foundUser := agentUtils.AuthUserObjectByLogin(u.Login)
+
+	if len(foundUser) == 0 {
+
+		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+			Error:  "User not found",
+			Status: false,
+		})
+
+	}
+
+	//password, err := Hash(u.Password)
+	//password_check1 := IsSame(password, foundUser.Password)
+	if agentUtils.IsSame(u.Password, foundUser["password"].(string)) {
+
+		var roleID int64 = 0
+		var userID int64 = 0
+		var userUUID string = ""
+
+		if reflect.TypeOf(foundUser["id"]).String() == "string" {
+			if config.Config.SysAdmin.UUID {
+				userUUID = foundUser["id"].(string)
+			} else {
+				i, err := strconv.ParseInt(foundUser["id"].(string), 10, 64)
+				if err != nil {
+					panic(err)
+				}
+				userID = i
+			}
+
+		} else {
+			userID = foundUser["id"].(int64)
+		}
+		if reflect.TypeOf(foundUser["role"]).String() == "string" {
+			i, err := strconv.ParseInt(foundUser["role"].(string), 10, 64)
+			if err != nil {
+				panic(err)
+			}
+			roleID = i
+		} else {
+			roleID = foundUser["role"].(int64)
+		}
+		permissionData := PermissionData(roleID)
+		if config.Config.SysAdmin.UUID {
+			// create jwt token
+			token, err := createUUIDJwtToken(UserUUIDData{Id: userUUID, Login: foundUser["login"].(string), Role: roleID})
+			if err != nil {
+				//log.Println("Error Creating JWT token", err)
+				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+					Error:  "Unauthorized",
+					Status: false,
+				})
+			}
+
+			cookie := new(fiber.Cookie)
+			cookie.Name = "token"
+			cookie.Path = "/"
+			cookie.Value = token
+			cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
+			//cookie.HttpOnly = true
+			//cookie.Secure = true
+
+			delete(foundUser, "password")
+
+			foundUser["jwt"] = token
+
+			c.Cookie(cookie)
+
+			return c.Status(fiber.StatusOK).JSON(map[string]interface{}{
+				"token":      token,
+				"path":       checkRole(roleID),
+				"status":     true,
+				"data":       foundUser,
+				"permission": permissionData,
+			})
+		} else {
+			// create jwt token
+			token, err := createJwtToken(UserData{Id: userID, Login: foundUser["login"].(string), Role: roleID})
+			if err != nil {
+				//log.Println("Error Creating JWT token", err)
+				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+					Error:  "Unauthorized",
+					Status: false,
+				})
+			}
+
+			cookie := new(fiber.Cookie)
+			cookie.Name = "token"
+			cookie.Path = "/"
+			cookie.Value = token
+			cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
+
+			delete(foundUser, "password")
+
+			foundUser["jwt"] = token
+
+			c.Cookie(cookie)
+
+			return c.Status(fiber.StatusOK).JSON(map[string]interface{}{
+				"token":      token,
+				"path":       checkRole(roleID),
+				"status":     true,
+				"data":       foundUser,
+				"permission": permissionData,
+			})
+		}
+
+	}
+
+	return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+		Error:  "Unauthorized",
+		Status: false,
+	})
+
+}
+
+func GetPermissions(c *fiber.Ctx) error {
+
+	user := agentUtils.AuthUserObject(c)
+	agentMW.IsLoggedIn()
+	var roleID int64 = 0
+	if reflect.TypeOf(user["role"]).String() == "string" {
+		i, err := strconv.ParseInt(user["role"].(string), 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		roleID = i
+	} else {
+		roleID = user["role"].(int64)
+	}
+	permissionData := PermissionData(roleID)
+	return c.Status(fiber.StatusOK).JSON(map[string]interface{}{
+		"status":     true,
+		"permission": permissionData,
+	})
+
+}
+func PermissionData(roleID int64) map[string]interface{} {
+
+	Role := models.Role{}
+	DB.DB.Where("id = ?", roleID).Find(&Role)
+
+	Permissions_ := Permissions{}
+	json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+
+	Menu := puzzleModels.VBSchema{}
+	DB.DB.Where("id = ?", Permissions_.MenuID).Find(&Menu)
+
+	MenuSchema := new(interface{})
+	json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
+	Kruds := []krudModels.Krud{}
+	DB.DB.Where("deleted_at IS NULL").Find(&Kruds)
+	return map[string]interface{}{
+		"menu":        MenuSchema,
+		"kruds":       Kruds,
+		"permissions": Permissions_,
+	}
+}
 func Logout(c *fiber.Ctx) error {
 
 	cookie := new(fiber.Cookie)
@@ -196,6 +373,10 @@ func LoginPage(c *fiber.Ctx) error {
 		"mix":           utils.Mix,
 		"csrfToken":     csrfToken,
 	})
+}
+func LambdaConfig(c *fiber.Ctx) error {
+
+	return c.JSON(config.LambdaConfig)
 }
 
 func createJwtToken(user UserData) (string, error) {

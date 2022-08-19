@@ -1,7 +1,6 @@
 package dataform
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/thedevsaddam/govalidator"
@@ -12,13 +11,12 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 
 	/*FORM VALIDATION*/
 	requestData, err := GetData(c, action, id, dataform)
-	fmt.Println("hi1")
+
 	if err != nil {
 		errData := map[string]interface{}{"error": err}
 		errData["status"] = false
 		return c.Status(http.StatusBadRequest).JSON(err)
 	}
-	fmt.Println("hi2")
 
 	if len(dataform.ValidationRules) >= 1 {
 		opts := govalidator.Options{

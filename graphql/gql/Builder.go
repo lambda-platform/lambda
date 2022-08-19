@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"gorm.io/gorm"
 	"strings"
@@ -266,17 +266,17 @@ func CheckColumns(column string, columns []string) error {
 }
 
 type CustomContext struct {
-	echo.Context
+	*fiber.Ctx
 	ctx context.Context
 }
 
-func Process(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		ctx := context.WithValue(c.Request().Context(), "EchoContextKey", c)
-		c.SetRequest(c.Request().WithContext(ctx))
+func Process() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := context.WithValue(c.Context(), "EchoContextKey", c)
+		c.SetUserContext(ctx)
 
 		cc := &CustomContext{c, ctx}
 
-		return next(cc)
+		return cc.Ctx.Next()
 	}
 }

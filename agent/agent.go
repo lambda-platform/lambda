@@ -18,12 +18,15 @@ func Set(e *fiber.App) {
 	//	KeyFunc: agentMW.KeyFunc(),
 	//}))
 
+	e.Get("/lambda-config", handlers.LambdaConfig)
 	/* ROUTES */
 	a := e.Group("/auth")
 	a.Get("/", handlers.LoginPage)
 	a.Get("/login", handlers.LoginPage)
 	a.Get("/forgot", handlers.LoginPage)
 	a.Post("/login", handlers.Login)
+	a.Post("/login-with-permissions", handlers.LoginWithPermissions)
+	e.Get("/get-permissions", agentMW.IsLoggedIn(), handlers.GetPermissions)
 	a.Post("/logout", handlers.Logout)
 
 	/*PASSWORD RESET*/
