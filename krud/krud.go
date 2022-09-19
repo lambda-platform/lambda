@@ -17,14 +17,12 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	}
 
 	g := e.Group("/lambda/krud")
-	//g.Use(agentMW.IsLoggedIn())
-
 	if len(krudMiddleWares) >= 1 {
 		for _, krudMiddleWare := range krudMiddleWares {
 			g.Use(krudMiddleWare)
 		}
 	}
-
+	g.Post("/excel/:schemaId", agentMW.IsLoggedIn(), handlers.ExportExcel(GetGridMODEL))
 	if KrudWithPermission {
 		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.UpdateRow(GetGridMODEL))
 		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), krudMW.PermissionCreate, handlers.Crud(GetMODEL))
@@ -47,7 +45,6 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	//g.OPTIONS("/upload", handlers.Upload, agentMW.IsLoggedIn())
 	g.Post("/unique", handlers.CheckUnique)
 	g.Post("/check_current_password", agentMW.IsLoggedIn(), handlers.CheckCurrentPassword)
-	g.Post("/excel/:schemaId", agentMW.IsLoggedIn(), handlers.ExportExcel(GetGridMODEL))
 
 	/*
 		PUBLIC CURDS
@@ -56,4 +53,5 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	public.Post("/:schemaId/:action", handlers.Crud(GetMODEL))
 	p := e.Group("lambda/krud-public")
 	p.Post("/:schemaId/:action", handlers.Crud(GetMODEL))
+
 }

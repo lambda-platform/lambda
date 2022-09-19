@@ -42,18 +42,16 @@ func Index(c *fiber.Ctx) error {
 		jsonParser.Decode(&dbSchema)
 	}
 
-	gridList := []models.VBSchemaList{}
-	userRoles := []models.UserRoles{}
+	var gridList []models.VBSchemaList
+	var userRoles []models.UserRoles
 
-	DB.DB.Where("type = ?", "grid").Find(&gridList)
+	//DB.DB.Where("type = ?", "grid").Find(&gridList)
 	DB.DB.Find(&userRoles)
 
 	//gridList, err := models.VBSchemas(qm.Where("type = ?", "grid")).All(context.Background(), DB)
 	//dieIF(err)
 
 	User := agentUtils.AuthUserObject(c)
-
-	//csrfToken := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	csrfToken := ""
 	return c.Render("puzzle", map[string]interface{}{
 		"lambda_config":             config.LambdaConfig,
@@ -577,7 +575,7 @@ func GetOptions(c *fiber.Ctx) error {
 			"error":  err.Error(),
 		})
 	}
-	var optionsData map[string][]dataform.FormOption = map[string][]dataform.FormOption{}
+	var optionsData = map[string][]map[string]interface{}{}
 
 	for table, relation := range r.Relations {
 		data := dataform.OptionsData(relation, c)

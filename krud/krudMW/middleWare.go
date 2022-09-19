@@ -33,8 +33,10 @@ type Permissions struct {
 func PermissionEdit(c *fiber.Ctx) error {
 
 	page_id := c.Query("page_id")
-	action := c.Query("action")
+	action := c.Params("action")
+
 	if page_id != "" {
+
 		editPermission := GetPermission(c)
 
 		if action == "edit" {

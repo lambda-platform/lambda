@@ -1,10 +1,14 @@
 package lambda
 
 import (
+	"embed"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"github.com/lambda-platform/lambda/config"
+	"github.com/lambda-platform/lambda/puzzle/views"
 )
+
+var viewsfs embed.FS
 
 type Lambda struct {
 	App        *fiber.App
@@ -28,14 +32,27 @@ func New(lambdaSettings ...*Settings) *Lambda {
 
 	engine := html.New("./views", ".html")
 
+	engine.Reload(false)
+
+	err := engine.Load()
+
+	if err != nil {
+		panic(err)
+	}
+	_, err = engine.Templates.New("puzzle").Parse(views.PuzzleTemplate)
+	if err != nil {
+		panic(err)
+	}
+
 	lambda := &Lambda{
 		App: fiber.New(fiber.Config{
 			Views: engine,
+			//JSONEncoder: json.Marshal,
+			//JSONDecoder: json.Unmarshal,
 		}),
 		ModuleName: lambdaSettings[0].ModuleName,
 	}
-
 	lambda.App.Static("/", "public")
-
+	
 	return lambda
 }

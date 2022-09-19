@@ -43,7 +43,6 @@ func UserProfile() dataform.Dataform {
 			"register_number": []string{"required"},
 			"first_name":      []string{"required"},
 			"last_name":       []string{"required"},
-			"birthday":        []string{"required"},
 			"gender":          []string{"required"},
 		},
 		ValidationMessages: govalidator.MapData{
@@ -51,7 +50,6 @@ func UserProfile() dataform.Dataform {
 			"register_number": []string{"required:Талбарыг бөглөнө үү!", "unique:Давхацсан утга оруулсан байна!"},
 			"first_name":      []string{"required:Талбарыг бөглөнө үү!"},
 			"last_name":       []string{"required:Талбарыг бөглөнө үү!"},
-			"birthday":        []string{"required:Талбарыг бөглөнө үү!"},
 			"gender":          []string{"required:Талбарыг бөглөнө үү!"},
 		},
 		SubForms:         []map[string]interface{}{},

@@ -5,7 +5,6 @@ import (
 
 	"fmt"
 	"github.com/lambda-platform/lambda/DB"
-	"net/http"
 )
 
 type UniquePost struct {
@@ -27,8 +26,7 @@ func CheckUnique(c *fiber.Ctx) error {
 		})
 	}
 
-	DB_ := DB.DBConnection()
-	var count int
+	var count int64
 
 	IdentityValue := fmt.Sprintf("%v", post.Identity)
 
@@ -54,7 +52,7 @@ func CheckUnique(c *fiber.Ctx) error {
 
 	if post.IdentityColumn != "" && IdentityValue != "" {
 
-		err := DB_.QueryRow("SELECT COUNT(*) FROM " + post.Table + " WHERE " + post.IdentityColumn + " != '" + IdentityValue + "' AND " + post.Field + " = '" + value + "'").Scan(&count)
+		err := DB.DB.Table(post.Table).Where(post.IdentityColumn+" != ? AND "+post.Field+" = ?", IdentityValue, value).Count(&count).Error
 
 		if err != nil {
 			return c.JSON(map[string]interface{}{
@@ -76,7 +74,8 @@ func CheckUnique(c *fiber.Ctx) error {
 			}
 		}
 	} else {
-		err := DB_.QueryRow("SELECT COUNT(*) FROM " + post.Table + " WHERE " + post.Field + " = '" + value + "'").Scan(&count)
+
+		err := DB.DB.Table(post.Table).Where(post.Field+" = ?", value).Count(&count).Error
 
 		if err != nil {
 			return c.JSON(map[string]interface{}{
@@ -99,7 +98,7 @@ func CheckUnique(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+	return c.JSON(map[string]interface{}{
 		"status": false,
 	})
 }

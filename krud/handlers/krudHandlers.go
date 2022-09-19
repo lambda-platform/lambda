@@ -48,7 +48,6 @@ func Delete(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler
 func ExportExcel(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		schemaId := c.Params("schemaId")
-
 		return datagrid.Exec(c, schemaId, "excel", "", GetGridMODEL)
 	}
 }

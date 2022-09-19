@@ -31,7 +31,7 @@ func AutoMigrateSeed() {
 }
 func seedData() {
 	/*KRUD TEMPLATES*/
-	templates := [4]string{"canvas", "spa", "default", "default"}
+	templates := []string{"canvas", "drawer", "window", "popup", "edit", "create"}
 
 	for _, template := range templates {
 		newTemplate := krudModels.KrudTemplate{

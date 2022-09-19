@@ -38,7 +38,7 @@ func Options(c *fiber.Ctx) error {
 	return c.JSON(data)
 }
 
-func OptionsData(relation Ralation_, c *fiber.Ctx) []FormOption {
+func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 
 	table := relation.Table
 	labels := strings.Join(relation.Fields[:], ",', ',")
@@ -50,7 +50,7 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []FormOption {
 	FilterWithUser := relation.FilterWithUser
 
 	//fmt.Println(FilterWithUser)
-	data := []FormOption{}
+	data := []map[string]interface{}{}
 
 	if table == "" || len(labels) < 1 || key == "" {
 		return data
@@ -158,13 +158,13 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []FormOption {
 }
 
 type FormOption struct {
-	Label       string `gorm:"column:label" json:"label"`
-	Value       string `gorm:"column:value;type:uuid" json:"value"`
-	ParentValue string `gorm:"column:parent_value" json:"parent_value"`
+	Label       interface{} `gorm:"column:label" json:"label"`
+	Value       interface{} `gorm:"column:value;type:uuid" json:"value"`
+	ParentValue interface{} `gorm:"column:parent_value" json:"parent_value"`
 }
 
-func GetTableData(query string, table string, where_value string, order_value string) []FormOption {
-	data := []FormOption{}
+func GetTableData(query string, table string, where_value string, order_value string) []map[string]interface{} {
+	var data []map[string]interface{}
 
 	err := DB.DB.Table(table).Select(query).Where(where_value).Order(order_value).Find(&data).Error
 

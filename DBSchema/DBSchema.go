@@ -2,41 +2,37 @@ package DBSchema
 
 import (
 	"encoding/json"
-	"github.com/lambda-platform/lambda/models"
+	"fmt"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
+	"github.com/lambda-platform/lambda/models"
 	"io/ioutil"
-	"fmt"
 )
 
 func GetDBSchema() models.DBSCHEMA {
 	tables := Tables()
 
-	table_metas := make(map[string][]models.TableMeta, 0)
+	tableMetas := make(map[string][]models.TableMeta, 0)
 
 	for _, table := range tables["tables"] {
-		table_metas_ := TableMetas(table)
-		table_metas[table] = table_metas_
+		tableMetas[table] = TableMetas(table)
 	}
 
 	for _, table := range tables["views"] {
-		table_metas_ := TableMetas(table)
-		table_metas[table] = table_metas_
+		tableMetas[table] = TableMetas(table)
 	}
 
-	vb_schemas := models.DBSCHEMA{
-		tables["tables"],
-		tables["views"],
-		table_metas,
-		0,
-		"",
+	vbSchemas := models.DBSCHEMA{
+		TableList: tables["tables"],
+		ViewList:  tables["views"],
+		TableMeta: tableMetas,
 	}
 
-	file, _ := json.MarshalIndent(vb_schemas, "", " ")
+	file, _ := json.MarshalIndent(vbSchemas, "", " ")
 
 	_ = ioutil.WriteFile("models/db_schema.json", file, 0755)
 
-	return vb_schemas
+	return vbSchemas
 }
 
 func Tables() map[string][]string {
@@ -66,7 +62,7 @@ func Tables() map[string][]string {
 		result["views"] = views
 
 		return result
-	} else if config.Config.Database.Connection == "postgres"  {
+	} else if config.Config.Database.Connection == "postgres" {
 		rows, _ := DB_.Query("SELECT tablename, concat('TABLE') as tabletype FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' union SELECT table_name as tablename, concat('VIEW') as tabletype FROM information_schema.views where table_schema not in ('information_schema', 'pg_catalog') ORDER BY tablename")
 		for rows.Next() {
 			var tableName, tableType string
@@ -143,22 +139,22 @@ func TableMetas(tableName string) []models.TableMeta {
 			})
 		}
 
-	}else if config.Config.Database.Connection == "postgres" {
+	} else if config.Config.Database.Connection == "postgres" {
 		pkColumn := ""
 		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", tableName, config.Config.Database.Database, "'%_pkey'")).Row()
 		rowPK.Scan(&pkColumn)
 
-		if(pkColumn == ""){
+		if pkColumn == "" {
 			rowPK = DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'", tableName, config.Config.Database.Database)).Row()
 			rowPK.Scan(&pkColumn)
 		}
 		//	fmt.Println(fmt.Sprintf("SELECT k.column_name FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", tableName, config.Config.Database.Database, "'%_pkey'"))
 
 		Enums := []models.PostgresEnum{}
-//
+		//
 		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
 
-		rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT udt_name as DATA_TYPE, COLUMN_NAME, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database,  tableName)).Rows()
+		rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT udt_name as DATA_TYPE, COLUMN_NAME, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Rows()
 
 		defer rows.Close()
 		for rows.Next() {
@@ -170,14 +166,10 @@ func TableMetas(tableName string) []models.TableMeta {
 			key := ""
 			extra := ""
 
-
-
-
 			if columnName == pkColumn {
 				key = "PRI"
 				extra = "auto_increment"
 			}
-
 
 			//if dataType == "varchar" {
 			//	dataType = "varchar"
@@ -195,26 +187,25 @@ func TableMetas(tableName string) []models.TableMeta {
 			//	dataType = "timestamp"
 			//}
 
-			for _, enum :=range Enums{
-				if(enum.Typname == dataType) {
+			for _, enum := range Enums {
+				if enum.Typname == dataType {
 					dataType = "varchar"
 				}
 			}
 
 			table_metas = append(table_metas, models.TableMeta{
-				Model:  columnName,
-				Title:  columnName,
-				DbType: dataType,
-				Table:  tableName,
-				Key:    key,
-				Extra:  extra,
-				Nullable:  nullable,
+				Model:    columnName,
+				Title:    columnName,
+				DbType:   dataType,
+				Table:    tableName,
+				Key:      key,
+				Extra:    extra,
+				Nullable: nullable,
 			})
 		}
 
-
 	} else {
-		columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName+"' AND table_schema = '" + config.Config.Database.Database+"' ORDER BY ORDINAL_POSITION"
+		columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName + "' AND table_schema = '" + config.Config.Database.Database + "' ORDER BY ORDINAL_POSITION"
 
 		columns, db_error := DB_.Query(columnDataTypeQuery)
 
@@ -224,13 +215,13 @@ func TableMetas(tableName string) []models.TableMeta {
 				columns.Scan(&Field, &Key, &Type, &Null)
 
 				table_metas = append(table_metas, models.TableMeta{
-					Model:  Field,
-					Title:  Field,
-					DbType: Type,
-					Table:  tableName,
-					Key:    Key,
-					Extra:  Extra,
-					Nullable:  Null,
+					Model:    Field,
+					Title:    Field,
+					DbType:   Type,
+					Table:    tableName,
+					Key:      Key,
+					Extra:    Extra,
+					Nullable: Null,
 				})
 			}
 		}
@@ -245,7 +236,7 @@ func GenerateSchemaForCloud() models.DBSCHEMA {
 	table_metas := make(map[string][]models.TableMeta, 0)
 
 	for _, table := range tables["tables"] {
-		if(table != "vb_schemas" && table != "vb_schemas_admin" && table != "krud"){
+		if table != "vb_schemas" && table != "vb_schemas_admin" && table != "krud" {
 			table_metas_ := TableMetas(table)
 			table_metas[table] = table_metas_
 		}
@@ -287,7 +278,7 @@ func TablesForCloud() map[string][]string {
 			rows.Scan(&TABLE_NAME, &TABLE_TYPE)
 
 			if TABLE_TYPE != "VIEW" {
-				if(TABLE_NAME != "vb_schemas" && TABLE_NAME != "vb_schemas_admin" && TABLE_NAME != "krud" && TABLE_NAME != "password_resets") {
+				if TABLE_NAME != "vb_schemas" && TABLE_NAME != "vb_schemas_admin" && TABLE_NAME != "krud" && TABLE_NAME != "password_resets" {
 					tables = append(tables, TABLE_NAME)
 				}
 			} else {
@@ -300,13 +291,13 @@ func TablesForCloud() map[string][]string {
 		result["views"] = views
 
 		return result
-	} else if config.Config.Database.Connection == "postgres"  {
+	} else if config.Config.Database.Connection == "postgres" {
 		rows, _ := DB_.Query("SELECT tablename, concat('TABLE') as tabletype FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' union SELECT table_name as tablename, concat('VIEW') as tabletype FROM information_schema.views where table_schema not in ('information_schema', 'pg_catalog')  ORDER BY tablename")
 		for rows.Next() {
 			var tableName, tableType string
 			rows.Scan(&tableName, &tableType)
 			if tableType != "VIEW" {
-				if(tableName != "vb_schemas" && tableName != "vb_schemas_admin" && tableName != "krud" && tableName != "password_resets") {
+				if tableName != "vb_schemas" && tableName != "vb_schemas_admin" && tableName != "krud" && tableName != "password_resets" {
 					tables = append(tables, tableName)
 				}
 			} else {
@@ -325,7 +316,7 @@ func TablesForCloud() map[string][]string {
 			var tableName, tableType string
 			rows.Scan(&tableName, &tableType)
 			if tableType == "BASE TABLE" {
-				if(tableName != "vb_schemas" && tableName != "vb_schemas_admin" && tableName != "krud" && tableName != "password_resets") {
+				if tableName != "vb_schemas" && tableName != "vb_schemas_admin" && tableName != "krud" && tableName != "password_resets" {
 					tables = append(tables, tableName)
 				}
 			} else {
