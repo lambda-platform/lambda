@@ -15,6 +15,8 @@ type lambdaConfig struct {
 	Bg                    string `json:"bg"`
 	Logo                  string `json:"logo"`
 	LogoDark              string `json:"logo_dark"`
+	LogoSquire            string `json:"logo_squire"`
+	LogoSquireDark        string `json:"logo_squire_dark"`
 	LogoText              string `json:"logoText"`
 	SuperURL              string `json:"super_url"`
 	AppURL                string `json:"app_url"`

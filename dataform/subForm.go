@@ -2,18 +2,17 @@ package dataform
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/lambda-platform/lambda/DB"
 	"regexp"
-	"fmt"
 	"strconv"
 
+	"github.com/lambda-platform/lambda/DBSchema"
 	"github.com/lambda-platform/lambda/config"
 	"strings"
-	"github.com/lambda-platform/lambda/DBSchema"
 )
 
 func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
-
 
 	if len(dataform.SubForms) >= 1 {
 
@@ -47,17 +46,13 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 
 				currentData := subData.([]interface{})
 
-
 				if len(currentData) >= 1 {
 
 					for _, sData := range currentData {
 
 						subD := sData.(map[string]interface{})
 
-
-
 						subIdentityValue := subD[subIdentity]
-
 
 						subD[connectionField] = parentId
 						if tableTypeColumn != "" && tableTypeValue != "" {
@@ -65,6 +60,7 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 								intVar, _ := strconv.Atoi(tableTypeValue)
 								subD[tableTypeColumn] = intVar
 							} else {
+
 								subD[tableTypeColumn] = tableTypeValue
 							}
 
@@ -76,12 +72,9 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 							}
 						}
 
-
 						Clear(subForm.Model)
 						saveData, _ := json.Marshal(subD)
 						json.Unmarshal(saveData, subForm.Model)
-
-
 
 						err := DB.DB.Create(subForm.Model).Error
 
