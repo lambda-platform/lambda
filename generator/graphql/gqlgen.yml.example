@@ -65,3 +65,6 @@ models:
   Date:
     model:
       - github.com/lambda-platform/lambda/graphql/custom_model.Date
+  GormDeletedAt:
+    model:
+      - github.com/lambda-platform/lambda/graphql/custom_model.GormDeletedAt

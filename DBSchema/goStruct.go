@@ -58,7 +58,7 @@ func GenerateWithImports(otherPackage string, columnTypes map[string]map[string]
 
 	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
-	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \n"
+	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\"\n\"gorm.io/gorm\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \nvar _ = gorm.DB{} \n "
 	src := fmt.Sprintf("package %s\n %s\n %s\n \ntype %s %s %s %s} %s",
 		pkgName,
 		otherPackage,
@@ -228,6 +228,9 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
+		if fieldName == "DeletedAt" {
+			valueType = "gorm.DeletedAt"
+		}
 		if len(annotations) > 0 {
 			structure += fmt.Sprintf("\n%s %s `%s`",
 				fieldName,
@@ -286,6 +289,9 @@ func generateStructTypesNoTime(obj map[string]map[string]string, depth int, json
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
+		}
+		if fieldName == "DeletedAt" {
+			valueType = "gorm.DeletedAt"
 		}
 		if len(annotations) > 0 {
 			structure += fmt.Sprintf("\n%s %s `%s`",

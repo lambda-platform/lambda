@@ -99,7 +99,9 @@ func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnot
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
-
+		if fieldName == "DeletedAt" || fieldName == "deleted_at" {
+			valueType = "GormDeletedAt"
+		}
 		if len(annotations) > 0 {
 			structure += fmt.Sprintf("\n%s    %s: `%s`",
 				fieldName,
