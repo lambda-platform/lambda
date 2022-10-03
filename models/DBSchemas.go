@@ -78,31 +78,32 @@ type FormItem struct {
 	SchemaID         string        `json:"schemaID,omitempty"`
 
 	//subForm data
-	Name                    string                 `json:"name"`
-	SubType                 string                 `json:"subtype"`
-	Parent                  string                 `json:"parent"`
-	FormId                  uint64                 `json:"formId"`
-	FormType                string                 `json:"formType"`
-	MinHeight               string                 `json:"min_height"`
-	DisableDelete           bool                   `json:"disableDelete"`
-	DisableCreate           bool                   `json:"disableCreate"`
-	ShowRowNumber           bool                   `json:"showRowNumber"`
-	UseTableType            bool                   `json:"useTableType"`
-	CheckEmpty              bool                   `json:"checkEmpty"`
-	AddFromGrid             bool                   `json:"addFromGrid"`
-	TableTypeColumn         string                 `json:"tableTypeColumn"`
-	TableTypeValue          string                 `json:"tableTypeValue"`
-	EmptyErrorMsg           string                 `json:"EmptyErrorMsg"`
-	SourceGridModalTitle    string                 `json:"sourceGridModalTitle"`
-	GSOption                map[string]interface{} `json:"GSOption"`
-	SourceGridTitle         string                 `json:"sourceGridTitle"`
-	SourceGridDescription   string                 `json:"sourceGridDescription"`
-	SourceGridUserCondition string                 `json:"sourceGridUserCondition"`
-	SourceUniqueField       string                 `json:"sourceUniqueField"`
-	SourceMicroserviceID    interface{}            `json:"sourceMicroserviceID"`
-	SourceGridID            interface{}            `json:"sourceGridID"`
-	SourceGridTargetColumns []interface{}          `json:"sourceGridTargetColumns"`
-	Schema                  []FormItem             `json:"schema"`
+	Name                           string                 `json:"name"`
+	SubType                        string                 `json:"subtype"`
+	Parent                         string                 `json:"parent"`
+	FormId                         uint64                 `json:"formId"`
+	FormType                       string                 `json:"formType"`
+	MinHeight                      string                 `json:"min_height"`
+	DisableDelete                  bool                   `json:"disableDelete"`
+	DisableCreate                  bool                   `json:"disableCreate"`
+	ShowRowNumber                  bool                   `json:"showRowNumber"`
+	UseTableType                   bool                   `json:"useTableType"`
+	CheckEmpty                     bool                   `json:"checkEmpty"`
+	AddFromGrid                    bool                   `json:"addFromGrid"`
+	TableTypeColumn                string                 `json:"tableTypeColumn"`
+	TableTypeValue                 string                 `json:"tableTypeValue"`
+	EmptyErrorMsg                  string                 `json:"EmptyErrorMsg"`
+	SourceGridModalTitle           string                 `json:"sourceGridModalTitle"`
+	SourceGridParentBasedCondition string                 `json:"sourceGridParentBasedCondition"`
+	GSOption                       map[string]interface{} `json:"GSOption"`
+	SourceGridTitle                string                 `json:"sourceGridTitle"`
+	SourceGridDescription          string                 `json:"sourceGridDescription"`
+	SourceGridUserCondition        string                 `json:"sourceGridUserCondition"`
+	SourceUniqueField              string                 `json:"sourceUniqueField"`
+	SourceMicroserviceID           interface{}            `json:"sourceMicroserviceID"`
+	SourceGridID                   interface{}            `json:"sourceGridID"`
+	SourceGridTargetColumns        []interface{}          `json:"sourceGridTargetColumns"`
+	Schema                         []FormItem             `json:"schema"`
 }
 
 type SCHEMA struct {
