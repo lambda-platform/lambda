@@ -36,7 +36,13 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 
 			} else if k == "custom_condition" {
 
-				query = query.Where(fmt.Sprintf("%v", v))
+				if reflect.TypeOf(v).String() == "map[string]interface {}" {
+					for kc, vc := range v.(map[string]interface{}) {
+						query = query.Where(kc+" = ?", fmt.Sprintf("%v", vc))
+					}
+				} else {
+					query = query.Where(fmt.Sprintf("%v", v))
+				}
 
 			} else {
 				filterType := datagrid.Filters[k]
