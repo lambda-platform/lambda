@@ -2,13 +2,13 @@ package models
 
 type Formula struct {
 	Targets  []Target `json:"targets"`
-	Template string `json:"template"`
-	Form     string `json:"form"`
-	Model    string `json:"model"`
+	Template string   `json:"template"`
+	Form     string   `json:"form"`
+	Model    string   `json:"model"`
 }
 type Target struct {
-		Field string `json:"field"`
-		Prop  string `json:"prop"`
+	Field string `json:"field"`
+	Prop  string `json:"prop"`
 }
 
 type FormItem struct {
@@ -43,8 +43,8 @@ type FormItem struct {
 		Labels   interface{} `json:"labels"`
 		Multiple bool        `json:"multiple"`
 	} `json:"gridSearch"`
-	IsFkey   bool `json:"isFkey"`
-	InfoUrl        string `json:"info_url"`
+	IsFkey   bool   `json:"isFkey"`
+	InfoUrl  string `json:"info_url"`
 	Relation struct {
 		Table              interface{}   `json:"table"`
 		Key                interface{}   `json:"key"`
@@ -78,19 +78,30 @@ type FormItem struct {
 	SchemaID         string        `json:"schemaID,omitempty"`
 
 	//subForm data
-	Name            string     `json:"name"`
-	SubType         string     `json:"subtype"`
-	Parent          string     `json:"parent"`
-	FormId          uint64     `json:"formId"`
-	FormType        string     `json:"formType"`
-	MinHeight       string     `json:"min_height"`
-	DisableDelete   bool       `json:"disableDelete"`
-	DisableCreate   bool       `json:"disableCreate"`
-	ShowRowNumber   bool       `json:"showRowNumber"`
-	UseTableType    bool       `json:"useTableType"`
-	TableTypeColumn string     `json:"tableTypeColumn"`
-	TableTypeValue  string     `json:"tableTypeValue"`
-	Schema          []FormItem `json:"schema"`
+	Name                    string        `json:"name"`
+	SubType                 string        `json:"subtype"`
+	Parent                  string        `json:"parent"`
+	FormId                  uint64        `json:"formId"`
+	FormType                string        `json:"formType"`
+	MinHeight               string        `json:"min_height"`
+	DisableDelete           bool          `json:"disableDelete"`
+	DisableCreate           bool          `json:"disableCreate"`
+	ShowRowNumber           bool          `json:"showRowNumber"`
+	UseTableType            bool          `json:"useTableType"`
+	CheckEmpty              bool          `json:"checkEmpty"`
+	AddFromGrid             bool          `json:"addFromGrid"`
+	TableTypeColumn         string        `json:"tableTypeColumn"`
+	TableTypeValue          string        `json:"tableTypeValue"`
+	EmptyErrorMsg           string        `json:"EmptyErrorMsg"`
+	SourceGridModalTitle    string        `json:"sourceGridModalTitle"`
+	SourceGridTitle         string        `json:"sourceGridTitle"`
+	SourceGridDescription   string        `json:"sourceGridDescription"`
+	SourceGridUserCondition string        `json:"sourceGridUserCondition"`
+	SourceUniqueField       string        `json:"sourceUniqueField"`
+	SourceMicroserviceID    interface{}   `json:"sourceMicroserviceID"`
+	SourceGridID            interface{}   `json:"sourceGridID"`
+	SourceGridTargetColumns []interface{} `json:"sourceGridTargetColumns"`
+	Schema                  []FormItem    `json:"schema"`
 }
 
 type SCHEMA struct {
@@ -137,26 +148,26 @@ type SCHEMAGRID struct {
 	Paging         int      `json:"paging"`
 	Template       int      `json:"template"`
 	Schema         []struct {
-		VirtualColumn       bool `json:"virtualColumn"`
-		Model       string `json:"model"`
-		Title       string `json:"title"`
-		DbType      string `json:"dbType"`
-		Table       string `json:"table"`
-		Key         string `json:"key"`
-		Extra       string `json:"extra"`
-		Label       string `json:"label"`
-		GridType    string `json:"gridType"`
-		Width       int    `json:"width"`
-		Hide        bool   `json:"hide"`
-		Sortable    bool   `json:"sortable"`
-		Printable   bool   `json:"printable"`
-		Pinned      bool   `json:"pinned"`
-		PinPosition string `json:"pinPosition"`
-		Link        string `json:"link"`
-		LinkTarget  string `json:"linkTarget"`
-		Relation   GridRelation `json:"relation"`
-		Filterable bool `json:"filterable"`
-		Filter     struct {
+		VirtualColumn bool         `json:"virtualColumn"`
+		Model         string       `json:"model"`
+		Title         string       `json:"title"`
+		DbType        string       `json:"dbType"`
+		Table         string       `json:"table"`
+		Key           string       `json:"key"`
+		Extra         string       `json:"extra"`
+		Label         string       `json:"label"`
+		GridType      string       `json:"gridType"`
+		Width         int          `json:"width"`
+		Hide          bool         `json:"hide"`
+		Sortable      bool         `json:"sortable"`
+		Printable     bool         `json:"printable"`
+		Pinned        bool         `json:"pinned"`
+		PinPosition   string       `json:"pinPosition"`
+		Link          string       `json:"link"`
+		LinkTarget    string       `json:"linkTarget"`
+		Relation      GridRelation `json:"relation"`
+		Filterable    bool         `json:"filterable"`
+		Filter        struct {
 			Type             string      `json:"type"`
 			Param            interface{} `json:"param"`
 			ParamCompareType string      `json:"paramCompareType"`
@@ -197,24 +208,23 @@ type SCHEMAGRID struct {
 		AfterDelete  string `json:"afterDelete"`
 		BeforePrint  string `json:"beforePrint"`
 	} `json:"triggers"`
-	Theme                string      `json:"theme"`
-	FullText             bool        `json:"fullText"`
-	EditableAction       interface{} `json:"editableAction"`
-	EditFullRow          bool        `json:"editFullRow"`
-	EditableShouldSubmit bool        `json:"editableShouldSubmit"`
-	SingleClickEdit      bool        `json:"singleClickEdit"`
-	FlashChanges         bool        `json:"flashChanges"`
-	ColMenu              bool        `json:"colMenu"`
-	ColFilterButton      bool        `json:"colFilterButton"`
-	ShowGrid             bool        `json:"showGrid"`
-	SordOrder            string      `json:"sordOrder"`
-	MainTable            string      `json:"mainTable"`
-	IsPivot              bool        `json:"isPivot"`
-	IsPrint              bool        `json:"isPrint"`
-	PrintSize            string      `json:"printSize"`
-	IsExcel              bool        `json:"isExcel"`
-	IsRefresh            bool        `json:"isRefresh"`
-	IsNumbered           bool        `json:"isNumbered"`
-	Microservices           []Microservice        `json:"microservices"`
+	Theme                string         `json:"theme"`
+	FullText             bool           `json:"fullText"`
+	EditableAction       interface{}    `json:"editableAction"`
+	EditFullRow          bool           `json:"editFullRow"`
+	EditableShouldSubmit bool           `json:"editableShouldSubmit"`
+	SingleClickEdit      bool           `json:"singleClickEdit"`
+	FlashChanges         bool           `json:"flashChanges"`
+	ColMenu              bool           `json:"colMenu"`
+	ColFilterButton      bool           `json:"colFilterButton"`
+	ShowGrid             bool           `json:"showGrid"`
+	SordOrder            string         `json:"sordOrder"`
+	MainTable            string         `json:"mainTable"`
+	IsPivot              bool           `json:"isPivot"`
+	IsPrint              bool           `json:"isPrint"`
+	PrintSize            string         `json:"printSize"`
+	IsExcel              bool           `json:"isExcel"`
+	IsRefresh            bool           `json:"isRefresh"`
+	IsNumbered           bool           `json:"isNumbered"`
+	Microservices        []Microservice `json:"microservices"`
 }
-
