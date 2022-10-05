@@ -238,8 +238,9 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 		}
 		IdentityForSub := "parent." + Identity
 		ParemtIDNullCheck := ""
-		SubConnectionNullCheck := ""
+
 		if IdentityColumn["column"] != "" {
+
 			if IdentityColumn["nullable"] != "YES" {
 
 			} else {
@@ -251,6 +252,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 			paginationSub = "subs"
 		}
 		for _, sub := range table.Subs {
+			SubConnectionNullCheck := ""
 			subAlias := GetModelAlias(sub.Table)
 			subTables = append(subTables, sub.Table)
 			subTablesMap = subTablesMap + fmt.Sprintf(`"%s": model.SubTable{
@@ -289,6 +291,9 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 				}
 			}
 			if SubConnectionColumn["column"] != "" {
+				if SubConnectionColumn["column"] == "surgalt_id" && sub.Table == "surgalt_elselt" {
+
+				}
 				if SubConnectionColumn["nullable"] != "YES" {
 
 				} else {
