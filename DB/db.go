@@ -24,6 +24,8 @@ func init() {
 		if config.Config.Database.Debug {
 			Config.Logger = logger.Default.LogMode(logger.Info)
 
+		} else {
+			Config.Logger = logger.Default.LogMode(logger.Error)
 		}
 
 		if config.Config.Database.Connection == "mssql" {
