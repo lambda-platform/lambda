@@ -30,6 +30,7 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 	query.Find(datagrid.Data)
 
 	keys := make([]int, 0, len(datagrid.Columns))
+
 	for k := range datagrid.Columns {
 		keys = append(keys, k)
 	}
@@ -141,53 +142,57 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 }
 func getCellValue(rawValue interface{}) string {
 	value := ""
-	if reflect.TypeOf(rawValue).String() == "float64" {
+	if rawValue != nil {
 
-		value = fmt.Sprintf("%.3f", rawValue)
+		if reflect.TypeOf(rawValue).String() == "float64" {
 
-	} else if reflect.TypeOf(rawValue).String() == "float32" {
+			value = fmt.Sprintf("%.3f", rawValue)
 
-		value = fmt.Sprintf("%.3f", rawValue)
+		} else if reflect.TypeOf(rawValue).String() == "float32" {
 
-	} else if reflect.TypeOf(rawValue).String() == "string" {
+			value = fmt.Sprintf("%.3f", rawValue)
 
-		value = reflect.ValueOf(rawValue).Interface().(string)
+		} else if reflect.TypeOf(rawValue).String() == "string" {
 
-	} else if reflect.TypeOf(rawValue).String() == "int" {
+			value = reflect.ValueOf(rawValue).Interface().(string)
 
-		value = reflect.ValueOf(rawValue).Interface().(string)
+		} else if reflect.TypeOf(rawValue).String() == "int" {
 
-	} else if reflect.TypeOf(rawValue).String() == "Int" {
+			value = reflect.ValueOf(rawValue).Interface().(string)
 
-		value = fmt.Sprintf("%d", rawValue)
+		} else if reflect.TypeOf(rawValue).String() == "Int" {
 
-	} else if reflect.TypeOf(rawValue).String() == "Int" {
+			value = fmt.Sprintf("%d", rawValue)
 
-		value = fmt.Sprintf("%d", rawValue)
+		} else if reflect.TypeOf(rawValue).String() == "Int" {
 
-	} else if reflect.TypeOf(rawValue).String() == "Int8" {
+			value = fmt.Sprintf("%d", rawValue)
 
-		value = fmt.Sprintf("%d", rawValue)
+		} else if reflect.TypeOf(rawValue).String() == "Int8" {
 
-	} else if reflect.TypeOf(rawValue).String() == "Int16" {
+			value = fmt.Sprintf("%d", rawValue)
 
-		value = fmt.Sprintf("%d", rawValue)
+		} else if reflect.TypeOf(rawValue).String() == "Int16" {
 
-	} else if reflect.TypeOf(rawValue).String() == "Int32" {
+			value = fmt.Sprintf("%d", rawValue)
 
-		value = fmt.Sprintf("%d", rawValue)
+		} else if reflect.TypeOf(rawValue).String() == "Int32" {
 
-	} else if reflect.TypeOf(rawValue).String() == "Int64" {
+			value = fmt.Sprintf("%d", rawValue)
 
-		value = fmt.Sprintf("%d", rawValue)
+		} else if reflect.TypeOf(rawValue).String() == "Int64" {
 
-	} else {
-		value = fmt.Sprintf("%v", rawValue)
+			value = fmt.Sprintf("%d", rawValue)
+
+		} else {
+			value = fmt.Sprintf("%v", rawValue)
+		}
+
+		if value == "<nil>" {
+			value = ""
+		}
 	}
 
-	if value == "<nil>" {
-		value = ""
-	}
 	return value
 }
 func trim(s string, length int) string {
