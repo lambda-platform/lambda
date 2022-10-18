@@ -30,7 +30,7 @@ func GetDBSchema() models.DBSCHEMA {
 
 	file, _ := json.MarshalIndent(vbSchemas, "", " ")
 
-	_ = ioutil.WriteFile("models/db_schema.json", file, 0755)
+	_ = ioutil.WriteFile("lambda/db_schema.json", file, 0755)
 
 	return vbSchemas
 }

@@ -23,7 +23,10 @@ const (
 func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
 
 	dbTypes := generateQraphqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
+	//if tableName == "aa_sudalsan_sain_turshilga" {
+	//	fmt.Println(columnTypes)
+	//	fmt.Println(dbTypes)
+	//}
 	subStchemas := ""
 
 	for _, sub := range Subs {

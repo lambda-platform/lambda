@@ -296,7 +296,7 @@ func createRelation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (st
 	gridRelation := `[]models.GridRelation{`
 	for _, column := range schema.Schema {
 
-		if column.Relation.Table != "" && column.Relation.Key != "" && column.Relation.Fields != "" && !column.Relation.Self {
+		if column.Relation.Table != "" && column.Relation.Key != "" && column.Relation.Fields != "" && !column.Relation.Self && column.Relation.MicroserviceID >= 1 {
 
 			indexOfMicro := lambdaUtils.IndexOfMicro(column.Relation.MicroserviceID, schema.Microservices)
 			filedAlias := GetModelAlias(column.Relation.Fields)

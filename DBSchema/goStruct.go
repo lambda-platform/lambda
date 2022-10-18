@@ -15,7 +15,7 @@ const (
 	golangInt       = "int"
 	golangBool      = "bool"
 	golangInt64     = "int64"
-	gureguNullFloat = "float32"
+	gureguNullFloat = "*float32"
 	sqlNullFloat    = "sql.NullFloat64"
 	golangFloat     = "float"
 	golangFloat32   = "float32"
