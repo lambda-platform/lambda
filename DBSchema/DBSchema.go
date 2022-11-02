@@ -6,7 +6,7 @@ import (
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/models"
-	"io/ioutil"
+	"os"
 )
 
 func GetDBSchema() models.DBSCHEMA {
@@ -30,7 +30,7 @@ func GetDBSchema() models.DBSCHEMA {
 
 	file, _ := json.MarshalIndent(vbSchemas, "", " ")
 
-	_ = ioutil.WriteFile("lambda/db_schema.json", file, 0755)
+	_ = os.WriteFile("lambda/db_schema.json", file, 0755)
 
 	return vbSchemas
 }
@@ -79,6 +79,27 @@ func Tables() map[string][]string {
 		result["views"] = views
 
 		return result
+	} else if config.Config.Database.Connection == "oracle" {
+		rows, _ := DB_.Query(fmt.Sprintf("SELECT TABLE_NAME  FROM All_TABLES WHERE OWNER = '%s' ORDER BY TABLE_NAME", config.Config.Database.UserName))
+
+		for rows.Next() {
+			var tableName string
+			rows.Scan(&tableName)
+			tables = append(tables, tableName)
+		}
+
+		rows, _ = DB_.Query(fmt.Sprintf("SELECT VIEW_NAME FROM All_VIEWS WHERE OWNER = '%s' ORDER BY VIEW_NAME", config.Config.Database.UserName))
+		for rows.Next() {
+			var tableType string
+			rows.Scan(&tableType)
+			views = append(views, tableType)
+		}
+		result := map[string][]string{}
+
+		result["tables"] = tables
+		result["views"] = views
+
+		return result
 	} else {
 		rows, _ := DB_.Query("SHOW FULL TABLES")
 		for rows.Next() {
@@ -101,6 +122,7 @@ func Tables() map[string][]string {
 }
 
 func TableMetas(tableName string) []models.TableMeta {
+
 	table_metas := make([]models.TableMeta, 0)
 	DB_ := DB.DBConnection()
 
@@ -204,6 +226,40 @@ func TableMetas(tableName string) []models.TableMeta {
 			})
 		}
 
+	} else if config.Config.Database.Connection == "oracle" {
+		var pkColumn models.PKColumn
+		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE table_name = '%s' AND CONSTRAINT_TYPE = '%s')", tableName, "P")).Scan(&pkColumn)
+
+		table_metas_ms := []models.MSTableMata{}
+		DB.DB.Raw(fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, tableName)).Scan(&table_metas_ms)
+
+		for _, column := range table_metas_ms {
+			key := ""
+			extra := ""
+
+			if column.ColumnName == pkColumn.ColumnName {
+				key = "PRI"
+				extra = "auto_increment"
+			}
+
+			dataType := column.DataType
+
+			if column.DataType == "VARCHAR2" {
+				dataType = "varchar"
+			} else if column.DataType == "LONG" {
+				dataType = "text"
+			}
+
+			table_metas = append(table_metas, models.TableMeta{
+				Model:  column.ColumnName,
+				Title:  column.ColumnName,
+				DbType: dataType,
+				Table:  tableName,
+				Key:    key,
+				Extra:  extra,
+			})
+		}
+
 	} else {
 		columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName + "' AND table_schema = '" + config.Config.Database.Database + "' ORDER BY ORDINAL_POSITION"
 
@@ -257,7 +313,7 @@ func GenerateSchemaForCloud() models.DBSCHEMA {
 	}
 
 	file, _ := json.MarshalIndent(vb_schemas, "", " ")
-	_ = ioutil.WriteFile("app/models/db_schema.json", file, 0755)
+	_ = os.WriteFile("app/models/db_schema.json", file, 0755)
 
 	return vb_schemas
 }

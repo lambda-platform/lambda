@@ -29,13 +29,13 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 
 			if subData != nil {
 
-				parentIdentityType := dataform.getFieldType(DBSchema.FmtFieldName(parentIdentity))
+				parentIdentityType := dataform.getFieldType(DBSchema.FieldName(parentIdentity))
 
 				var parentId interface{}
 				if parentIdentityType == "string" {
-					parentId = dataform.getStringField(DBSchema.FmtFieldName(parentIdentity))
+					parentId = dataform.getStringField(DBSchema.FieldName(parentIdentity))
 				} else {
-					parentId = dataform.getIntField(DBSchema.FmtFieldName(parentIdentity))
+					parentId = dataform.getIntField(DBSchema.FieldName(parentIdentity))
 				}
 
 				if tableTypeColumn != "" && tableTypeValue != "" {

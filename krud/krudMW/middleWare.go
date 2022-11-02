@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
 	agentModels "github.com/lambda-platform/lambda/agent/models"
+	"github.com/lambda-platform/lambda/config"
 	"net/http"
 )
 
@@ -107,11 +108,21 @@ func GetPermission(c *fiber.Ctx) PermissionData {
 	claims := user.Claims.(jwt.MapClaims)
 	role := claims["role"]
 
-	Role := agentModels.Role{}
-	DB.DB.Where("id = ?", role).Find(&Role)
-	Permissions_ := Permissions{}
-	json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+	if config.Config.Database.Connection == "oracle" {
+		Role := agentModels.RoleOracle{}
+		DB.DB.Where("ID = ?", role).Find(&Role)
+		Permissions_ := Permissions{}
+		json.Unmarshal([]byte(Role.Permissions), &Permissions_)
 
-	return Permissions_.Permissions[page_id]
+		return Permissions_.Permissions[page_id]
+	} else {
+		Role := agentModels.Role{}
+		DB.DB.Where("id = ?", role).Find(&Role)
+		Permissions_ := Permissions{}
+		json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+
+		return Permissions_.Permissions[page_id]
+	}
 
 }
+

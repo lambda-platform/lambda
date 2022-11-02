@@ -14,8 +14,8 @@ func GetStruct(table string) {
 		DB_, _ = DB.DB.DB()
 		hiddenColumns := []string{}
 		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
-		//fmt.Println(columnDataTypes)
 
+		fmt.Println(columnDataTypes)
 		if err != nil {
 			fmt.Println("Error in creating struct from json: " + err.Error())
 		}

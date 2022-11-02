@@ -3,17 +3,15 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"runtime"
-	"io/ioutil"
 	"os"
+	"runtime"
 )
 
-
-func FrontMix(path string) map[string]string  {
+func FrontMix(path string) map[string]string {
 	var frontEndMix map[string]string
 	//AbsolutePath := config.AbsolutePath()
 
-	mixFile := "public/"+path
+	mixFile := "public/" + path
 
 	if runtime.GOOS == "windows" {
 		dir, _ := os.Getwd()
@@ -25,20 +23,19 @@ func FrontMix(path string) map[string]string  {
 		fmt.Println(mixFile)
 	}
 
-	data, err := ioutil.ReadFile(mixFile)
+	data, err := os.ReadFile(mixFile)
 
-	if err != nil{
+	if err != nil {
 		fmt.Println("MIX FILE NOT FOUND")
 	}
 	err2 := json.Unmarshal(data, &frontEndMix)
-	if err2 != nil{
+	if err2 != nil {
 		fmt.Println("File parse error")
 	}
 
-	return  frontEndMix
+	return frontEndMix
 }
 
-
-func CallMix(index string, mixData map[string]string) string{
+func CallMix(index string, mixData map[string]string) string {
 	return mixData[index]
 }

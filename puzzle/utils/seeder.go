@@ -17,10 +17,21 @@ import (
 
 func AutoMigrateSeed() {
 
-	if config.Config.Database.Connection == "mssql"{
+	if config.Config.Database.Connection == "mssql" {
 		DB.DB.AutoMigrate(
 			&puzzleModels.VBSchemaMSSQL{},
 			&puzzleModels.VBSchemaAdminMSSQL{},
+			//&analyticModels.Analytic{},
+			//&analyticModels.AnalyticFilter{},
+			//&analyticModels.AnalyticRangeFilter{},
+			//&analyticModels.AnalyticRowsColumn{},
+			//&analyticModels.AnalyticRangeRowColumn{},
+			//&analyticModels.AnalyticDateRange{},
+		)
+	} else if config.Config.Database.Connection == "oracle" {
+		DB.DB.AutoMigrate(
+			&puzzleModels.VBSchemaOracle{},
+			&puzzleModels.VBSchemaAdminOracle{},
 			//&analyticModels.Analytic{},
 			//&analyticModels.AnalyticFilter{},
 			//&analyticModels.AnalyticRangeFilter{},
@@ -42,57 +53,108 @@ func AutoMigrateSeed() {
 	}
 
 	if config.Config.App.Seed == "true" {
-		var vbs []puzzleModels.VBSchemaAdmin
-		DB.DB.Find(&vbs)
+		if config.Config.Database.Connection == "oracle" {
+			var vbs []puzzleModels.VBSchemaAdminOracle
+			DB.DB.Find(&vbs)
 
-		if len(vbs) <= 0 {
-			seedData()
+			if len(vbs) <= 0 {
+				seedData()
+			}
+		} else {
+			var vbs []puzzleModels.VBSchemaAdmin
+			DB.DB.Find(&vbs)
+
+			if len(vbs) <= 0 {
+				seedData()
+			}
 		}
 	}
 }
 func seedData() {
 
-	var vbs []puzzleModels.VBSchemaAdmin
-	AbsolutePath := AbsolutePath()
-	dataFile, err := os.Open(AbsolutePath+"initialData/vb_schemas_admin.json")
-	defer dataFile.Close()
-	if err != nil {
-		fmt.Println("PUZZLE SEED ERROR")
+	if config.Config.Database.Connection == "oracle" {
+
+		var vbs []puzzleModels.VBSchemaAdminOracle
+		AbsolutePath := AbsolutePath()
+		dataFile, err := os.Open(AbsolutePath + "initialData/vb_schemas_admin_oracle.json")
+		defer dataFile.Close()
+		if err != nil {
+			fmt.Println("PUZZLE SEED ERROR")
+		}
+		jsonParser := json.NewDecoder(dataFile)
+		err = jsonParser.Decode(&vbs)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("PUZZLE SEED DATA ERROR")
+		}
+		//fmt.Println(len(vbs))
+
+		for _, vb := range vbs {
+
+			DB.DB.Create(&vb)
+		}
+
+		var vbs2 []puzzleModels.VBSchemaOracle
+
+		dataFile2, err2 := os.Open(AbsolutePath + "initialData/vb_schemas.json")
+		defer dataFile2.Close()
+		if err2 != nil {
+			fmt.Println("PUZZLE SEED ERROR")
+		}
+		jsonParser2 := json.NewDecoder(dataFile2)
+		err = jsonParser2.Decode(&vbs2)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("PUZZLE SEED DATA ERROR")
+		}
+		//fmt.Println(len(vbs))
+
+		for _, vb := range vbs2 {
+
+			DB.DB.Create(&vb)
+
+		}
+	} else {
+		var vbs []puzzleModels.VBSchemaAdmin
+		AbsolutePath := AbsolutePath()
+		dataFile, err := os.Open(AbsolutePath + "initialData/vb_schemas_admin.json")
+		defer dataFile.Close()
+		if err != nil {
+			fmt.Println("PUZZLE SEED ERROR")
+		}
+		jsonParser := json.NewDecoder(dataFile)
+		err = jsonParser.Decode(&vbs)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("PUZZLE SEED DATA ERROR")
+		}
+		//fmt.Println(len(vbs))
+
+		for _, vb := range vbs {
+
+			DB.DB.Create(&vb)
+		}
+
+		var vbs2 []puzzleModels.VBSchema
+
+		dataFile2, err2 := os.Open(AbsolutePath + "initialData/vb_schemas.json")
+		defer dataFile2.Close()
+		if err2 != nil {
+			fmt.Println("PUZZLE SEED ERROR")
+		}
+		jsonParser2 := json.NewDecoder(dataFile2)
+		err = jsonParser2.Decode(&vbs2)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("PUZZLE SEED DATA ERROR")
+		}
+		//fmt.Println(len(vbs))
+
+		for _, vb := range vbs2 {
+
+			DB.DB.Create(&vb)
+
+		}
 	}
-	jsonParser := json.NewDecoder(dataFile)
-	err = jsonParser.Decode(&vbs)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("PUZZLE SEED DATA ERROR")
-	}
-	//fmt.Println(len(vbs))
-
-	for _, vb := range vbs {
-
-		DB.DB.Create(&vb)
-	}
-
-
-	var vbs2 []puzzleModels.VBSchema
-
-	dataFile2, err2 := os.Open(AbsolutePath+"initialData/vb_schemas.json")
-	defer dataFile2.Close()
-	if err2 != nil {
-		fmt.Println("PUZZLE SEED ERROR")
-	}
-	jsonParser2 := json.NewDecoder(dataFile2)
-	err = jsonParser2.Decode(&vbs2)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("PUZZLE SEED DATA ERROR")
-	}
-	//fmt.Println(len(vbs))
-
-	for _, vb := range vbs2 {
-
-		DB.DB.Create(&vb)
-
-	}
-
 
 }

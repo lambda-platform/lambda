@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/agent/handlers"
@@ -9,7 +10,7 @@ import (
 )
 
 func Set(e *fiber.App) {
-
+	fmt.Println(config.Config.App.Migrate)
 	if config.Config.App.Migrate == "true" {
 		agentUtils.AutoMigrateSeed()
 	}

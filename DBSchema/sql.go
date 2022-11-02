@@ -30,6 +30,11 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 		rowPK.Scan(&pkColumn)
 
 		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
+	} else if config.Config.Database.Connection == "oracle" {
+
+		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE table_name = '%s' AND CONSTRAINT_TYPE = '%s')", dbTable, "P")).Scan(&pkColumn)
+
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, dbTable)
 	}
 
 	if Debug {
@@ -53,7 +58,8 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 		var columnKey string
 		var dataType string
 		var nullable string
-		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+
+		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 			rows.Scan(&column, &dataType, &nullable)
 		} else {
 			rows.Scan(&column, &columnKey, &dataType, &nullable)
@@ -67,7 +73,7 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 			}
 		}
 		if isHidden == false {
-			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 				if pkColumn.ColumnName == column {
 					columnKey = "PRI"
 				}
@@ -102,6 +108,11 @@ func GetColumns(db *sql.DB, dbTable string, hiddenColumns []string) (string, err
 		rowPK.Scan(&pkColumn)
 
 		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
+	} else if config.Config.Database.Connection == "oracle" {
+
+		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE UPPER(table_name) = UPPER('%s') AND CONSTRAINT_TYPE = '%s')", dbTable, "P")).Scan(&pkColumn)
+
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, dbTable)
 	}
 
 	if Debug {
@@ -125,7 +136,7 @@ func GetColumns(db *sql.DB, dbTable string, hiddenColumns []string) (string, err
 		var columnKey string
 		var dataType string
 		var nullable string
-		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 			rows.Scan(&column, &dataType, &nullable)
 		} else {
 			rows.Scan(&column, &columnKey, &dataType, &nullable)
@@ -139,7 +150,7 @@ func GetColumns(db *sql.DB, dbTable string, hiddenColumns []string) (string, err
 			}
 		}
 		if isHidden == false {
-			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 				if pkColumn.ColumnName == column {
 					columnKey = "PRI"
 				}
@@ -178,6 +189,11 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 		rowPK.Scan(&pkColumn)
 
 		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
+	} else if config.Config.Database.Connection == "oracle" {
+
+		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE UPPER(table_name) = UPPER('%s') AND CONSTRAINT_TYPE = '%s')", dbTable, "P")).Scan(&pkColumn)
+
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, dbTable)
 	}
 
 	if Debug {
@@ -201,7 +217,7 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 		var columnKey string
 		var dataType string
 		var nullable string
-		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 			rows.Scan(&column, &dataType, &nullable)
 		} else {
 			rows.Scan(&column, &columnKey, &dataType, &nullable)
@@ -215,7 +231,7 @@ func GetColumnsWithMeta(db *sql.DB, dbTable string, hiddenColumns []string) ([]m
 			}
 		}
 		if isHidden == false {
-			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 				if pkColumn.ColumnName == column {
 					columnKey = "PRI"
 				}
@@ -256,6 +272,11 @@ func GetOnlyOneField(db *sql.DB, dbTable string, oneField string) (*map[string]m
 		rowPK.Scan(&pkColumn)
 
 		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
+	} else if config.Config.Database.Connection == "oracle" {
+
+		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE UPPER(table_name) = UPPER('%s') AND CONSTRAINT_TYPE = '%s')", dbTable, "P")).Scan(&pkColumn)
+
+		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, dbTable)
 	}
 
 	if Debug {
@@ -279,13 +300,13 @@ func GetOnlyOneField(db *sql.DB, dbTable string, oneField string) (*map[string]m
 		var columnKey string
 		var dataType string
 		var nullable string
-		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 			rows.Scan(&column, &dataType, &nullable)
 		} else {
 			rows.Scan(&column, &columnKey, &dataType, &nullable)
 		}
 
-		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+		if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
 			if pkColumn.ColumnName == column {
 				columnKey = "PRI"
 			}

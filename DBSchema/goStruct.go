@@ -111,8 +111,9 @@ func GenerateWithImportsNoTime(otherPackage string, columnTypes map[string]map[s
 }
 
 func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string {
+
 	switch columnType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year":
+	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year", "NUMBER", "INT", "INTEGER":
 		if nullable {
 			if gureguTypes {
 				return gureguNullInt
@@ -136,7 +137,7 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return sqlNullInt
 		}
 		return golangInt64
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar":
+	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar", "VARCHAR2", "CLOB", "LONG":
 		if nullable {
 			if gureguTypes {
 				return gureguNullString
@@ -144,12 +145,12 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return sqlNullString
 		}
 		return "string"
-	case "time", "timestamp", "datetimeoffset", "timestamptz":
+	case "time", "timestamp", "datetimeoffset", "timestamptz", "TIMESTAMP(6) WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP(6)":
 		if nullable && gureguTypes {
 			return gureguNullTime
 		}
 		return golangTime
-	case "datetime", "date":
+	case "datetime", "date", "DATE":
 		if nullable && gureguTypes {
 			return dateNull
 		}
@@ -219,7 +220,7 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 
 		valueType = sqlTypeToGoType(columnType["value"], nullable, gureguTypes)
 
-		fieldName := FmtFieldName(StringifyFirstChar(key))
+		fieldName := FmtFieldName(strings.ToLower(StringifyFirstChar(key)))
 		var annotations []string
 		if gormAnnotation == true {
 			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", key, primary))
@@ -228,7 +229,7 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
-		if fieldName == "DeletedAt" {
+		if fieldName == "DeletedAt" || fieldName == "DELETEDAT" {
 			valueType = "gorm.DeletedAt"
 		}
 		if len(annotations) > 0 {
@@ -290,7 +291,7 @@ func generateStructTypesNoTime(obj map[string]map[string]string, depth int, json
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
-		if fieldName == "DeletedAt" {
+		if fieldName == "DeletedAt" || fieldName == "DELETEDAT" {
 			valueType = "gorm.DeletedAt"
 		}
 		if len(annotations) > 0 {

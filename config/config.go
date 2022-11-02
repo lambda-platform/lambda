@@ -9,6 +9,7 @@ import (
 	"os"
 	"sync"
 )
+
 // global vars
 
 var Config config
@@ -50,12 +51,10 @@ func init() {
 			log.Fatal(err.Error())
 		}
 
-
-
 		configFiel := "lambda.json"
 		configFile, err := os.Open(configFiel)
 		defer configFile.Close()
-		if err != nil{
+		if err != nil {
 			fmt.Println("lambda.json CONFIG FILE NOT FOUND")
 		}
 		jsonParser := json.NewDecoder(configFile)
@@ -68,30 +67,31 @@ func init() {
 }
 
 type config struct {
-	App          app
-	GRPC          grpc
-	Database     database
-	SysAdmin   SysAdmin
-	JWT          JWT
-	Mail         Mail
-	Graphql Graphql
+	App      app
+	GRPC     grpc
+	Database database
+	SysAdmin SysAdmin
+	JWT      JWT
+	Mail     Mail
+	Graphql  Graphql
 }
 
 type database struct {
-	Connection   string
-	Host   string
-	Port     string
-	Database string
-	UserName     string
-	Password string
-	Debug bool
+	Connection string
+	Host       string
+	Port       string
+	SID        string
+	Database   string
+	UserName   string
+	Password   string
+	Debug      bool
 }
 
 type app struct {
-	Name string
-	Port string
+	Name    string
+	Port    string
 	Migrate string
-	Seed string
+	Seed    string
 }
 type grpc struct {
 	Port string
@@ -99,23 +99,22 @@ type grpc struct {
 
 type JWT struct {
 	Secret string
-	Ttl int
+	Ttl    int
 }
 
-
 type SysAdmin struct {
-	Login string
-	Email string
+	Login    string
+	Email    string
 	Password string
-	UUID bool
+	UUID     bool
 }
 
 type Mail struct {
-	Driver string
-	Host string
-	Port int
-	Username string
-	Password string
+	Driver     string
+	Host       string
+	Port       int
+	Username   string
+	Password   string
 	Encryption string
 }
 

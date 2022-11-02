@@ -10,6 +10,7 @@ import (
 func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 
 	/*FORM VALIDATION*/
+
 	requestData, err := GetData(c, action, id, dataform)
 
 	if err != nil {

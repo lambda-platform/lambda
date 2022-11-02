@@ -34,8 +34,6 @@ var PuzzleTemplate = `<html>
 </script>
 <div id="puzzle" class="app-wrapper"></div>
 
-<script type="text/javascript" src="/vendor/echart/echarts-en.js"></script>
-<script type="text/javascript" src="/vendor/ckeditor/ckeditor.js"></script>
 <script>
     window.lambda = {{.lambda_config}};
     window.init = {
@@ -57,8 +55,6 @@ var PuzzleTemplate = `<html>
 <script src="{{index .mix "/assets/lambda/js/datagrid.js"}}"></script>
 <script src="{{index .mix "/assets/lambda/js/datagrid-builder.js"}}"></script>
 <script src="{{index .mix "/assets/lambda/js/datasource.js"}}"></script>
-<script src="{{index .mix "/assets/lambda/js/chart.js"}}"></script>
-<script src="{{index .mix "/assets/lambda/js/chart-builder.js"}}"></script>
 <script src="{{index .mix "/assets/lambda/js/krud.js"}}"></script>
 <script src="{{index .mix "/assets/lambda/js/agent.js"}}"></script>
 <script src="{{index .mix "/assets/lambda/js/puzzle.js"}}"></script>

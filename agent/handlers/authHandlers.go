@@ -6,14 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
-	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/agent/models"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	krudModels "github.com/lambda-platform/lambda/krud/models"
 	puzzleModels "github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/utils"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"strconv"
@@ -66,49 +65,63 @@ func Login(c *fiber.Ctx) error {
 	foundUser := agentUtils.AuthUserObjectByLogin(u.Login)
 
 	if len(foundUser) == 0 {
-
 		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
 			Error:  "User not found",
 			Status: false,
 		})
-
 	}
-
 	//password, err := Hash(u.Password)
 	//password_check1 := IsSame(password, foundUser.Password)
-	if agentUtils.IsSame(u.Password, foundUser["password"].(string)) {
+
+	passwordColumnName := "password"
+	loginColumnName := "login"
+
+	if agentUtils.IsSame(u.Password, foundUser[passwordColumnName].(string)) {
 
 		var roleID int64 = 0
 		var userID int64 = 0
 		var userUUID string = ""
 
-		if reflect.TypeOf(foundUser["id"]).String() == "string" {
-			if config.Config.SysAdmin.UUID {
-				userUUID = foundUser["id"].(string)
+		if config.Config.Database.Connection == "oracle" {
+
+			userByModel := models.USERSOracle{}
+			DB.DB.Where("\"LOGIN\" = ?", u.Login).Find(&userByModel)
+
+			userID = userByModel.ID
+			roleID = userByModel.Role
+
+			foundUser["id"] = userByModel.ID
+			foundUser["role"] = userByModel.Role
+
+		} else {
+			if reflect.TypeOf(foundUser["id"]).String() == "string" {
+				if config.Config.SysAdmin.UUID {
+					userUUID = foundUser["id"].(string)
+				} else {
+					i, err := strconv.ParseInt(foundUser["id"].(string), 10, 64)
+					if err != nil {
+						panic(err)
+					}
+					userID = i
+				}
+
 			} else {
-				i, err := strconv.ParseInt(foundUser["id"].(string), 10, 64)
+				userID = foundUser["id"].(int64)
+			}
+
+			if reflect.TypeOf(foundUser["role"]).String() == "string" {
+				i, err := strconv.ParseInt(foundUser["role"].(string), 10, 64)
 				if err != nil {
 					panic(err)
 				}
-				userID = i
+				roleID = i
+			} else {
+				roleID = foundUser["role"].(int64)
 			}
-
-		} else {
-			userID = foundUser["id"].(int64)
 		}
-		if reflect.TypeOf(foundUser["role"]).String() == "string" {
-			i, err := strconv.ParseInt(foundUser["role"].(string), 10, 64)
-			if err != nil {
-				panic(err)
-			}
-			roleID = i
-		} else {
-			roleID = foundUser["role"].(int64)
-		}
-
 		if config.Config.SysAdmin.UUID {
 			// create jwt token
-			token, err := createUUIDJwtToken(UserUUIDData{Id: userUUID, Login: foundUser["login"].(string), Role: roleID})
+			token, err := createUUIDJwtToken(UserUUIDData{Id: userUUID, Login: foundUser[loginColumnName].(string), Role: roleID})
 			if err != nil {
 				//log.Println("Error Creating JWT token", err)
 				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
@@ -125,7 +138,7 @@ func Login(c *fiber.Ctx) error {
 			//cookie.HttpOnly = true
 			//cookie.Secure = true
 
-			delete(foundUser, "password")
+			delete(foundUser, passwordColumnName)
 
 			foundUser["jwt"] = token
 
@@ -138,8 +151,9 @@ func Login(c *fiber.Ctx) error {
 				Data:   foundUser,
 			})
 		} else {
+
 			// create jwt token
-			token, err := createJwtToken(UserData{Id: userID, Login: foundUser["login"].(string), Role: roleID})
+			token, err := createJwtToken(UserData{Id: userID, Login: foundUser[loginColumnName].(string), Role: roleID})
 			if err != nil {
 				//log.Println("Error Creating JWT token", err)
 				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
@@ -180,8 +194,9 @@ func Login(c *fiber.Ctx) error {
 func GetPermissions(c *fiber.Ctx) error {
 
 	user := agentUtils.AuthUserObject(c)
-	agentMW.IsLoggedIn()
+
 	var roleID int64 = 0
+
 	if reflect.TypeOf(user["role"]).String() == "string" {
 		i, err := strconv.ParseInt(user["role"].(string), 10, 64)
 		if err != nil {
@@ -191,6 +206,7 @@ func GetPermissions(c *fiber.Ctx) error {
 	} else {
 		roleID = user["role"].(int64)
 	}
+
 	permissionData := PermissionData(roleID)
 	return c.Status(fiber.StatusOK).JSON(map[string]interface{}{
 		"status":     true,
@@ -200,23 +216,44 @@ func GetPermissions(c *fiber.Ctx) error {
 }
 func PermissionData(roleID int64) map[string]interface{} {
 
-	Role := models.Role{}
-	DB.DB.Where("id = ?", roleID).Find(&Role)
+	if config.Config.Database.Connection == "oracle" {
+		Role := models.RoleOracle{}
+		DB.DB.Where("ID = ?", roleID).Find(&Role)
 
-	Permissions_ := Permissions{}
-	json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+		Permissions_ := Permissions{}
+		json.Unmarshal([]byte(Role.Permissions), &Permissions_)
 
-	Menu := puzzleModels.VBSchema{}
-	DB.DB.Where("id = ?", Permissions_.MenuID).Find(&Menu)
+		Menu := puzzleModels.VBSchemaOracle{}
+		DB.DB.Where("ID = ?", Permissions_.MenuID).Find(&Menu)
 
-	MenuSchema := new(interface{})
-	json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
-	Kruds := []krudModels.Krud{}
-	DB.DB.Where("deleted_at IS NULL").Find(&Kruds)
-	return map[string]interface{}{
-		"menu":        MenuSchema,
-		"kruds":       Kruds,
-		"permissions": Permissions_,
+		MenuSchema := new(interface{})
+		json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
+		Kruds := []krudModels.KrudOracle{}
+		DB.DB.Find(&Kruds)
+		return map[string]interface{}{
+			"menu":        MenuSchema,
+			"kruds":       Kruds,
+			"permissions": Permissions_,
+		}
+	} else {
+		Role := models.Role{}
+		DB.DB.Where("id = ?", roleID).Find(&Role)
+
+		Permissions_ := Permissions{}
+		json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+
+		Menu := puzzleModels.VBSchema{}
+		DB.DB.Where("id = ?", Permissions_.MenuID).Find(&Menu)
+
+		MenuSchema := new(interface{})
+		json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
+		Kruds := []krudModels.Krud{}
+		DB.DB.Where("deleted_at IS NULL").Find(&Kruds)
+		return map[string]interface{}{
+			"menu":        MenuSchema,
+			"kruds":       Kruds,
+			"permissions": Permissions_,
+		}
 	}
 }
 func Logout(c *fiber.Ctx) error {
@@ -310,7 +347,7 @@ func checkRole(role int64) string {
 			}
 		}
 	}
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &RoleData)
 
 	permissonData, err := json.Marshal(RoleData["permissions"])

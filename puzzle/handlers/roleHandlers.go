@@ -30,20 +30,37 @@ func GetRolesMenus(c *fiber.Ctx) error {
 			"cruds":  kruds,
 		})
 	} else {
-		roles := []agentModels.Role{}
-		menus := []models.VBSchema{}
-		kruds := []krudModels.Krud{}
+		if config.Config.Database.Connection == "oracle" {
+			roles := []agentModels.RoleOracle{}
+			menus := []models.VBSchemaOracle{}
+			kruds := []krudModels.KrudOracle{}
 
-		DB.DB.Where("id != 1").Find(&roles)
-		DB.DB.Find(&kruds)
-		DB.DB.Where("type = 'menu'").Find(&menus)
+			DB.DB.Where("ID != 1").Find(&roles)
+			DB.DB.Find(&kruds)
+			DB.DB.Where("TYPE = 'menu'").Find(&menus)
 
-		return c.JSON(map[string]interface{}{
-			"status": true,
-			"roles":  roles,
-			"menus":  menus,
-			"cruds":  kruds,
-		})
+			return c.JSON(map[string]interface{}{
+				"status": true,
+				"roles":  roles,
+				"menus":  menus,
+				"cruds":  kruds,
+			})
+		} else {
+			roles := []agentModels.Role{}
+			menus := []models.VBSchema{}
+			kruds := []krudModels.Krud{}
+
+			DB.DB.Where("id != 1").Find(&roles)
+			DB.DB.Find(&kruds)
+			DB.DB.Where("type = 'menu'").Find(&menus)
+
+			return c.JSON(map[string]interface{}{
+				"status": true,
+				"roles":  roles,
+				"menus":  menus,
+				"cruds":  kruds,
+			})
+		}
 	}
 
 }
@@ -59,7 +76,7 @@ type RoleNew struct {
 	Name        string `json:"name"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *Role) TableName() string {
 	return "roles"
 }
@@ -73,28 +90,51 @@ func SaveRole(c *fiber.Ctx) error {
 		})
 	}
 
-	role_ := agentModels.Role{}
-
-	DB.DB.Where("id = ?", role.ID).First(&role_)
-
 	Extra, _ := json.Marshal(role.Extra)
 	Permissions, _ := json.Marshal(role.Permissions)
 
-	role_.Extra = string(Extra)
-	role_.Permissions = string(Permissions)
+	if config.Config.Database.Connection == "oracle" {
+		role_ := agentModels.RoleOracle{}
 
-	err := DB.DB.Save(&role_).Error
+		DB.DB.Where("ID = ?", role.ID).First(&role_)
 
-	if err != nil {
+		role_.Extra = string(Extra)
+		role_.Permissions = string(Permissions)
 
-		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-			"status": false,
-			"error":  err.Error(),
-		})
+		err := DB.DB.Save(&role_).Error
+
+		if err != nil {
+
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
+				"error":  err.Error(),
+			})
+		} else {
+			return c.JSON(map[string]interface{}{
+				"status": true,
+			})
+		}
 	} else {
-		return c.JSON(map[string]interface{}{
-			"status": true,
-		})
+		role_ := agentModels.Role{}
+
+		DB.DB.Where("id = ?", role.ID).First(&role_)
+
+		role_.Extra = string(Extra)
+		role_.Permissions = string(Permissions)
+
+		err := DB.DB.Save(&role_).Error
+
+		if err != nil {
+
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
+				"error":  err.Error(),
+			})
+		} else {
+			return c.JSON(map[string]interface{}{
+				"status": true,
+			})
+		}
 	}
 }
 
@@ -110,21 +150,40 @@ func CreateRole(c *fiber.Ctx) error {
 		})
 	}
 
-	role := agentModels.Role{}
-	role.Description = role_.Description
-	role.DisplayName = role_.DisplayName
-	role.Name = role_.Name
+	if config.Config.Database.Connection == "oracle" {
+		role := agentModels.RoleOracle{}
+		role.Description = role_.Description
+		role.DisplayName = role_.DisplayName
+		role.Name = role_.Name
 
-	err := DB.DB.Create(&role).Error
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-			"status": false,
-			"error":  err.Error(),
-		})
+		err := DB.DB.Create(&role).Error
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
+				"error":  err.Error(),
+			})
+		} else {
+			return c.JSON(map[string]interface{}{
+				"status": true,
+			})
+		}
 	} else {
-		return c.JSON(map[string]interface{}{
-			"status": true,
-		})
+		role := agentModels.Role{}
+		role.Description = role_.Description
+		role.DisplayName = role_.DisplayName
+		role.Name = role_.Name
+
+		err := DB.DB.Create(&role).Error
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
+				"error":  err.Error(),
+			})
+		} else {
+			return c.JSON(map[string]interface{}{
+				"status": true,
+			})
+		}
 	}
 }
 

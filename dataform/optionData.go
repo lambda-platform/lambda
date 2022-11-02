@@ -97,9 +97,6 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 
 	concatTxt := "CONCAT"
 	if config.Config.Database.Connection == "mssql" {
-		if len(relation.Fields) <= 1 {
-			concatTxt = ""
-		}
 
 	}
 
@@ -108,7 +105,12 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 	//fmt.Println("SELECT " + key + " as value, "+concatTxt+"(" + labels + ") as label " + parent_column + "  FROM " + table + " " + where_value + " " + order_value)
 	//
 
-	return GetTableData(key+" as value, "+concatTxt+"("+labels+") as label "+parent_column, table, where_value, order_value)
+	if config.Config.Database.Connection == "oracle" {
+		labels = strings.Join(relation.Fields[:], " || ', ' || ")
+		return GetTableData(key+" as \"value\", "+labels+" as \"label\" "+parent_column, table, where_value, order_value)
+	} else {
+		return GetTableData(key+" as value, "+concatTxt+"("+labels+") as label "+parent_column, table, where_value, order_value)
+	}
 
 	///*start*/
 	//
@@ -159,7 +161,7 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 
 type FormOption struct {
 	Label       interface{} `gorm:"column:label" json:"label"`
-	Value       interface{} `gorm:"column:value;type:uuid" json:"value"`
+	Value       int         `gorm:"column:value;type:uuid" json:"value"`
 	ParentValue interface{} `gorm:"column:parent_value" json:"parent_value"`
 }
 
@@ -233,6 +235,14 @@ func GetTableData(query string, table string, where_value string, order_value st
 	//
 	//}
 
+	for i, row := range data {
+
+		v, error := strconv.ParseInt(row["value"].(string), 10, 64)
+		if error == nil {
+			data[i]["value"] = v
+		}
+
+	}
 	return data
 
 }

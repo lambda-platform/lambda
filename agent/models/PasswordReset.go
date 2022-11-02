@@ -11,7 +11,19 @@ type PasswordReset struct {
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *PasswordReset) TableName() string {
+	return "password_resets"
+}
+
+type PASSWORDRESETSOracle struct {
+	Token     string    `gorm:"column:token;not null;" json:"token"`
+	Wrong     int       `gorm:"column:wrong;not null;" json:"wrong"`
+	Email     string    `gorm:"column:email;primaryKey;" json:"email"`
+	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
+}
+
+// TableName sets the insert table name for this struct type
+func (v *PASSWORDRESETSOracle) TableName() string {
 	return "password_resets"
 }

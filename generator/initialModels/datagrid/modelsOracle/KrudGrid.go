@@ -47,33 +47,33 @@ var KrudGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 }
 
 type KrudGrid struct {
-	ID        int            `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	CreatedAt *time.Time     `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt *time.Time     `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at" json:"-"`
-	Form      int            `gorm:"column:form" json:"form"`
-	Grid      int            `gorm:"column:grid" json:"grid"`
-	Actions   string         `gorm:"column:actions" json:"actions"`
-	Template  string         `gorm:"column:template" json:"template"`
-	Title     string         `gorm:"column:title" json:"title"`
+	ID        int            `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
+	Actions   *string        `gorm:"column:ACTIONS" json:"actions"`
+	Form      *int           `gorm:"column:FORM" json:"form"`
+	Grid      *int           `gorm:"column:GRID" json:"grid"`
+	Template  *string        `gorm:"column:TEMPLATE" json:"template"`
+	Title     *string        `gorm:"column:TITLE" json:"title"`
+	CreatedAt *time.Time     `gorm:"column:CREATED_AT" json:"created_at"`
+	UpdatedAt *time.Time     `gorm:"column:UPDATED_AT" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"column:DELETED_AT" json:"-"`
 }
 
 func (k *KrudGrid) TableName() string {
-	return "krud"
+	return "VB_SCHEMAS"
 }
 
 type KrudGridMain struct {
-	ID        int            `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	CreatedAt *time.Time     `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt *time.Time     `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at" json:"-"`
-	Form      int            `gorm:"column:form" json:"form"`
-	Grid      int            `gorm:"column:grid" json:"grid"`
-	Actions   string         `gorm:"column:actions" json:"actions"`
-	Template  string         `gorm:"column:template" json:"template"`
-	Title     string         `gorm:"column:title" json:"title"`
+	ID        int            `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
+	Actions   *string        `gorm:"column:ACTIONS" json:"actions"`
+	Form      *int           `gorm:"column:FORM" json:"form"`
+	Grid      *int           `gorm:"column:GRID" json:"grid"`
+	Template  *string        `gorm:"column:TEMPLATE" json:"template"`
+	Title     *string        `gorm:"column:TITLE" json:"title"`
+	CreatedAt *time.Time     `gorm:"column:CREATED_AT" json:"created_at"`
+	UpdatedAt *time.Time     `gorm:"column:UPDATED_AT" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"column:DELETED_AT" json:"-"`
 }
 
 func (k *KrudGridMain) TableName() string {
-	return "krud"
+	return "VB_SCHEMAS"
 }

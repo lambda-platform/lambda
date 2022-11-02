@@ -5,7 +5,7 @@ import "time"
 type CrudFrom struct {
 	Actions   string     `gorm:"column:actions" json:"actions"`
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
-	DeletedAt *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
+	DeletedAt *time.Time `gorm:"column:deleted_at" json:"-"`
 	Form      int        `gorm:"column:form" json:"form"`
 	Grid      int        `gorm:"column:grid" json:"grid"`
 	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
@@ -14,7 +14,7 @@ type CrudFrom struct {
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (k *CrudFrom) TableName() string {
 	return "krud"
 }

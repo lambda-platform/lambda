@@ -30,7 +30,7 @@ func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, 
 	subStchemas := ""
 
 	for _, sub := range Subs {
-		subStchemas = subStchemas + "\n    " + sub + ":[" + strcase.ToCamel(sub) + "!]"
+		subStchemas = subStchemas + "\n    " + sub + ":[" + strcase.ToCamel(strings.ToLower(sub)) + "!]"
 	}
 
 	typeSchema := "type"
@@ -102,7 +102,7 @@ func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnot
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
-		if fieldName == "DeletedAt" || fieldName == "deleted_at" {
+		if fieldName == "DeletedAt" || fieldName == "deleted_at" || fieldName == "DELETED_AT" {
 			valueType = "GormDeletedAt"
 		}
 		if len(annotations) > 0 {
@@ -165,7 +165,7 @@ func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, json
 }
 func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) string {
 	switch columnType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year":
+	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year", "NUMBER", "INT", "INTEGER":
 		if nullable {
 			if gureguTypes {
 				return gqlNullInt
@@ -181,7 +181,7 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 			return gqlNullInt
 		}
 		return gqlInt
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar":
+	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar", "VARCHAR2", "CLOB", "LONG":
 		if nullable {
 			if gureguTypes {
 				return gqlNullString
@@ -189,12 +189,12 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 			return gqlNullString
 		}
 		return gqlString
-	case "time", "timestamp", "datetimeoffset", "timestamptz":
+	case "time", "timestamp", "datetimeoffset", "timestamptz", "TIMESTAMP(6) WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP(6)":
 		if nullable && gureguTypes {
 			return gqlNullTime
 		}
 		return gqlTime
-	case "datetime", "date":
+	case "datetime", "date", "DATE":
 		if nullable && gureguTypes {
 			return dbNullDate
 		}

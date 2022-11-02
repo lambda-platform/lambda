@@ -3,10 +3,13 @@ package DB
 import (
 	"database/sql"
 	"fmt"
+	"github.com/dzwvip/oracle"
 	"github.com/lambda-platform/lambda/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
+
+	//"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"sync"
@@ -19,7 +22,7 @@ func init() {
 	onceDb.Do(func() {
 
 		Config := &gorm.Config{
-			DisableNestedTransaction: true,
+			//DisableNestedTransaction: true,
 		}
 		if config.Config.Database.Debug {
 			Config.Logger = logger.Default.LogMode(logger.Info)
@@ -28,7 +31,22 @@ func init() {
 			Config.Logger = logger.Default.LogMode(logger.Error)
 		}
 
-		if config.Config.Database.Connection == "mssql" {
+		if config.Config.Database.Connection == "oracle" {
+
+			connectString := fmt.Sprintf("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=%s)(PORT=%s)))(CONNECT_DATA=(SID=%s)))", config.Config.Database.Host, config.Config.Database.Port, config.Config.Database.SID)
+			dsn := fmt.Sprintf(`user="%s" password="%s" TimeZone="Asia/Makassar" connectString="%s"`, config.Config.Database.UserName, config.Config.Database.Password, connectString)
+			dbConnection, err := gorm.Open(oracle.Open(dsn), Config)
+
+			if err != nil {
+				fmt.Println(err)
+				panic("failed to connect database")
+			}
+
+			DB = dbConnection
+
+			//gorm.DefaultCallback.Create().Remove("mssql:set_identity_insert")
+
+		} else if config.Config.Database.Connection == "mssql" {
 			dbConnection, err := gorm.Open(sqlserver.Open("sqlserver://"+config.Config.Database.UserName+":"+config.Config.Database.Password+"@"+config.Config.Database.Host+":"+config.Config.Database.Port+"?database="+config.Config.Database.Database), Config)
 
 			if err != nil {

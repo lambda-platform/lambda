@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"sync"
@@ -29,7 +28,7 @@ func init() {
 			fmt.Println(mixFile)
 		}
 
-		data, err := ioutil.ReadFile(mixFile)
+		data, err := os.ReadFile(mixFile)
 
 		if err != nil {
 			fmt.Println("MIX FILE NOT FOUND")

@@ -3,6 +3,7 @@ package generator
 import (
 	"github.com/iancoleman/strcase"
 	"github.com/lambda-platform/lambda/config"
+	"strings"
 
 	"github.com/lambda-platform/lambda/DBSchema"
 	genertarModels "github.com/lambda-platform/lambda/generator/models"
@@ -39,6 +40,7 @@ func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.Proj
 
 		os.MkdirAll(gridPatch, 0755)
 		os.MkdirAll("lambda/models/grid/caller", 0755)
+
 	} else {
 
 		os.RemoveAll("lambda")
@@ -61,13 +63,18 @@ func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.Proj
 
 	if copyClienModels {
 
-		copy.Copy(AbsolutePath+"initialModels/datagrid/models/", "lambda/models/grid/")
-
-		if config.Config.SysAdmin.UUID || user_with_uuid == "true" {
-			copy.Copy(AbsolutePath+"initialModels/dataform/modelsUUID/", "lambda/models/form/")
+		if config.Config.Database.Connection == "oracle" {
+			copy.Copy(AbsolutePath+"initialModels/dataform/modelsOracle/", "lambda/models/form/")
+			copy.Copy(AbsolutePath+"initialModels/datagrid/modelsOracle/", "lambda/models/grid/")
 		} else {
-			copy.Copy(AbsolutePath+"initialModels/dataform/models/", "lambda/models/form/")
+			copy.Copy(AbsolutePath+"initialModels/datagrid/models/", "lambda/models/grid/")
+			if config.Config.SysAdmin.UUID || user_with_uuid == "true" {
+				copy.Copy(AbsolutePath+"initialModels/dataform/modelsUUID/", "lambda/models/form/")
+			} else {
+				copy.Copy(AbsolutePath+"initialModels/dataform/models/", "lambda/models/form/")
+			}
 		}
+
 	}
 	fmt.Println("MODEL INIT DONE")
 }
@@ -93,7 +100,7 @@ func GetColumnsFromTableMeta(columns []lambdaModels.TableMeta, hiddenColumns []s
 
 }
 func GetModelAlias(modelName string) string {
-	return strcase.ToCamel(modelName)
+	return DBSchema.FmtFieldName(strings.ToLower(DBSchema.StringifyFirstChar(modelName)))
 }
 
 func TableMetaToStruct(columns []lambdaModels.TableMeta, table string, hiddenColumns []string, pkgName string, Subs []string) string {
@@ -105,10 +112,10 @@ func TableMetaToStruct(columns []lambdaModels.TableMeta, table string, hiddenCol
 		subStchemas := ""
 
 		for _, sub := range Subs {
-			subStchemas = subStchemas + "\n    " + strcase.ToCamel(sub) + " []*" + strcase.ToCamel(sub) + "`gorm:\"-:all\"`"
+			subStchemas = subStchemas + "\n    " + strcase.ToCamel(strings.ToLower(sub)) + " []*" + strcase.ToCamel(strings.ToLower(sub)) + "`gorm:\"-:all\"`"
 		}
 
-		struc_, _ := DBSchema.GenerateWithImports("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, subStchemas, "", "")
+		struc_, _ := DBSchema.GenerateWithImports("", *columnDataTypes, table, GetModelAlias(strings.ToLower(table)), pkgName, true, true, true, subStchemas, "", "")
 
 		return string(struc_)
 	}
@@ -122,7 +129,7 @@ func TableMetaToGraphql(columns []lambdaModels.TableMeta, table string, hiddenCo
 
 		columnDataTypes := GetColumnsFromTableMeta(columns, hiddenColumns)
 
-		struc_, _ := DBSchema.GenerateGrapql(*columnDataTypes, table, strcase.ToCamel(table), "", false, false, true, "", "", Subs, isInpute)
+		struc_, _ := DBSchema.GenerateGrapql(*columnDataTypes, table, GetModelAlias(strings.ToLower(table)), "", false, false, true, "", "", Subs, isInpute)
 
 		return string(struc_)
 	}

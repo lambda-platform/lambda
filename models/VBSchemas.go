@@ -11,6 +11,18 @@ func (v *UserRoles) TableName() string {
 	return "roles"
 }
 
+type VBSchemaListOracle struct {
+	ID        uint64     `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
+	Name      string     `gorm:"column:NAME" json:"name"`
+	Type      string     `gorm:"column:TYPE" json:"type"`
+	CreatedAt *time.Time `gorm:"column:CREATED_AT" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:UPDATED_AT" json:"updated_at"`
+}
+
+func (v *VBSchemaListOracle) TableName() string {
+	return "VB_SCHEMAS"
+}
+
 type VBSchemaList struct {
 	ID        uint64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name      string     `gorm:"column:name" json:"name"`
@@ -18,6 +30,7 @@ type VBSchemaList struct {
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
+
 type VBSchema struct {
 	ID        uint64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name      string     `gorm:"column:name" json:"name"`
@@ -29,6 +42,19 @@ type VBSchema struct {
 
 func (v *VBSchema) TableName() string {
 	return "vb_schemas"
+}
+
+type VBSchemaOracle struct {
+	ID        int        `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
+	Name      string     `gorm:"column:NAME" json:"name"`
+	Schema    string     `gorm:"column:SCHEMA;type:LONG" json:"schema"`
+	Type      string     `gorm:"column:TYPE" json:"type"`
+	CreatedAt *time.Time `gorm:"column:CREATED_AT" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:UPDATED_AT" json:"updated_at"`
+}
+
+func (v *VBSchemaOracle) TableName() string {
+	return "VB_SCHEMAS"
 }
 
 type ProjectVBSchema struct {
@@ -58,7 +84,7 @@ type VBSchemaMSSQL struct {
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *VBSchemaMSSQL) TableName() string {
 	return "vb_schemas"
 }
@@ -82,9 +108,24 @@ type VBSchemaAdmin struct {
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *VBSchemaAdmin) TableName() string {
 	return "vb_schemas_admin"
+}
+
+type VBSchemaAdminOracle struct {
+	VbID      int        `gorm:"column:VB_ID;primaryKey;autoIncrement" json:"vb_id"`
+	ID        string     `gorm:"column:ID" json:"id"`
+	Name      string     `gorm:"column:NAME" json:"name"`
+	Schema    string     `gorm:"column:SCHEMA;type:LONG" json:"schema"`
+	Type      string     `gorm:"column:TYPE" json:"type"`
+	CreatedAt *time.Time `gorm:"column:CREATED_AT" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:UPDATED_AT" json:"updated_at"`
+}
+
+// TableName sets the insert table name for this struct type
+func (v *VBSchemaAdminOracle) TableName() string {
+	return "VB_SCHEMAS_ADMIN"
 }
 
 type VBSchemaAdminMSSQL struct {
@@ -97,7 +138,7 @@ type VBSchemaAdminMSSQL struct {
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *VBSchemaAdminMSSQL) TableName() string {
 	return "vb_schemas_admin"
 }

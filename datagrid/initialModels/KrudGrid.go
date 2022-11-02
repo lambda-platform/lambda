@@ -48,7 +48,7 @@ type KrudGrid struct {
 	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
+	DeletedAt *time.Time `gorm:"column:deleted_at" json:"-"`
 	Form      int        `gorm:"column:form" json:"form"`
 	Grid      int        `gorm:"column:grid" json:"grid"`
 	Actions   string     `gorm:"column:actions" json:"actions"`
@@ -64,7 +64,7 @@ type KrudGridMain struct {
 	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
+	DeletedAt *time.Time `gorm:"column:deleted_at" json:"-"`
 	Form      int        `gorm:"column:form" json:"form"`
 	Grid      int        `gorm:"column:grid" json:"grid"`
 	Actions   string     `gorm:"column:actions" json:"actions"`

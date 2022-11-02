@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/exportImport/models"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"net/http"
@@ -42,7 +42,7 @@ func Export(c *fiber.Ctx) error {
 		})
 	}
 
-	err = ioutil.WriteFile("lambda/crud-export.json", byteData, 0755)
+	err = os.WriteFile("lambda/crud-export.json", byteData, 0755)
 	if err != nil {
 		c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"error": err.Error(),

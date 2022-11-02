@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
-	dbToStruct "github.com/lambda-platform/lambda/DBSchema"
 	"github.com/lambda-platform/lambda/generator/models"
 	"github.com/lambda-platform/lambda/generator/utils"
 	"github.com/lambda-platform/lambda/graphql/plugin/resolvergen"
 	lambdaModels "github.com/lambda-platform/lambda/models"
 	"github.com/otiai10/copy"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -24,7 +22,7 @@ func Generate() {
 	)
 
 	if err != nil {
-		fmt.Println("======= error")
+
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(3)
 
@@ -32,19 +30,19 @@ func Generate() {
 			Replace Project Path to client path
 		*/
 
-		//gqlGeneratedFile, _ := ioutil.ReadFile( "lambda/graph/generated/generated.go")
+		//gqlGeneratedFile, _ := os.ReadFile( "lambda/graph/generated/generated.go")
 		////gqlGeneratedFileContent := strings.ReplaceAll(string(gqlGeneratedFile), "/", "")
 		//utils.WriteFile(gqlGeneratedFileContent, projectPath + "/lambda/graph/generated/generated.go")
 		//
-		//modelGeneratedFile, _ := ioutil.ReadFile(projectPath + "/lambda/graph/model/models_gen.go")
+		//modelGeneratedFile, _ := os.ReadFile(projectPath + "/lambda/graph/model/models_gen.go")
 		//modelGeneratedFileContent := strings.ReplaceAll(string(modelGeneratedFile), projectPath+"/", "")
 		//utils.WriteFile(modelGeneratedFileContent, projectPath + "/lambda/graph/model/models_gen.go")
 		//
-		//resolverGeneratedFile, _ := ioutil.ReadFile(projectPath + "/lambda/graph/schemas.resolvers.go")
+		//resolverGeneratedFile, _ := os.ReadFile(projectPath + "/lambda/graph/schemas.resolvers.go")
 		//resolverGeneratedFileContent := strings.ReplaceAll(string(resolverGeneratedFile), projectPath+"/", "")
 		//utils.WriteFile(resolverGeneratedFileContent, projectPath + "/lambda/graph/schemas.resolvers.go")
 		//
-		//mutationsGeneratedFile, fileError := ioutil.ReadFile(projectPath + "/lambda/graph/mutations.resolvers.go")
+		//mutationsGeneratedFile, fileError := os.ReadFile(projectPath + "/lambda/graph/mutations.resolvers.go")
 		//if(fileError == nil){
 		//	mutationsFileContent := strings.ReplaceAll(string(mutationsGeneratedFile), projectPath+"/", "")
 		//	utils.WriteFile(mutationsFileContent, projectPath + "/lambda/graph/mutations.resolvers.go")
@@ -216,7 +214,9 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 
 	for _, table := range GqlTables {
 		modelAlias := GetModelAlias(table.Table)
-		Identity := dbToStruct.FmtFieldName(table.Identity)
+
+		Identity := GetModelAlias(table.Identity)
+
 		subTables := []string{}
 		subTablesMap := ""
 		subSetTemps := ""
@@ -253,7 +253,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 		}
 		for _, sub := range table.Subs {
 			SubConnectionNullCheck := ""
-			subAlias := GetModelAlias(sub.Table)
+			subAlias := sub.Table
 			subTables = append(subTables, sub.Table)
 			subTablesMap = subTablesMap + fmt.Sprintf(`"%s": model.SubTable{
 	Table:"%s",
@@ -266,7 +266,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 				sub.ParentIdentity,
 				sub.ConnectionField,
 			)
-			subCaller := subAlias + "(ctx, sorts, []*model.GroupFilter{}, filters, nil, nil)"
+			subCaller := GetModelAlias(subAlias) + "(ctx, sorts, []*model.GroupFilter{}, filters, nil, nil)"
 			subHasSub := false
 			for _, tableCheck := range GqlTables {
 				if tableCheck.Table == sub.Table {
@@ -309,13 +309,13 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 				sub.Table,
 				sub.Table,
 				subCaller,
-				`if fmt.Sprintf("%v", `+ParemtIDNullCheck+`parents[i].`+Identity+`) == fmt.Sprintf("%v", `+SubConnectionNullCheck+`SubItemData.`+dbToStruct.FmtFieldName(dbToStruct.StringifyFirstChar(sub.ConnectionField))+`)`,
+				`if fmt.Sprintf("%v", `+ParemtIDNullCheck+`parents[i].`+Identity+`) == fmt.Sprintf("%v", `+SubConnectionNullCheck+`SubItemData.`+GetModelAlias(sub.ConnectionField)+`)`,
 				//ParemtIDNullCheck,
 				//Identity,
 				//SubConnectionNullCheck,
 				//dbToStruct.FmtFieldName(dbToStruct.StringifyFirstChar(sub.ConnectionField)),
-				subAlias,
-				subAlias,
+				GetModelAlias(subAlias),
+				GetModelAlias(subAlias),
 			)
 
 		}
@@ -411,12 +411,9 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 
 		resolver = resolver + actions
 
-		fmt.Sprintf(modelAlias)
-		fmt.Sprintf(modelAlias)
-
 		utils.WriteFileFormat(resolver, "lambda/graph/resolvers/"+modelAlias+".go")
 
-		utils.WriteFile(schema, "lambda/graph/schemas/"+modelAlias+".graphql")
+		utils.WriteFile(schema, "lambda/graph/schemas/"+GetModelAlias(strings.ToLower(modelAlias))+".graphql")
 
 		paginationReturn := "return &Paginate, nil"
 
@@ -461,7 +458,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 		Paginate.LastPage = pagination.LastPage
 		Paginate.Total = int(pagination.Total)
 		%s
-	}`, strings.ToLower(table.Table), authCheck, table.Identity, parentConnectsions, modelAlias, modelAlias, modelAlias, paginationReturn) + "\n"
+	}`, strings.ToLower(table.Table), authCheck, table.Identity, parentConnectsions, modelAlias, modelAlias, GetModelAlias(strings.ToLower(table.Table)), paginationReturn) + "\n"
 
 	}
 
@@ -501,7 +498,7 @@ func createActionUpdateActions(GqlTables []models.GqlTable, dbSchema lambdaModel
 		if table.Actions.Create || table.Actions.Update {
 			modelAlias := GetModelAlias(table.Table)
 
-			schema := TableMetaToGraphql(dbSchema.TableMeta[table.Table], table.Table, []string{"created_at", "updated_at", "deleted_at", table.Identity}, []string{}, true)
+			schema := TableMetaToGraphql(dbSchema.TableMeta[table.Table], table.Table, []string{"created_at", "updated_at", "deleted_at", "CREATED_AT", "UPDATED_AT", "DELETED_AT", table.Identity}, []string{}, true)
 
 			createMutation := ""
 			if table.Actions.Create {
@@ -755,9 +752,9 @@ func Delete%s(ctx context.Context, id string) (*models.%s, error) {
 	//colunms = strings.ReplaceAll(colunms, "\"", "")
 	//colunms = strings.ReplaceAll(colunms, " ", "")
 	for _, column := range colunms {
-		if column["column"] != table.Identity && column["column"] != "created_at" && column["column"] != "updated_at" && column["column"] != "deleted_at" {
+		if column["column"] != table.Identity && column["column"] != "created_at" && column["column"] != "updated_at" && column["column"] != "deleted_at" && column["column"] != "CREATED_AT" && column["column"] != "UPDATED_AT" && column["column"] != "DELETED_AT" {
 
-			columnReady := dbToStruct.FmtFieldName(column["column"])
+			columnReady := GetModelAlias(strings.ToLower(column["column"]))
 
 			//	fmt.Println(column["column"])
 			//	fmt.Println(column["dataType"])
@@ -849,12 +846,12 @@ func GQLInit(dbSchema lambdaModels.DBSCHEMA, graphqlchemas []models.ProjectSchem
 
 		copy.Copy(AbsolutePath+"graphql/schemas-common/", "lambda/graph/schemas-common/")
 
-		gqlgenFile, _ := ioutil.ReadFile(AbsolutePath + "graphql/gqlgen.yml.example")
+		gqlgenFile, _ := os.ReadFile(AbsolutePath + "graphql/gqlgen.yml.example")
 		//gqlgenFileContent := strings.ReplaceAll(string(gqlgenFile), "PROJECTNAME", projectName)
 		//gqlgenFileContent = strings.ReplaceAll(gqlgenFileContent, "PROJECTAPTH", dir)
 		utils.WriteFile(string(gqlgenFile), "lambda/graph/gqlgen.yml")
 
-		//graphqlFile, _ := ioutil.ReadFile(AbsolutePath + "/graph/graphql.go.exmaple")
+		//graphqlFile, _ := os.ReadFile(AbsolutePath + "/graph/graphql.go.exmaple")
 		//graphqlFileContent := strings.ReplaceAll(string(graphqlFile), "PROJECTNAME", projectName)
 		//WriteFile(graphqlFileContent, dir+"/graph/graphql.go")
 		GenerateSchema(graphqlchemas, dbSchema)

@@ -27,7 +27,7 @@ func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[st
 		for field, fieldType := range dataform.FieldTypes {
 
 			if fieldType == "Password" {
-				fieldName := DBSchema.FmtFieldName(field)
+				fieldName := DBSchema.FieldName(field)
 				value := dataform.getStringField(fieldName)
 
 				if action == "store" {
@@ -75,7 +75,7 @@ func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[st
 				if target.Prop == "hidden" {
 
 					var re0 = regexp.MustCompile("'{" + formula.Model + "}'")
-					template := re0.ReplaceAllString(formula.Template, DBSchema.FmtFieldName(formula.Model))
+					template := re0.ReplaceAllString(formula.Template, DBSchema.FieldName(formula.Model))
 
 					var re3 = regexp.MustCompile(`'`)
 					template = re3.ReplaceAllString(template, `"`)

@@ -6,7 +6,6 @@ import (
 	"github.com/lambda-platform/lambda/DB"
 	pb "github.com/lambda-platform/lambda/grpc/proto"
 	"github.com/lambda-platform/lambda/puzzle/handlers"
-	"io/ioutil"
 )
 
 func GetIntData(ctx context.Context, in *pb.TableOption) (*pb.IntRows, error) {
@@ -32,7 +31,7 @@ func GetSchemaData(ctx context.Context, in *pb.SchemaParams) (*pb.Response, erro
 
 	if in.Type == "form" || in.Type == "grid" {
 
-		_ = ioutil.WriteFile("lambda/schemas/"+in.Type+"/"+fmt.Sprintf("%d", in.Id)+".json", []byte(in.Schema), 0777)
+		_ = os.WriteFile("lambda/schemas/"+in.Type+"/"+fmt.Sprintf("%d", in.Id)+".json", []byte(in.Schema), 0777)
 	}
 
 	return res, nil

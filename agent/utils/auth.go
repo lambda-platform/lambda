@@ -5,11 +5,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/agent/models"
 	"github.com/lambda-platform/lambda/config"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func AuthUser(c *fiber.Ctx) *models.User {
@@ -50,8 +52,16 @@ func AuthUserObject(c *fiber.Ctx) map[string]interface{} {
 		query = fmt.Sprintf("SELECT * FROM users WHERE id = '%s'", Id.(string))
 
 	} else {
-		query = fmt.Sprintf("SELECT * FROM users WHERE id = %d", int(Id.(float64)))
+		userQuery := "SELECT * FROM users  WHERE id = '%d'"
+
+		if config.Config.Database.Connection == "oracle" {
+			userQuery = "SELECT * FROM \"USERS\" WHERE \"ID\" = '%d'"
+		}
+
+		query = fmt.Sprintf(userQuery, int(Id.(float64)))
+
 	}
+
 	rows, _ := DB.DB.Raw(query).Rows()
 
 	columns, _ := rows.Columns()
@@ -104,6 +114,9 @@ func AuthUserObject(c *fiber.Ctx) map[string]interface{} {
 					userData[col] = val
 				}
 			} else {
+				if config.Config.Database.Connection == "oracle" {
+					col = strings.ToLower(col)
+				}
 				b, ok := val.([]byte)
 				if ok {
 					v, err := strconv.ParseInt(string(b), 10, 64)
@@ -128,13 +141,19 @@ func AuthUserObject(c *fiber.Ctx) map[string]interface{} {
 
 	delete(userData, "password")
 
+	userData["role"] = agentMW.GetUserRole(claims)
 	return userData
 }
 
 func AuthUserObjectByLogin(login string) map[string]interface{} {
 	userData := map[string]interface{}{}
 
-	rows, errorDB := DB.DB.Raw(fmt.Sprintf("SELECT * FROM users WHERE login = '%s'", login)).Rows()
+	userQuery := "SELECT * FROM users WHERE login = '%s'"
+
+	if config.Config.Database.Connection == "oracle" {
+		userQuery = "SELECT * FROM \"USERS\" WHERE \"LOGIN\" = '%s'"
+	}
+	rows, errorDB := DB.DB.Raw(fmt.Sprintf(userQuery, login)).Rows()
 
 	//fmt.Println(login)
 	fmt.Println(errorDB)
@@ -169,11 +188,15 @@ func AuthUserObjectByLogin(login string) map[string]interface{} {
 					} else {
 						userData[col] = val
 					}
+
 				} else {
 					userData[col] = val
 				}
 
 			} else {
+				if config.Config.Database.Connection == "oracle" {
+					col = strings.ToLower(col)
+				}
 				b, ok := val.([]byte)
 				if ok {
 					v, err := strconv.ParseInt(string(b), 10, 64)
@@ -199,8 +222,13 @@ func AuthUserObjectByLogin(login string) map[string]interface{} {
 	return userData
 }
 func AuthUserObjectByEmail(login string) map[string]interface{} {
+	userQuery := "SELECT * FROM users WHERE email = '%s'"
 
-	rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT * FROM users WHERE email = '%s'", login)).Rows()
+	if config.Config.Database.Connection == "oracle" {
+		userQuery = "SELECT * FROM \"USERS\" WHERE \"EMAIL\" = '%s'"
+
+	}
+	rows, _ := DB.DB.Raw(fmt.Sprintf(userQuery, login)).Rows()
 
 	columns, _ := rows.Columns()
 	count := len(columns)

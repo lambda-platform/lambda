@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	//"io/ioutil"
 )
 
 func GetNewNotifications(c *fiber.Ctx) error {
@@ -303,7 +302,7 @@ func SendNotification(receivers []string, msg interface{}, notification models.F
 		//fmt.Println("FIREBASE RESPONSE")
 		//fmt.Println(resp.Body)
 		//
-		//bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
 		//
 		//fmt.Println(string(bodyBytes))
 	}

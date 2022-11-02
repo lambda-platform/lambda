@@ -6,42 +6,70 @@ import (
 )
 
 type Krud struct {
-	ID        int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	CreatedAt time.Time  `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time  `gorm:"column:updated_at" json:"updated_at"`
-	DeletedAt *time.Time `gorm:"column:deleted_at" json:"deleted_at"`
-	Title     string     `gorm:"column:title" json:"title"`
-	Template  string     `gorm:"column:template" json:"template"`
-	Grid      int        `gorm:"column:grid" json:"grid"`
-	Form      int        `gorm:"column:form" json:"form"`
-	Actions   string     `gorm:"column:actions" json:"actions"`
+	ID        int            `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	Title     string         `gorm:"column:title" json:"title"`
+	Template  string         `gorm:"column:template" json:"template"`
+	Grid      int            `gorm:"column:grid" json:"grid"`
+	Form      int            `gorm:"column:form" json:"form"`
+	Actions   string         `gorm:"column:actions" json:"actions"`
+	CreatedAt time.Time      `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"column:updated_at" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at" json:"-"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *Krud) TableName() string {
 	return "krud"
 }
 
+type KrudOracle struct {
+	ID        int            `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
+	Actions   *string        `gorm:"column:ACTIONS" json:"actions"`
+	Form      *int           `gorm:"column:FORM" json:"form"`
+	Grid      *int           `gorm:"column:GRID" json:"grid"`
+	Template  *string        `gorm:"column:TEMPLATE" json:"template"`
+	Title     *string        `gorm:"column:TITLE" json:"title"`
+	CreatedAt *time.Time     `gorm:"column:CREATED_AT" json:"created_at"`
+	UpdatedAt *time.Time     `gorm:"column:UPDATED_AT" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"column:DELETED_AT" json:"-"`
+}
+
+// TableName sets the insert table name for this struct type
+func (v *KrudOracle) TableName() string {
+	return "KRUD"
+}
+
 type KrudTemplate struct {
-	gorm.Model
+	ID           int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	TemplateName string `gorm:"column:template_name" json:"template_name"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *KrudTemplate) TableName() string {
 	return "krud_templates"
 }
 
+type KrudTemplateOracle struct {
+	ID           int    `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
+	TemplateName string `gorm:"column:TEMPLATE_NAME" json:"template_name"`
+}
+
+// TableName sets the insert table name for this struct type
+func (v *KrudTemplateOracle) TableName() string {
+	return "KRUD_TEMPLATES"
+}
+
 type ProjectCruds struct {
-	CreatedAt    *time.Time `gorm:"column:created_at" json:"created_at"`
-	Form         int        `gorm:"column:form" json:"form"`
-	Grid         int        `gorm:"column:grid" json:"grid"`
-	ID           int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	ProjectsID   int        `gorm:"column:projects_id" json:"projects_id"`
-	Template     string     `gorm:"column:template" json:"template"`
-	Title        string     `gorm:"column:title" json:"title"`
-	MainTabTitle string     `gorm:"column:main_tab_title" json:"main_tab_title"`
-	UpdatedAt    *time.Time `gorm:"column:updated_at" json:"updated_at"`
+	ID           int            `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	Form         int            `gorm:"column:form" json:"form"`
+	Grid         int            `gorm:"column:grid" json:"grid"`
+	ProjectsID   int            `gorm:"column:projects_id" json:"projects_id"`
+	Template     string         `gorm:"column:template" json:"template"`
+	Title        string         `gorm:"column:title" json:"title"`
+	MainTabTitle string         `gorm:"column:main_tab_title" json:"main_tab_title"`
+	CreatedAt    *time.Time     `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt    *time.Time     `gorm:"column:updated_at" json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"column:deleted_at" json:"-"`
 }
 
 func (p *ProjectCruds) TableName() string {

@@ -1,6 +1,8 @@
 package resolvergen
 
 import (
+	_ "embed"
+	"fmt"
 	"github.com/99designs/gqlgen/codegen"
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/99designs/gqlgen/codegen/templates"
@@ -9,9 +11,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"fmt"
 )
+
+//go:embed resolver.gotpl
+var resolverTemplate string
 var ResolverPath string
+
 func New(resolverPath string) plugin.Plugin {
 	ResolverPath = resolverPath
 	return &Plugin{}
@@ -75,6 +80,7 @@ func (m *Plugin) generateSingleFile(data *codegen.Data) error {
 		Filename:    data.Config.Resolver.Filename,
 		Data:        resolverBuild,
 		Packages:    data.Config.Packages,
+		Template:    resolverTemplate,
 	})
 }
 
@@ -86,38 +92,43 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 
 	files := map[string]*File{}
 
-	for _, o := range data.Objects {
+	objects := make(codegen.Objects, len(data.Objects)+len(data.Inputs))
+	copy(objects, data.Objects)
+	copy(objects[len(data.Objects):], data.Inputs)
+
+	for _, o := range objects {
 		if o.HasResolvers() {
 			fn := gqlToResolverName(data.Config.Resolver.Dir(), o.Position.Src.Name, data.Config.Resolver.FilenameTemplate)
-
 			if files[fn] == nil {
 				files[fn] = &File{}
 			}
 
-		//	rewriter.Mafmt.Println(fn)rkStructCopied(templates.LcFirst(o.Name) + templates.UcFirst(data.Config.Resolver.Type))
-		//	rewriter.GetMethodBody(data.Config.Resolver.Type, o.Name)
+			//	rewriter.Mafmt.Println(fn)rkStructCopied(templates.LcFirst(o.Name) + templates.UcFirst(data.Config.Resolver.Type))
+			//	rewriter.GetMethodBody(data.Config.Resolver.Type, o.Name)
 			files[fn].Objects = append(files[fn].Objects, o)
+
 		}
 		for _, f := range o.Fields {
 			if !f.IsResolver {
 				continue
 			}
 
-
-			implementation := `return resolvers.`+f.GoFieldName+`(ctx, sorts, groupFilters, filters, limit, offset)`
-
-			if(f.Name == "paginate"){
+			implementation := `return resolvers.` + f.GoFieldName + `(ctx, sorts, groupFilters, filters, limit, offset)`
+			if implementation == "" {
+				implementation = fmt.Sprintf("panic(fmt.Errorf(\"not implemented: %v - %v\"))", f.GoFieldName, f.Name)
+			}
+			if f.Name == "paginate" {
 				implementation = "return resolvers.Paginate(ctx, sorts, groupFilters, filters, subSorts, subFilters, page, size)"
 			}
-			if(len(f.Args) == 7 && f.Name != "paginate"){
-				implementation = `return resolvers.`+f.GoFieldName+`(ctx, sorts, groupFilters,  filters, subSorts, subFilters, limit, offset)`
+			if len(f.Args) == 7 && f.Name != "paginate" {
+				implementation = `return resolvers.` + f.GoFieldName + `(ctx, sorts, groupFilters,  filters, subSorts, subFilters, limit, offset)`
 			}
 
-			if(strings.Contains(f.Description, "mutation-create")){
+			if strings.Contains(f.Description, "mutation-create") {
 				sources := strings.Split(f.Description, ":")
 				subscriptionAdd := ""
-				if(len(sources) >= 2){
-					if(strings.Contains(sources[1], "subscription")){
+				if len(sources) >= 2 {
+					if strings.Contains(sources[1], "subscription") {
 						subscription := strings.Split(sources[1], "-")
 
 						subscriptionAdd = fmt.Sprintf(`r.mutex.Lock()
@@ -126,19 +137,19 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 	}
 	r.mutex.Unlock()`, subscription[1])
 					}
-					}
+				}
 
-				temp :=  fmt.Sprintf(`row, err := resolvers.%s(ctx, input)
+				temp := fmt.Sprintf(`row, err := resolvers.%s(ctx, input)
     %s
 	return row, err`, f.GoFieldName, subscriptionAdd)
 				implementation = temp
 			}
 
-			if(strings.Contains(f.Description, "mutation-update")){
+			if strings.Contains(f.Description, "mutation-update") {
 				sources := strings.Split(f.Description, ":")
 				subscriptionAdd := ""
-				if(len(sources) >= 2){
-					if(strings.Contains(sources[1], "subscription")){
+				if len(sources) >= 2 {
+					if strings.Contains(sources[1], "subscription") {
 						subscription := strings.Split(sources[1], "-")
 
 						subscriptionAdd = fmt.Sprintf(`r.mutex.Lock()
@@ -149,18 +160,17 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 					}
 				}
 
-				temp :=  fmt.Sprintf(`row, err := resolvers.%s(ctx, id, input)
+				temp := fmt.Sprintf(`row, err := resolvers.%s(ctx, id, input)
     %s
 	return row, err`, f.GoFieldName, subscriptionAdd)
 				implementation = temp
 			}
 
-
-			if(strings.Contains(f.Description, "mutation-delete")){
+			if strings.Contains(f.Description, "mutation-delete") {
 				sources := strings.Split(f.Description, ":")
 				subscriptionAdd := ""
-				if(len(sources) >= 2){
-					if(strings.Contains(sources[1], "subscription")){
+				if len(sources) >= 2 {
+					if strings.Contains(sources[1], "subscription") {
 						subscription := strings.Split(sources[1], "-")
 
 						subscriptionAdd = fmt.Sprintf(`r.mutex.Lock()
@@ -171,18 +181,17 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 					}
 				}
 
-				temp :=  fmt.Sprintf(`row, err := resolvers.%s(ctx, id)
+				temp := fmt.Sprintf(`row, err := resolvers.%s(ctx, id)
     %s
 	return row, err`, f.GoFieldName, subscriptionAdd)
 				implementation = temp
 			}
 
-
-			if(strings.Contains(f.Description, "subscription-created")){
+			if strings.Contains(f.Description, "subscription-created") {
 
 				sources := strings.Split(f.Description, ":")
 
-					implementation = fmt.Sprintf(`id := RandString(8)
+				implementation = fmt.Sprintf(`id := RandString(8)
 	event := make(chan *models.%s, 1)
 	r.mutex.Lock()
 	r.%sCreatedChannel[id] = event
@@ -194,13 +203,13 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 		r.mutex.Unlock()
 	}()
 	return event, nil`,
-						sources[1],
-						sources[1],
-						sources[1],
-					)
+					sources[1],
+					sources[1],
+					sources[1],
+				)
 
 			}
-			if(strings.Contains(f.Description, "subscription-updated")){
+			if strings.Contains(f.Description, "subscription-updated") {
 
 				sources := strings.Split(f.Description, ":")
 
@@ -222,7 +231,7 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 				)
 
 			}
-			if(strings.Contains(f.Description, "subscription-deleted")){
+			if strings.Contains(f.Description, "subscription-deleted") {
 
 				sources := strings.Split(f.Description, ":")
 
@@ -245,16 +254,16 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 
 			}
 
-
-
-
 			resolver := Resolver{o, f, implementation}
 			fn := gqlToResolverName(data.Config.Resolver.Dir(), f.Position.Src.Name, data.Config.Resolver.FilenameTemplate)
+
 			if files[fn] == nil {
+
 				files[fn] = &File{}
 			}
 
 			files[fn].Resolvers = append(files[fn].Resolvers, &resolver)
+
 		}
 	}
 
@@ -278,7 +287,9 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 			Filename: filename,
 			Data:     resolverBuild,
 			Packages: data.Config.Packages,
+			Template: resolverTemplate,
 		})
+
 		if err != nil {
 			return err
 		}
@@ -313,16 +324,17 @@ type ResolverBuild struct {
 type File struct {
 	// These are separated because the type definition of the resolver object may live in a different file from the
 	//resolver method implementations, for example when extending a type in a different graphql schema file
-	Objects         []*codegen.Object
-	Resolvers       []*Resolver
+	Objects   []*codegen.Object
+	Resolvers []*Resolver
 
 	RemainingSource string
 }
 
 func (f *File) Imports() string {
 
+	_, _ = templates.CurrentImports.Reserve(ResolverPath)
 
-	return ResolverPath
+	return ""
 
 }
 

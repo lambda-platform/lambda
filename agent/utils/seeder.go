@@ -11,67 +11,111 @@ import (
 func AutoMigrateSeed() {
 	db := DB.DB
 
-	db.AutoMigrate(
-		&agentModels.Role{},
-
-		&agentModels.PasswordReset{},
-	)
-	if config.Config.SysAdmin.UUID {
+	if config.Config.Database.Connection == "oracle" {
 		db.AutoMigrate(
-			&agentModels.UserUUID{},
+			&agentModels.RoleOracle{},
+			&agentModels.USERSOracle{},
+			&agentModels.PASSWORDRESETSOracle{},
 		)
+		if config.Config.App.Seed == "true" {
+			var roles []agentModels.RoleOracle
+			db.Find(&roles)
+
+			if len(roles) <= 0 {
+				seedData()
+			}
+		}
 	} else {
 		db.AutoMigrate(
-			&agentModels.User{},
+			&agentModels.Role{},
+
+			&agentModels.PasswordReset{},
 		)
-	}
+		if config.Config.SysAdmin.UUID {
+			db.AutoMigrate(
+				&agentModels.UserUUID{},
+			)
+		} else {
 
-	if config.Config.App.Seed == "true" {
-		var roles []agentModels.Role
-		db.Find(&roles)
+			db.AutoMigrate(
+				&agentModels.User{},
+			)
+		}
 
-		if len(roles) <= 0 {
-			seedData()
+		if config.Config.App.Seed == "true" {
+			var roles []agentModels.Role
+			db.Find(&roles)
+
+			if len(roles) <= 0 {
+				seedData()
+			}
 		}
 	}
+
 }
 func seedData() {
-	/*SUPER ADMIN ROLE*/
-	role := agentModels.Role{
-		Name:        "super-admin",
-		DisplayName: "Систем админ",
-	}
 
 	db := DB.DB
-	db.Create(&role)
-
 	/*SUPER ADMIN USER*/
 	password, _ := Hash(config.Config.SysAdmin.Password)
 
-	if config.Config.SysAdmin.UUID {
-		user := agentModels.UserUUID{
-			Role:     1,
-			Login:    config.Config.SysAdmin.Login,
-			Email:    config.Config.SysAdmin.Email,
-			Password: password,
-			Status:   "2",
-			Birthday: time.Now(),
-			Gender:   "m",
+	if config.Config.Database.Connection == "oracle" {
+		/*SUPER ADMIN ROLE*/
+		role := agentModels.RoleOracle{
+			Name:        "super-admin",
+			DisplayName: "Систем админ",
+		}
+
+		db.Create(&role)
+		user := agentModels.USERSOracle{
+			Role:           1,
+			Login:          config.Config.SysAdmin.Login,
+			RegisterNumber: config.Config.SysAdmin.Login,
+			Email:          config.Config.SysAdmin.Email,
+			Password:       password,
+			Status:         "2",
+			Birthday:       time.Now(),
+			Gender:         "m",
 		}
 
 		db.Create(&user)
 	} else {
-		user := agentModels.User{
-			Role:     1,
-			Login:    config.Config.SysAdmin.Login,
-			Email:    config.Config.SysAdmin.Email,
-			Password: password,
-			Status:   "2",
-			Birthday: time.Now(),
-			Gender:   "m",
+		/*SUPER ADMIN ROLE*/
+		role := agentModels.Role{
+			Name:        "super-admin",
+			DisplayName: "Систем админ",
 		}
 
-		db.Create(&user)
+		db.Create(&role)
+
+		if config.Config.SysAdmin.UUID {
+			user := agentModels.UserUUID{
+				Role:           1,
+				Login:          config.Config.SysAdmin.Login,
+				RegisterNumber: config.Config.SysAdmin.Login,
+				Email:          config.Config.SysAdmin.Email,
+				Password:       password,
+				Status:         "2",
+				Birthday:       time.Now(),
+				Gender:         "m",
+			}
+
+			db.Create(&user)
+
+		} else {
+			user := agentModels.User{
+				Role:           1,
+				Login:          config.Config.SysAdmin.Login,
+				Email:          config.Config.SysAdmin.Email,
+				RegisterNumber: config.Config.SysAdmin.Login,
+				Password:       password,
+				Status:         "2",
+				Birthday:       time.Now(),
+				Gender:         "m",
+			}
+
+			db.Create(&user)
+		}
 	}
 
 }

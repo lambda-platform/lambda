@@ -9,6 +9,7 @@ import (
 	"github.com/lambda-platform/lambda/generator"
 	pb "github.com/lambda-platform/lambda/grpc/consoleProto"
 	"google.golang.org/grpc"
+	"os"
 
 	"fmt"
 	"github.com/lambda-platform/lambda/DB"
@@ -16,7 +17,6 @@ import (
 	genertarModels "github.com/lambda-platform/lambda/generator/models"
 	gUtils "github.com/lambda-platform/lambda/generator/utils"
 	"github.com/lambda-platform/lambda/models"
-	"io/ioutil"
 	"strconv"
 	"time"
 )
@@ -35,7 +35,7 @@ func UploadDBSCHEMA() (*pb.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	lambdaConfig, err := ioutil.ReadFile("lambda.json")
+	lambdaConfig, err := os.ReadFile("lambda.json")
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func GetDBCHEMA() []byte {
 
 	DBSchema.GenerateSchemaForCloud()
 
-	b, err := ioutil.ReadFile("app/models/db_schema.json")
+	b, err := os.ReadFile("app/models/db_schema.json")
 	if err != nil {
 		panic(err)
 	}
@@ -118,13 +118,13 @@ func GetLambdaSCHEMA() {
 	generator.GQLInit(dbSchema, data.GraphqlSchemas)
 
 	for _, vb := range data.FormSchemas {
-		_ = ioutil.WriteFile("lambda/schemas/form/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
+		_ = os.WriteFile("lambda/schemas/form/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
 	}
 	for _, vb := range data.GridSchemas {
-		_ = ioutil.WriteFile("lambda/schemas/grid/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
+		_ = os.WriteFile("lambda/schemas/grid/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
 	}
 	for _, vb := range data.MenuSchemas {
-		_ = ioutil.WriteFile("lambda/schemas/menu/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
+		_ = os.WriteFile("lambda/schemas/menu/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
 	}
 
 	microservicesList := `
@@ -193,7 +193,7 @@ func GetRoleData() error {
 	for k, data := range roleData {
 
 		bolB, _ := json.Marshal(data)
-		_ = ioutil.WriteFile("lambda/role_"+strconv.Itoa(k)+".json", bolB, 0777)
+		_ = os.WriteFile("lambda/role_"+strconv.Itoa(k)+".json", bolB, 0777)
 	}
 
 	DB.DB.Exec("TRUNCATE roles")

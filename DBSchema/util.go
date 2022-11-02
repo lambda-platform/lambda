@@ -83,7 +83,9 @@ func Generate(columnTypes map[string]map[string]string, tableName string, struct
 	}
 	return formatted, err
 }
-
+func FieldName(s string) string {
+	return FmtFieldName(strings.ToLower(StringifyFirstChar(s)))
+}
 func FmtFieldName(s string) string {
 
 	if s != "" {

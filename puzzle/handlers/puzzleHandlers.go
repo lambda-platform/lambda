@@ -13,7 +13,7 @@ import (
 	"github.com/lambda-platform/lambda/datasource"
 	"github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/utils"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -27,10 +27,13 @@ type vb_schema struct {
 }
 
 func Index(c *fiber.Ctx) error {
+
 	dbSchema := models.DBSCHEMA{}
 
 	if config.LambdaConfig.SchemaLoadMode == "auto" {
+
 		dbSchema = DBSchema.GetDBSchema()
+
 	} else {
 		schemaFile, err := os.Open("lambda/db_schema.json")
 		defer schemaFile.Close()
@@ -90,57 +93,112 @@ func GetVB(c *fiber.Ctx) error {
 		match, _ := regexp.MatchString("_", id)
 
 		if match {
-			VBSchema := models.VBSchemaAdmin{}
+			if config.Config.Database.Connection == "oracle" {
+				VBSchema := models.VBSchemaAdminOracle{}
 
-			DB.DB.Where("id = ?", id).First(&VBSchema)
+				DB.DB.Where("ID = ?", id).First(&VBSchema)
 
-			return c.JSON(map[string]interface{}{
-				"status": true,
-				"data":   VBSchema,
-			})
-		} else {
-			VBSchema := models.VBSchema{}
-			if (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "form") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "grid") {
-
-				schemaFile, err := os.Open("lambda/schemas/" + type_ + "/" + id + ".json")
-
-				if err == nil {
-					defer schemaFile.Close()
-					byteValue, _ := ioutil.ReadAll(schemaFile)
-					VBSchema.Schema = string(byteValue)
-					id_, _ := strconv.ParseUint(id, 0, 64)
-					VBSchema.ID = id_
-				}
-
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   VBSchema,
+				})
 			} else {
+				VBSchema := models.VBSchemaAdmin{}
 
 				DB.DB.Where("id = ?", id).First(&VBSchema)
-				if type_ == "form" {
-					if condition != "" {
-						if condition != "builder" {
-							return dataform.SetCondition(condition, c, VBSchema)
+
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   VBSchema,
+				})
+			}
+		} else {
+			if config.Config.Database.Connection == "oracle" {
+				VBSchema := models.VBSchemaOracle{}
+				if (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "form") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "grid") {
+
+					schemaFile, err := os.Open("lambda/schemas/" + type_ + "/" + id + ".json")
+
+					if err == nil {
+						defer schemaFile.Close()
+						byteValue, _ := io.ReadAll(schemaFile)
+						VBSchema.Schema = string(byteValue)
+						id_, _ := strconv.ParseUint(id, 0, 64)
+						VBSchema.ID = int(id_)
+					}
+
+				} else {
+
+					DB.DB.Where("ID = ?", id).First(&VBSchema)
+					if type_ == "form" {
+						if condition != "" {
+							if condition != "builder" {
+								return dataform.SetConditionOracle(condition, c, VBSchema)
+							}
 						}
 					}
 				}
-			}
 
-			return c.JSON(map[string]interface{}{
-				"status": true,
-				"data":   VBSchema,
-			})
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   VBSchema,
+				})
+			} else {
+				VBSchema := models.VBSchema{}
+				if (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "form") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "grid") {
+
+					schemaFile, err := os.Open("lambda/schemas/" + type_ + "/" + id + ".json")
+
+					if err == nil {
+						defer schemaFile.Close()
+						byteValue, _ := io.ReadAll(schemaFile)
+						VBSchema.Schema = string(byteValue)
+						id_, _ := strconv.ParseUint(id, 0, 64)
+						VBSchema.ID = id_
+					}
+
+				} else {
+
+					DB.DB.Where("id = ?", id).First(&VBSchema)
+					if type_ == "form" {
+						if condition != "" {
+							if condition != "builder" {
+								return dataform.SetCondition(condition, c, VBSchema)
+							}
+						}
+					}
+				}
+
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   VBSchema,
+				})
+			}
 
 		}
 
 	} else {
 
-		VBSchemas := []models.VBSchemaList{}
+		if config.Config.Database.Connection == "oracle" {
+			VBSchemas := []models.VBSchemaListOracle{}
 
-		DB.DB.Select("id, name, type, created_at, updated_at").Where("type = ?", type_).Order("id ASC").Find(&VBSchemas)
+			DB.DB.Select("ID, NAME, TYPE, CREATED_AT, UPDATED_AT").Where("TYPE = ?", type_).Order("ID ASC").Find(&VBSchemas)
 
-		return c.JSON(map[string]interface{}{
-			"status": true,
-			"data":   VBSchemas,
-		})
+			return c.JSON(map[string]interface{}{
+				"status": true,
+				"data":   VBSchemas,
+			})
+		} else {
+			VBSchemas := []models.VBSchemaList{}
+
+			DB.DB.Select("id, name, type, created_at, updated_at").Where("type = ?", type_).Order("id ASC").Find(&VBSchemas)
+
+			return c.JSON(map[string]interface{}{
+				"status": true,
+				"data":   VBSchemas,
+			})
+		}
+
 	}
 
 	return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
@@ -160,7 +218,7 @@ func GetMenuVB(c *fiber.Ctx) error {
 
 		if err == nil {
 			defer schemaFile.Close()
-			byteValue, _ := ioutil.ReadAll(schemaFile)
+			byteValue, _ := io.ReadAll(schemaFile)
 			VBSchema.Schema = string(byteValue)
 			id_, _ := strconv.ParseUint(id, 0, 64)
 			VBSchema.ID = id_
@@ -194,18 +252,76 @@ func SaveVB(modelName string) fiber.Handler {
 
 		if id != "" {
 			id_, _ := strconv.ParseUint(id, 0, 64)
+			var err error
+			if config.Config.Database.Connection == "oracle" {
+				vb := models.VBSchemaOracle{}
 
-			vb := models.VBSchema{}
+				DB.DB.Where("id = ?", id_).First(&vb)
 
-			DB.DB.Where("id = ?", id_).First(&vb)
+				vb.Name = vbs.Name
+				vb.Schema = vbs.Schema
+				//_, err := vb.Update(context.Background(), DB, boil.Infer())
 
-			vb.Name = vbs.Name
-			vb.Schema = vbs.Schema
-			//_, err := vb.Update(context.Background(), DB, boil.Infer())
+				BeforeSave(id_, type_)
 
-			BeforeSave(id_, type_)
+				err = DB.DB.Save(&vb).Error
 
-			err := DB.DB.Save(&vb).Error
+				if err != nil {
+
+					return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+						"status": false,
+						"error":  err.Error(),
+					})
+				} else {
+
+					error := AfterSaveOracle(vb, type_)
+
+					if error != nil {
+						return c.JSON(map[string]interface{}{
+							"status": false,
+							"error":  error.Error(),
+						})
+					} else {
+						return c.JSON(map[string]interface{}{
+							"status": true,
+						})
+					}
+				}
+			} else {
+				vb := models.VBSchema{}
+
+				DB.DB.Where("id = ?", id_).First(&vb)
+
+				vb.Name = vbs.Name
+				vb.Schema = vbs.Schema
+				//_, err := vb.Update(context.Background(), DB, boil.Infer())
+
+				BeforeSave(id_, type_)
+
+				err = DB.DB.Save(&vb).Error
+
+				if err != nil {
+
+					return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+						"status": false,
+						"error":  err.Error(),
+					})
+				} else {
+
+					error := AfterSave(vb, type_)
+
+					if error != nil {
+						return c.JSON(map[string]interface{}{
+							"status": false,
+							"error":  error.Error(),
+						})
+					} else {
+						return c.JSON(map[string]interface{}{
+							"status": true,
+						})
+					}
+				}
+			}
 
 			if type_ == "form" {
 				//WriteModelData(id_)
@@ -214,28 +330,6 @@ func SaveVB(modelName string) fiber.Handler {
 			} else if type_ == "grid" {
 				//WriteGridModel(modelName)
 				//WriteGridModelById(modelName, vb.ID)
-			}
-
-			if err != nil {
-
-				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-					"status": false,
-					"error":  err.Error(),
-				})
-			} else {
-
-				error := AfterSave(vb, type_)
-
-				if error != nil {
-					return c.JSON(map[string]interface{}{
-						"status": false,
-						"error":  error.Error(),
-					})
-				} else {
-					return c.JSON(map[string]interface{}{
-						"status": true,
-					})
-				}
 			}
 
 		} else {
@@ -542,6 +636,15 @@ func BeforeSave(id uint64, type_ string) {
 
 }
 func AfterSave(vb models.VBSchema, type_ string) error {
+
+	if type_ == "datasource" {
+		return datasource.CreateView(vb.Name, vb.Schema)
+	}
+
+	return nil
+
+}
+func AfterSaveOracle(vb models.VBSchemaOracle, type_ string) error {
 
 	if type_ == "datasource" {
 		return datasource.CreateView(vb.Name, vb.Schema)

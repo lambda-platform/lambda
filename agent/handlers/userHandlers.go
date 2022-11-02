@@ -31,13 +31,23 @@ func GetUsers(c *fiber.Ctx) error {
 		}, &users)
 		return c.JSON(data)
 	} else {
-		users := []agentModels.UserWithoutPassword{}
-		data := utils.Paging(&utils.Param{
-			DB:    query,
-			Page:  GetPage(c),
-			Limit: 16,
-		}, &users)
-		return c.JSON(data)
+		if config.Config.Database.Connection == "oracle" {
+			users := []agentModels.UserWithoutPasswordOracle{}
+			data := utils.Paging(&utils.Param{
+				DB:    query,
+				Page:  GetPage(c),
+				Limit: 16,
+			}, &users)
+			return c.JSON(data)
+		} else {
+			users := []agentModels.UserWithoutPassword{}
+			data := utils.Paging(&utils.Param{
+				DB:    query,
+				Page:  GetPage(c),
+				Limit: 16,
+			}, &users)
+			return c.JSON(data)
+		}
 	}
 
 }
@@ -68,17 +78,31 @@ func SearchUsers(c *fiber.Ctx) error {
 			"data":   data,
 		})
 	} else {
-		users := []agentModels.UserWithoutPassword{}
-		data := utils.Paging(&utils.Param{
-			DB:    query,
-			Page:  GetPage(c),
-			Limit: 16,
-		}, &users)
+		if config.Config.Database.Connection == "oracle" {
+			users := []agentModels.UserWithoutPasswordOracle{}
+			data := utils.Paging(&utils.Param{
+				DB:    query,
+				Page:  GetPage(c),
+				Limit: 16,
+			}, &users)
 
-		return c.JSON(map[string]interface{}{
-			"status": true,
-			"data":   data,
-		})
+			return c.JSON(map[string]interface{}{
+				"status": true,
+				"data":   data,
+			})
+		} else {
+			users := []agentModels.UserWithoutPassword{}
+			data := utils.Paging(&utils.Param{
+				DB:    query,
+				Page:  GetPage(c),
+				Limit: 16,
+			}, &users)
+
+			return c.JSON(map[string]interface{}{
+				"status": true,
+				"data":   data,
+			})
+		}
 	}
 }
 func GetDeletedUsers(c *fiber.Ctx) error {
