@@ -582,9 +582,7 @@ func Set(e *fiber.App) {
 	graphqlHandler.AddTransport(transport.MultipartForm{})
 	graphqlHandler.SetQueryCache(lru.New(1000))
 
-	if config.Config.Graphql.Debug == "true" {
-		graphqlHandler.Use(extension.Introspection{})
-	}
+	
 
 	graphqlHandler.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New(100),
@@ -605,19 +603,24 @@ func Set(e *fiber.App) {
 		return nil
 	})
 
-	e.Get("/play", func(c *fiber.Ctx) error {
-		fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			playgroundHandler.ServeHTTP(writer, request)
-		})(c.Context())
-		return nil
-	})
+	if config.Config.Graphql.Debug == "true" {
+		graphqlHandler.Use(extension.Introspection{})
 
-	e.Get("/play-full", func(c *fiber.Ctx) error {
-		fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			lambdaPlaygroundHandler.ServeHTTP(writer, request)
-		})(c.Context())
-		return nil
-	})
+		e.Get("/play", func(c *fiber.Ctx) error {
+			fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				playgroundHandler.ServeHTTP(writer, request)
+			})(c.Context())
+			return nil
+		})
+	
+		e.Get("/play-full", func(c *fiber.Ctx) error {
+			fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				lambdaPlaygroundHandler.ServeHTTP(writer, request)
+			})(c.Context())
+			return nil
+		})
+	}
+	
 }`
 	tempResolver := `package graph
 
