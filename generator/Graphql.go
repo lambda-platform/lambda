@@ -276,7 +276,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 				}
 			}
 			if subHasSub {
-				subCaller = subAlias + "(ctx, sorts, []*model.GroupFilter{}, filters, subSorts, subFilters, nil, nil)"
+				subCaller = GetModelAlias(subAlias) + "(ctx, sorts, []*model.GroupFilter{}, filters, subSorts, subFilters, nil, nil)"
 			}
 
 			subColunms := TableMetaColumnsWithMeta(dbSchema.TableMeta[sub.Table], sub.Table, []string{})

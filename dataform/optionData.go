@@ -235,14 +235,17 @@ func GetTableData(query string, table string, where_value string, order_value st
 	//
 	//}
 
-	for i, row := range data {
+	if config.Config.Database.Connection == "oracle" {
+		for i, row := range data {
 
-		v, error := strconv.ParseInt(row["value"].(string), 10, 64)
-		if error == nil {
-			data[i]["value"] = v
+			v, error := strconv.ParseInt(row["value"].(string), 10, 64)
+			if error == nil {
+				data[i]["value"] = v
+			}
+
 		}
-
 	}
+
 	return data
 
 }
