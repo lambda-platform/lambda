@@ -44,6 +44,7 @@ func (r *Request) sendMail() bool {
 	body := "To: " + r.to[0] + "\r\nSubject: " + r.subject + "\r\n" + MIME + "\r\n" + r.body
 	SMTP := fmt.Sprintf("%s:%d", config.Config.Mail.Host, config.Config.Mail.Port)
 	if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.Config.Mail.Username, config.Config.Mail.Password, config.Config.Mail.Host), config.Config.Mail.Username, r.to, []byte(body)); err != nil {
+		fmt.Println(err.Error())
 		return false
 	}
 	return true
@@ -52,6 +53,7 @@ func (r *Request) sendMail() bool {
 func (r *Request) Send(templateName string, items interface{}) bool {
 	err := r.parseTemplate(templateName, items)
 	if err != nil {
+		fmt.Println(err.Error())
 		log.Fatal(err)
 	}
 	if ok := r.sendMail(); ok {

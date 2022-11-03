@@ -26,6 +26,7 @@ func Upload(c *fiber.Ctx) error {
 
 }
 func CheckCurrentPassword(c *fiber.Ctx) error {
+
 	return utils.CheckCurrentPassword(c)
 }
 

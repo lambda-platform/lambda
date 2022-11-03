@@ -164,8 +164,8 @@ func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, json
 	return structure
 }
 func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) string {
-	switch columnType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year", "NUMBER", "INT", "INTEGER":
+	switch {
+	case TypeContains(columnType, TypeIntegers):
 		if nullable {
 			if gureguTypes {
 				return gqlNullInt
@@ -173,7 +173,7 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 			return gqlNullInt
 		}
 		return gqlInt
-	case "bigint":
+	case TypeContains(columnType, TypeBool):
 		if nullable {
 			if gureguTypes {
 				return gqlNullInt
@@ -181,7 +181,15 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 			return gqlNullInt
 		}
 		return gqlInt
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar", "VARCHAR2", "CLOB", "LONG":
+	case TypeContains(columnType, TypeBigIntegers):
+		if nullable {
+			if gureguTypes {
+				return gqlNullInt
+			}
+			return gqlNullInt
+		}
+		return gqlInt
+	case TypeContains(columnType, TypeStrings):
 		if nullable {
 			if gureguTypes {
 				return gqlNullString
@@ -189,17 +197,17 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 			return gqlNullString
 		}
 		return gqlString
-	case "time", "timestamp", "datetimeoffset", "timestamptz", "TIMESTAMP(6) WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP(6)":
+	case TypeContains(columnType, TypeTimes):
 		if nullable && gureguTypes {
 			return gqlNullTime
 		}
 		return gqlTime
-	case "datetime", "date", "DATE":
+	case TypeContains(columnType, TypeDates):
 		if nullable && gureguTypes {
 			return dbNullDate
 		}
 		return dbDate
-	case "decimal", "double", "numeric":
+	case TypeContains(columnType, TypeFloat64):
 		if nullable {
 			if gureguTypes {
 				return gqlNullFloat
@@ -207,7 +215,7 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 			return gqlNullFloat
 		}
 		return gqlFloat
-	case "float", "float8", "float4", "real":
+	case TypeContains(columnType, TypeFloat32):
 		if nullable {
 			if gureguTypes {
 				return gqlNullFloat
@@ -215,7 +223,7 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 			return gqlNullFloat
 		}
 		return gqlFloat
-	case "binary", "blob", "longblob", "mediumblob", "varbinary":
+	case TypeContains(columnType, TypeBinaries):
 		return gqlString
 	}
 	return ""

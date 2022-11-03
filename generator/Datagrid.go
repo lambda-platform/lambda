@@ -139,7 +139,7 @@ func createModel(schema lambdaModels.SCHEMAGRID, dbSchema lambdaModels.DBSCHEMA,
 	hiddenColumns := []string{}
 
 	for _, column := range schema.Schema {
-		if column.Hide == true && column.Model != schema.Identity && column.Model != "deleted_at" && column.Model != "created_at" && column.Model != "updated_at" {
+		if column.Hide == true && column.Model != schema.Identity && column.Model != "deleted_at" && column.Model != "created_at" && column.Model != "updated_at" && column.Model != "DELETED_AT" && column.Model != "CREATED_AT" && column.Model != "UPDATED_AT" {
 			if column.Label == "" {
 				hiddenColumns = append(hiddenColumns, column.Model)
 			}

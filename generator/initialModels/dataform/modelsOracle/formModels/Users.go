@@ -28,13 +28,13 @@ type UserForm struct {
 	Bio            *string        `gorm:"column:BIO" json:"bio"`
 	Birthday       DB.Date        `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
 	Email          string         `gorm:"column:EMAIL" json:"email"`
-	FcmToken       *string        `gorm:"column:FCM_TOKEN" json:"fcm_token"`
-	FirstName      *string        `gorm:"column:FIRST_NAME" json:"first_name"`
+	FcmToken       string         `gorm:"column:FCM_TOKEN" json:"fcm_token"`
+	FirstName      string         `gorm:"column:FIRST_NAME" json:"first_name"`
 	Gender         string         `gorm:"column:GENDER" json:"gender"`
-	LastName       *string        `gorm:"column:LAST_NAME" json:"last_name"`
+	LastName       string         `gorm:"column:LAST_NAME" json:"last_name"`
 	Login          string         `gorm:"column:LOGIN" json:"login"`
 	Password       string         `gorm:"column:PASSWORD" json:"password"`
-	Phone          *string        `gorm:"column:PHONE" json:"phone"`
+	Phone          string         `gorm:"column:PHONE" json:"phone"`
 	RegisterNumber string         `gorm:"column:REGISTER_NUMBER" json:"register_number"`
 	Role           int64          `gorm:"column:ROLE" json:"role"`
 	CreatedAt      *time.Time     `gorm:"column:CREATED_AT" json:"created_at"`
@@ -54,12 +54,12 @@ type UserProfile struct {
 	Birthday       DB.Date `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
 	Email          string  `gorm:"column:EMAIL" json:"email"`
 	FcmToken       *string `gorm:"column:FCM_TOKEN" json:"fcm_token"`
-	FirstName      *string `gorm:"column:FIRST_NAME" json:"first_name"`
+	FirstName      string  `gorm:"column:FIRST_NAME" json:"first_name"`
 	Gender         string  `gorm:"column:GENDER" json:"gender"`
-	LastName       *string `gorm:"column:LAST_NAME" json:"last_name"`
+	LastName       string  `gorm:"column:LAST_NAME" json:"last_name"`
 	Login          string  `gorm:"column:LOGIN" json:"login"`
 	Password       string  `gorm:"column:PASSWORD" json:"password"`
-	Phone          *string `gorm:"column:PHONE" json:"phone"`
+	Phone          string  `gorm:"column:PHONE" json:"phone"`
 	RegisterNumber string  `gorm:"column:REGISTER_NUMBER" json:"register_number"`
 }
 

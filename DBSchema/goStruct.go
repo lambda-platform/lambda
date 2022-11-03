@@ -112,8 +112,8 @@ func GenerateWithImportsNoTime(otherPackage string, columnTypes map[string]map[s
 
 func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string {
 
-	switch columnType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year", "NUMBER", "INT", "INTEGER":
+	switch {
+	case TypeContains(columnType, TypeIntegers):
 		if nullable {
 			if gureguTypes {
 				return gureguNullInt
@@ -121,7 +121,7 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return sqlNullInt
 		}
 		return golangInt
-	case "bool":
+	case TypeContains(columnType, TypeBool):
 		if nullable {
 			if gureguTypes {
 				return golangBool
@@ -129,7 +129,7 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return golangBool
 		}
 		return golangBool
-	case "bigint":
+	case TypeContains(columnType, TypeBigIntegers):
 		if nullable {
 			if gureguTypes {
 				return gureguNullInt
@@ -137,7 +137,7 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return sqlNullInt
 		}
 		return golangInt64
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar", "VARCHAR2", "CLOB", "LONG":
+	case TypeContains(columnType, TypeStrings):
 		if nullable {
 			if gureguTypes {
 				return gureguNullString
@@ -145,17 +145,17 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return sqlNullString
 		}
 		return "string"
-	case "time", "timestamp", "datetimeoffset", "timestamptz", "TIMESTAMP(6) WITH TIME ZONE", "TIMESTAMP", "TIMESTAMP(6)":
+	case TypeContains(columnType, TypeTimes):
 		if nullable && gureguTypes {
 			return gureguNullTime
 		}
 		return golangTime
-	case "datetime", "date", "DATE":
+	case TypeContains(columnType, TypeDates):
 		if nullable && gureguTypes {
 			return dateNull
 		}
 		return date
-	case "decimal", "double", "numeric":
+	case TypeContains(columnType, TypeFloat64):
 		if nullable {
 			if gureguTypes {
 				return gureguNullFloat
@@ -163,7 +163,7 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return sqlNullFloat
 		}
 		return golangFloat64
-	case "float", "float8", "float4", "real":
+	case TypeContains(columnType, TypeFloat32):
 		if nullable {
 			if gureguTypes {
 				return gureguNullFloat
@@ -171,7 +171,7 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 			return sqlNullFloat
 		}
 		return golangFloat32
-	case "binary", "blob", "longblob", "mediumblob", "varbinary":
+	case TypeContains(columnType, TypeBinaries):
 		return golangByteArray
 	}
 	return ""
@@ -229,7 +229,7 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
 		}
-		if fieldName == "DeletedAt" || fieldName == "DELETEDAT" {
+		if fieldName == "DeletedAt" || fieldName == "DELETE_DAT" {
 			valueType = "gorm.DeletedAt"
 		}
 		if len(annotations) > 0 {

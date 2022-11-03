@@ -236,13 +236,20 @@ func GetTableData(query string, table string, where_value string, order_value st
 	//}
 
 	if config.Config.Database.Connection == "oracle" {
-		for i, row := range data {
-
-			v, error := strconv.ParseInt(row["value"].(string), 10, 64)
-			if error == nil {
-				data[i]["value"] = v
+		if len(data) >= 1 {
+			switch data[0]["value"].(type) {
+			case string:
+				_, parseError := strconv.ParseInt(data[0]["value"].(string), 10, 64)
+				if parseError == nil {
+					for i, row := range data {
+						v, parseErr := strconv.ParseInt(row["value"].(string), 10, 64)
+						if parseErr == nil {
+							data[i]["value"] = v
+						}
+					}
+				}
+			default:
 			}
-
 		}
 	}
 

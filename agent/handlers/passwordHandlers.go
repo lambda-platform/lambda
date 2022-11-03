@@ -39,7 +39,7 @@ func SendForgotMail(c *fiber.Ctx) error {
 	}
 
 	if data.Lang == "" {
-		data.Lang = "mn"
+		data.Lang = "mn_MN"
 	}
 
 	StaticWords := reflect.ValueOf(config.LambdaConfig.StaticWords[data.Lang]).Interface().(map[string]interface{})
@@ -116,7 +116,7 @@ func PasswordReset(c *fiber.Ctx) error {
 	}
 
 	if data.Lang == "" {
-		data.Lang = "mn"
+		data.Lang = "mn_MN"
 	}
 
 	StaticWords := reflect.ValueOf(config.LambdaConfig.StaticWords[data.Lang]).Interface().(map[string]interface{})
@@ -205,80 +205,158 @@ func PasswordReset(c *fiber.Ctx) error {
 			})
 		}
 	} else {
-		foundUser := models.User{}
-		pReset := models.PasswordReset{}
-		PasswordResetTimeOut := config.LambdaConfig.PasswordResetTimeOut
+		if config.Config.Database.Connection == "oracle" {
+			foundUser := models.USERSOracle{}
+			pReset := models.PASSWORDRESETSOracle{}
+			PasswordResetTimeOut := config.LambdaConfig.PasswordResetTimeOut
 
-		errU := DB.DB.Where("email = ?", data.Email).First(&foundUser).Error
-		errR := DB.DB.Where("email = ?", data.Email).First(&pReset).Error
+			errU := DB.DB.Where("EMAIL = ?", data.Email).Find(&foundUser).Error
+			errR := DB.DB.Where("EMAIL = ?", data.Email).Find(&pReset).Error
 
-		if errU != nil || foundUser.Login == "" {
-			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-				"error":  StaticWords["userNotFound"],
-				"msg":    StaticWords["userNotFound"],
-				"status": false,
-			})
-		}
-		if errR != nil || pReset.Email == "" {
-			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-				"error":  StaticWords["userNotFound"],
-				"msg":    StaticWords["userNotFound"],
-				"status": false,
-			})
-		}
+			if errU != nil || foundUser.Login == "" {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"error":  StaticWords["userNotFound"],
+					"msg":    StaticWords["userNotFound"],
+					"status": false,
+				})
+			}
+			if errR != nil || pReset.Email == "" {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"error":  StaticWords["userNotFound"],
+					"msg":    StaticWords["userNotFound"],
+					"status": false,
+				})
+			}
 
-		now := time.Now()
-		diff := now.Sub(pReset.CreatedAt)
+			now := time.Now()
+			diff := now.Sub(pReset.CreatedAt)
 
-		mins := int(diff.Minutes())
+			mins := int(diff.Minutes())
 
-		if PasswordResetTimeOut >= mins && pReset.Wrong <= 2 {
+			if PasswordResetTimeOut >= mins && pReset.Wrong <= 21 {
 
-			if agentUtils.IsSame(data.Code, pReset.Token) {
+				if agentUtils.IsSame(data.Code, pReset.Token) {
 
-				if data.Password == data.PasswordConfirm {
+					if data.Password == data.PasswordConfirm {
 
-					newPassword, _ := agentUtils.Hash(data.Password)
+						newPassword, _ := agentUtils.Hash(data.Password)
 
-					foundUser.Password = newPassword
-					err := DB.DB.Save(foundUser).Error
-					if err != nil {
+						foundUser.Password = newPassword
+						err := DB.DB.Save(foundUser).Error
+						if err != nil {
 
-						return c.JSON(map[string]interface{}{
-							"status": false,
-						})
+							return c.JSON(map[string]interface{}{
+								"status": false,
+							})
+						} else {
+							DB.DB.Where("email = ?", data.Email).Delete(pReset)
+							return c.JSON(map[string]interface{}{
+								"msg":    StaticWords["passwordResetSuccess"],
+								"status": true,
+							})
+						}
+
 					} else {
-						DB.DB.Where("email = ?", data.Email).Delete(pReset)
-						return c.JSON(map[string]interface{}{
-							"msg":    StaticWords["passwordResetSuccess"],
-							"status": true,
+
+						return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+							"error":  StaticWords["passwordConfirmError"],
+							"msg":    StaticWords["passwordConfirmError"],
+							"status": false,
 						})
 					}
 
 				} else {
-
+					pReset.Wrong = pReset.Wrong + 1
+					DB.DB.Save(pReset)
 					return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-						"error":  StaticWords["passwordConfirmError"],
-						"msg":    StaticWords["passwordConfirmError"],
+						"error":  StaticWords["passwordResetCodeIncorrect"],
+						"msg":    StaticWords["passwordResetCodeIncorrect"],
 						"status": false,
 					})
 				}
-
 			} else {
-				pReset.Wrong = pReset.Wrong + 1
-				DB.DB.Save(pReset)
 				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-					"error":  StaticWords["passwordResetCodeIncorrect"],
-					"msg":    StaticWords["passwordResetCodeIncorrect"],
+					"error":  StaticWords["passwordResetCodeTimeout"],
+					"msg":    StaticWords["passwordResetCodeTimeout"],
 					"status": false,
 				})
 			}
 		} else {
-			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-				"error":  StaticWords["passwordResetCodeTimeout"],
-				"msg":    StaticWords["passwordResetCodeTimeout"],
-				"status": false,
-			})
+			foundUser := models.User{}
+			pReset := models.PasswordReset{}
+			PasswordResetTimeOut := config.LambdaConfig.PasswordResetTimeOut
+
+			errU := DB.DB.Where("email = ?", data.Email).Find(&foundUser).Error
+			errR := DB.DB.Where("email = ?", data.Email).Find(&pReset).Error
+
+			if errU != nil || foundUser.Login == "" {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"error":  StaticWords["userNotFound"],
+					"msg":    StaticWords["userNotFound"],
+					"status": false,
+				})
+			}
+			if errR != nil || pReset.Email == "" {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"error":  StaticWords["userNotFound"],
+					"msg":    StaticWords["userNotFound"],
+					"status": false,
+				})
+			}
+
+			now := time.Now()
+			diff := now.Sub(pReset.CreatedAt)
+
+			mins := int(diff.Minutes())
+
+			if PasswordResetTimeOut >= mins && pReset.Wrong <= 2 {
+
+				if agentUtils.IsSame(data.Code, pReset.Token) {
+
+					if data.Password == data.PasswordConfirm {
+
+						newPassword, _ := agentUtils.Hash(data.Password)
+
+						foundUser.Password = newPassword
+						err := DB.DB.Save(foundUser).Error
+						if err != nil {
+
+							return c.JSON(map[string]interface{}{
+								"status": false,
+							})
+						} else {
+							DB.DB.Where("email = ?", data.Email).Delete(pReset)
+							return c.JSON(map[string]interface{}{
+								"msg":    StaticWords["passwordResetSuccess"],
+								"status": true,
+							})
+						}
+
+					} else {
+
+						return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+							"error":  StaticWords["passwordConfirmError"],
+							"msg":    StaticWords["passwordConfirmError"],
+							"status": false,
+						})
+					}
+
+				} else {
+					pReset.Wrong = pReset.Wrong + 1
+					DB.DB.Save(pReset)
+					return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+						"error":  StaticWords["passwordResetCodeIncorrect"],
+						"msg":    StaticWords["passwordResetCodeIncorrect"],
+						"status": false,
+					})
+				}
+			} else {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"error":  StaticWords["passwordResetCodeTimeout"],
+					"msg":    StaticWords["passwordResetCodeTimeout"],
+					"status": false,
+				})
+			}
 		}
 	}
 

@@ -93,8 +93,8 @@ func generateProtobufTypes(obj map[string]map[string]string, depth int, jsonAnno
 }
 
 func sqlTypeToProtobufType(columnType string, nullable bool, gureguTypes bool) string {
-	switch columnType {
-	case "tinyint", "int", "smallint", "mediumint", "int8", "int4", "int2", "year":
+	switch {
+	case TypeContains(columnType, TypeIntegers):
 		if nullable {
 			if gureguTypes {
 				return gqlNullInt
@@ -102,7 +102,7 @@ func sqlTypeToProtobufType(columnType string, nullable bool, gureguTypes bool) s
 			return gqlNullInt
 		}
 		return gqlInt
-	case "bigint":
+	case TypeContains(columnType, TypeStrings):
 		if nullable {
 			if gureguTypes {
 				return gqlNullInt
@@ -110,7 +110,7 @@ func sqlTypeToProtobufType(columnType string, nullable bool, gureguTypes bool) s
 			return gqlNullInt
 		}
 		return gqlInt
-	case "char", "enum", "varchar", "nvarchar", "longtext", "mediumtext", "text", "ntext", "tinytext", "geometry", "uuid", "bpchar":
+	case TypeContains(columnType, TypeStrings):
 		if nullable {
 			if gureguTypes {
 				return gqlNullString
@@ -118,17 +118,17 @@ func sqlTypeToProtobufType(columnType string, nullable bool, gureguTypes bool) s
 			return gqlNullString
 		}
 		return gqlString
-	case "time", "timestamp", "datetimeoffset", "timestamptz":
+	case TypeContains(columnType, TypeTimes):
 		if nullable && gureguTypes {
 			return gqlNullTime
 		}
 		return gqlTime
-	case "datetime", "date":
+	case TypeContains(columnType, TypeDates):
 		if nullable && gureguTypes {
 			return dbNullDate
 		}
 		return dbDate
-	case "decimal", "double", "numeric":
+	case TypeContains(columnType, TypeFloat64):
 		if nullable {
 			if gureguTypes {
 				return gqlNullFloat
@@ -136,7 +136,7 @@ func sqlTypeToProtobufType(columnType string, nullable bool, gureguTypes bool) s
 			return gqlNullFloat
 		}
 		return gqlFloat
-	case "float", "float8", "float4", "real":
+	case TypeContains(columnType, TypeFloat32):
 		if nullable {
 			if gureguTypes {
 				return gqlNullFloat
@@ -144,7 +144,7 @@ func sqlTypeToProtobufType(columnType string, nullable bool, gureguTypes bool) s
 			return gqlNullFloat
 		}
 		return gqlFloat
-	case "binary", "blob", "longblob", "mediumblob", "varbinary":
+	case TypeContains(columnType, TypeBinaries):
 		return gqlString
 	}
 	return ""

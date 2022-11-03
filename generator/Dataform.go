@@ -249,7 +249,7 @@ func createValidation(schema lambdaModels.SCHEMA, columnDataTypes map[string]map
 
 	for _, field := range schema.Schema {
 
-		if len(field.Rules) >= 1 && schema.Identity != field.Model && field.Model != "created_at" && field.Model != "updated_at" && field.Model != "deleted_at" {
+		if len(field.Rules) >= 1 && schema.Identity != field.Model && field.Model != "created_at" && field.Model != "updated_at" && field.Model != "deleted_at" && field.Model != "CREATED_AT" && field.Model != "UPDATED_AT" && field.Model != "DELETED_AT" {
 			fieldRules := ""
 			fieldMessages := ""
 			for _, rule := range field.Rules {

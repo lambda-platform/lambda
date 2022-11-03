@@ -14,6 +14,19 @@ import (
 	"strings"
 )
 
+func AuthUserOracle(c *fiber.Ctx) *models.USERSOracle {
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+
+	Id := claims["id"]
+
+	User := models.USERSOracle{}
+
+	DB.DB.Where("ID = ?", Id).First(&User)
+
+	//User.Password = ""
+	return &User
+}
 func AuthUser(c *fiber.Ctx) *models.User {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
@@ -312,19 +325,36 @@ func CheckCurrentPassword(c *fiber.Ctx) error {
 
 		}
 	} else {
-		user := AuthUser(c)
+		if config.Config.Database.Connection == "oracle" {
+			user := AuthUserOracle(c)
 
-		if IsSame(post.Password, user.Password) {
-			return c.JSON(map[string]interface{}{
-				"status": true,
-			})
+			if IsSame(post.Password, user.Password) {
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			} else {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"status": false,
+					"msg":    "Нууц үг буруу байна !!!",
+				})
+
+			}
 		} else {
-			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-				"status": false,
-				"msg":    "Нууц үг буруу байна !!!",
-			})
+			user := AuthUser(c)
 
+			if IsSame(post.Password, user.Password) {
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			} else {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"status": false,
+					"msg":    "Нууц үг буруу байна !!!",
+				})
+
+			}
 		}
+
 	}
 
 }
