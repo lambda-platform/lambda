@@ -228,7 +228,7 @@ func TableMetas(tableName string) []models.TableMeta {
 
 	} else if config.Config.Database.Connection == "oracle" {
 		var pkColumn models.PKColumn
-		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE table_name = '%s' AND CONSTRAINT_TYPE = '%s')", tableName, "P")).Scan(&pkColumn)
+		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE WNER = '%s' AND table_name = '%s' AND CONSTRAINT_TYPE = '%s')", config.Config.Database.UserName, tableName, "P")).Scan(&pkColumn)
 
 		table_metas_ms := []models.MSTableMata{}
 		DB.DB.Raw(fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, tableName)).Scan(&table_metas_ms)
