@@ -228,7 +228,9 @@ func TableMetas(tableName string) []models.TableMeta {
 
 	} else if config.Config.Database.Connection == "oracle" {
 		var pkColumn models.PKColumn
-		DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE WNER = '%s' AND table_name = '%s' AND CONSTRAINT_TYPE = '%s')", config.Config.Database.UserName, tableName, "P")).Scan(&pkColumn)
+		//DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_constraints cons, all_cons_columns cols WHERE cols.table_name = '%s' AND cons.constraint_type = 'P' AND cons.constraint_name = cols.constraint_name AND cons.owner = '%s' ORDER BY cols.table_name, cols.position", tableName, config.Config.Database.UserName)).Scan(&pkColumn)
+		//DB.DB.Raw(fmt.Sprintf("SELECT cols.column_name FROM all_constraints cons NATURAL JOIN all_cons_columns cols WHERE   OWNER = '%s' AND cons.constraint_type = 'P' AND table_name = '%s'", config.Config.Database.UserName, tableName)).Scan(&pkColumn)
+		//DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE OWNER = '%s' AND table_name = '%s' AND CONSTRAINT_TYPE = '%s')", config.Config.Database.UserName, tableName, "P")).Scan(&pkColumn)
 
 		table_metas_ms := []models.MSTableMata{}
 		DB.DB.Raw(fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, tableName)).Scan(&table_metas_ms)
