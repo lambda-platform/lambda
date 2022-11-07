@@ -7,6 +7,7 @@ import (
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/models"
 	"os"
+	"strings"
 )
 
 func GetDBSchema() models.DBSCHEMA {
@@ -123,18 +124,17 @@ func Tables() map[string][]string {
 
 func TableMetas(tableName string) []models.TableMeta {
 
-	table_metas := make([]models.TableMeta, 0)
-	DB_ := DB.DBConnection()
+	tableMetas := make([]models.TableMeta, 0)
 
 	if config.Config.Database.Connection == "mssql" {
 
 		var pkColumn models.PKColumn
 		DB.DB.Raw("SELECT COLUMN_NAME FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '" + tableName + "' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
 
-		table_metas_ms := []models.MSTableMata{}
-		DB.DB.Raw("SELECT * FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'").Scan(&table_metas_ms)
+		var currentTableMetas []models.MSTableMata
+		DB.DB.Raw("SELECT COLUMN_NAME, DATA_TYPE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'").Scan(&currentTableMetas)
 
-		for _, column := range table_metas_ms {
+		for _, column := range currentTableMetas {
 			key := ""
 			extra := ""
 
@@ -151,7 +151,7 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "text"
 			}
 
-			table_metas = append(table_metas, models.TableMeta{
+			tableMetas = append(tableMetas, models.TableMeta{
 				Model:  column.ColumnName,
 				Title:  column.ColumnName,
 				DbType: dataType,
@@ -162,86 +162,60 @@ func TableMetas(tableName string) []models.TableMeta {
 		}
 
 	} else if config.Config.Database.Connection == "postgres" {
-		pkColumn := ""
-		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", tableName, config.Config.Database.Database, "'%_pkey'")).Row()
-		rowPK.Scan(&pkColumn)
 
-		if pkColumn == "" {
-			rowPK = DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'", tableName, config.Config.Database.Database)).Row()
-			rowPK.Scan(&pkColumn)
-		}
-		//	fmt.Println(fmt.Sprintf("SELECT k.column_name FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", tableName, config.Config.Database.Database, "'%_pkey'"))
+		var currentTableMetas []models.PostgresTableMata
 
-		Enums := []models.PostgresEnum{}
-		//
-		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
+		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
 
-		rows, _ := DB.DB.Raw(fmt.Sprintf("SELECT udt_name as DATA_TYPE, COLUMN_NAME, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Rows()
-
-		defer rows.Close()
-		for rows.Next() {
-			var dataType string
-			var nullable string
-			columnName := ""
-			rows.Scan(&dataType, &columnName, &nullable)
+		for _, column := range currentTableMetas {
 
 			key := ""
 			extra := ""
 
-			if columnName == pkColumn {
+			if column.IsIdentity == "YES" {
 				key = "PRI"
 				extra = "auto_increment"
-			}
-
-			//if dataType == "varchar" {
-			//	dataType = "varchar"
-			//} else if dataType == "ntext" {
-			//	dataType = "text"
-			//} else if dataType == "int8" {
-			//	dataType = "int"
-			//} else if dataType == "int4" {
-			//	dataType = "int"
-			//} else if dataType == "float8" {
-			//	dataType = "float"
-			//} else if dataType == "float4" {
-			//	dataType = "float"
-			//} else if dataType == "timestamptz" {
-			//	dataType = "timestamp"
-			//}
-
-			for _, enum := range Enums {
-				if enum.Typname == dataType {
-					dataType = "varchar"
+			} else if column.ColumnDefault != nil {
+				if strings.Contains(*column.ColumnDefault, "nextval(") {
+					key = "PRI"
+					extra = "auto_increment"
 				}
 			}
 
-			table_metas = append(table_metas, models.TableMeta{
-				Model:    columnName,
-				Title:    columnName,
-				DbType:   dataType,
+			tableMetas = append(tableMetas, models.TableMeta{
+				Model:    column.ColumnName,
+				Title:    column.ColumnName,
+				DbType:   column.DataType,
 				Table:    tableName,
 				Key:      key,
 				Extra:    extra,
-				Nullable: nullable,
+				Nullable: column.ISNullAble,
 			})
 		}
 
 	} else if config.Config.Database.Connection == "oracle" {
-		var pkColumn models.PKColumn
-		//DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_constraints cons, all_cons_columns cols WHERE cols.table_name = '%s' AND cons.constraint_type = 'P' AND cons.constraint_name = cols.constraint_name AND cons.owner = '%s' ORDER BY cols.table_name, cols.position", tableName, config.Config.Database.UserName)).Scan(&pkColumn)
-		//DB.DB.Raw(fmt.Sprintf("SELECT cols.column_name FROM all_constraints cons NATURAL JOIN all_cons_columns cols WHERE   OWNER = '%s' AND cons.constraint_type = 'P' AND table_name = '%s'", config.Config.Database.UserName, tableName)).Scan(&pkColumn)
-		//DB.DB.Raw(fmt.Sprintf("SELECT COLUMN_NAME FROM all_cons_columns WHERE constraint_name = (SELECT constraint_name FROM user_constraints WHERE OWNER = '%s' AND table_name = '%s' AND CONSTRAINT_TYPE = '%s')", config.Config.Database.UserName, tableName, "P")).Scan(&pkColumn)
 
-		table_metas_ms := []models.MSTableMata{}
-		DB.DB.Raw(fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, (CASE WHEN NULLABLE = 'Y' THEN 'YES' ELSE 'NO' END) AS IS_NULLABLE FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, tableName)).Scan(&table_metas_ms)
+		var currentTableMetas []models.OracleTableMata
+		DB.DB.Raw(fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, NULLABLE, IDENTITY_COLUMN, DATA_DEFAULT FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, tableName)).Scan(&currentTableMetas)
 
-		for _, column := range table_metas_ms {
+		for _, column := range currentTableMetas {
+
 			key := ""
 			extra := ""
+			Nullable := "YES"
 
-			if column.ColumnName == pkColumn.ColumnName {
+			if column.IdentityColumn == "YES" {
 				key = "PRI"
 				extra = "auto_increment"
+			} else if column.DataDefault != nil {
+				if strings.Contains(*column.DataDefault, "nextval") {
+					key = "PRI"
+					extra = "auto_increment"
+				}
+			}
+			if column.NullAble == "N" {
+				Nullable = "NO"
+
 			}
 
 			dataType := column.DataType
@@ -252,40 +226,45 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "text"
 			}
 
-			table_metas = append(table_metas, models.TableMeta{
-				Model:  column.ColumnName,
-				Title:  column.ColumnName,
-				DbType: dataType,
-				Table:  tableName,
-				Key:    key,
-				Extra:  extra,
+			tableMetas = append(tableMetas, models.TableMeta{
+				Model:    column.ColumnName,
+				Title:    column.ColumnName,
+				DbType:   dataType,
+				Table:    tableName,
+				Key:      key,
+				Extra:    extra,
+				Nullable: Nullable,
 			})
 		}
 
 	} else {
-		columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName + "' AND table_schema = '" + config.Config.Database.Database + "' ORDER BY ORDINAL_POSITION"
 
-		columns, db_error := DB_.Query(columnDataTypeQuery)
+		currentTableMetas := []models.MySQLTableMata{}
+		DB.DB.Raw(fmt.Sprintf("SELECT column_name, column_key, data_type, is_nullable FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '%s' AND table_schema = '%s' ORDER BY ORDINAL_POSITION", tableName, config.Config.Database.Database)).Scan(&currentTableMetas)
 
-		if db_error == nil {
-			for columns.Next() {
-				var Field, Type, Null, Key, Extra string
-				columns.Scan(&Field, &Key, &Type, &Null)
+		for _, column := range currentTableMetas {
 
-				table_metas = append(table_metas, models.TableMeta{
-					Model:    Field,
-					Title:    Field,
-					DbType:   Type,
-					Table:    tableName,
-					Key:      Key,
-					Extra:    Extra,
-					Nullable: Null,
-				})
+			key := ""
+			extra := ""
+
+			if column.ColumnKey == "PRI" {
+				key = "PRI"
+				extra = "auto_increment"
 			}
+			tableMetas = append(tableMetas, models.TableMeta{
+				Model:    column.ColumnName,
+				Title:    column.ColumnName,
+				DbType:   column.DataType,
+				Table:    tableName,
+				Key:      key,
+				Extra:    extra,
+				Nullable: column.ISNullAble,
+			})
 		}
+
 	}
 
-	return table_metas
+	return tableMetas
 
 }
 func GenerateSchemaForCloud() models.DBSCHEMA {

@@ -98,6 +98,29 @@ type MSTableMata struct {
 	DataType   string `gorm:"column:DATA_TYPE" json:"DATA_TYPE"`
 }
 
+type OracleTableMata struct {
+	ColumnName     string  `gorm:"column:COLUMN_NAME" json:"COLUMN_NAME"`
+	DataType       string  `gorm:"column:DATA_TYPE" json:"DATA_TYPE"`
+	IdentityColumn string  `gorm:"column:IDENTITY_COLUMN" json:"IDENTITY_COLUMN"`
+	NullAble       string  `gorm:"column:NULLABLE" json:"NULLABLE"`
+	DataDefault    *string `gorm:"column:DATA_DEFAULT" json:"DATA_DEFAULT"`
+}
+
+type PostgresTableMata struct {
+	ColumnName    string  `gorm:"column:column_name" json:"column_name"`
+	DataType      string  `gorm:"column:udt_name" json:"udt_name"`
+	IsIdentity    string  `gorm:"column:is_identity" json:"is_identity"`
+	ISNullAble    string  `gorm:"column:is_nullable" json:"is_nullable"`
+	ColumnDefault *string `gorm:"column:column_default" json:"column_default"`
+}
+
+type MySQLTableMata struct {
+	ColumnName string `gorm:"column:column_name" json:"column_name"`
+	DataType   string `gorm:"column:data_type" json:"data_type"`
+	ColumnKey  string `gorm:"column:column_key" json:"column_key"`
+	ISNullAble string `gorm:"column:is_nullable" json:"is_nullable"`
+}
+
 type VBSchemaAdmin struct {
 	VbId      uint64     `gorm:"column:vb_id;primaryKey;autoIncrement" json:"vb_id"`
 	Name      string     `gorm:"column:name" json:"name"`

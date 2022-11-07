@@ -3,6 +3,7 @@ package dataform
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/config"
 	"github.com/thedevsaddam/govalidator"
 	"net/http"
 )
@@ -37,7 +38,14 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 	}
 
 	if id != "" {
-		err := DB.DB.Where(dataform.Identity+" = ?", id).Save(dataform.Model).Error
+		query := DB.DB
+		if config.Config.Database.Connection != "mysql" {
+			if dataform.Identity != "ID" && dataform.Identity != "id" {
+				query = query.Where(dataform.Identity+" = ?", id)
+			}
+		}
+
+		err := query.Save(dataform.Model).Error
 		if err != nil {
 
 			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{

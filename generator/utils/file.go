@@ -1,31 +1,30 @@
 package utils
 
 import (
+	"fmt"
 	"go/format"
 	"os"
-	"fmt"
 )
 
-func WriteFileFormat(fileContent string, path string) error{
-
-	
+func WriteFileFormat(fileContent string, path string) error {
 
 	formatted, err := format.Source([]byte(fileContent))
 	if err != nil {
 		fmt.Println(path)
 		fmt.Println(fileContent)
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		return err
 	} else {
 		errWrite := WriteFile(string(formatted), path)
 		if errWrite != nil {
+			fmt.Println(errWrite.Error())
 			return errWrite
 		}
 		return nil
 	}
 }
 
-func WriteFile(fileContent string, path string) error{
+func WriteFile(fileContent string, path string) error {
 
 	f, err := os.Create(path)
 	if err != nil {
