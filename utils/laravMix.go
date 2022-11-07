@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"runtime"
 	"sync"
 )
 
@@ -18,15 +17,15 @@ func init() {
 
 		mixFile := "public/mix-manifest.json"
 
-		if runtime.GOOS == "windows" {
-			dir, _ := os.Getwd()
-
-			fmt.Println("dir windows:")
-			fmt.Println(dir)
-
-			mixFile = dir + "/public/mix-manifest.json"
-			fmt.Println(mixFile)
-		}
+		//if runtime.GOOS == "windows" {
+		//	dir, _ := os.Getwd()
+		//
+		//	fmt.Println("dir windows:")
+		//	fmt.Println(dir)
+		//
+		//	mixFile = dir + "/public/mix-manifest.json"
+		//	fmt.Println(mixFile)
+		//}
 
 		data, err := os.ReadFile(mixFile)
 
