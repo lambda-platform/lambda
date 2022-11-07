@@ -37,7 +37,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 	}
 
 	if id != "" {
-		err := DB.DB.Save(dataform.Model).Error
+		err := DB.DB.Where(dataform.Identity+" = ?", id).Save(dataform.Model).Error
 		if err != nil {
 
 			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
