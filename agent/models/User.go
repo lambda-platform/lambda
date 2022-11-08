@@ -20,7 +20,6 @@ type User struct {
 	Phone          string         `gorm:"column:phone" json:"phone"`
 	Gender         string         `gorm:"column:gender;" json:"gender"` //type:ENUM('f','m')
 	Password       string         `gorm:"column:password;not null" json:"password"`
-	FcmToken       string         `gorm:"column:fcm_token" json:"fcm_token"`
 	CreatedAt      *time.Time     `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time     `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      gorm.DeletedAt `gorm:"column:deleted_at" json:"-"`
@@ -37,8 +36,7 @@ type USERSOracle struct {
 	Bio            *string        `gorm:"column:BIO" json:"bio"`
 	Birthday       time.Time      `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
 	Email          string         `gorm:"column:EMAIL" json:"email"`
-	FcmToken       *string        `gorm:"column:FCM_TOKEN" json:"fcm_token"`
-	FirstName      *string        `gorm:"column:FIRST_NAME" json:"first_name"`
+	FirstName      string         `gorm:"column:FIRST_NAME" json:"first_name"`
 	Gender         string         `gorm:"column:GENDER" json:"gender"`
 	LastName       *string        `gorm:"column:LAST_NAME" json:"last_name"`
 	Login          string         `gorm:"column:LOGIN" json:"login"`
@@ -75,7 +73,6 @@ type UserUUID struct {
 	Phone          string     `gorm:"column:phone" json:"phone"`
 	Gender         string     `gorm:"column:gender;" json:"gender"` //type:ENUM('f','m')
 	Password       string     `gorm:"column:password;not null" json:"password"`
-	FcmToken       string     `gorm:"column:fcm_token" json:"fcm_token"`
 }
 
 // TableName sets the insert table name for this struct type
@@ -97,7 +94,6 @@ type UserWithoutPassword struct {
 	Birthday       time.Time      `gorm:"column:birthday;type:DATE" json:"birthday"`
 	Phone          string         `gorm:"column:phone" json:"phone"`
 	Gender         string         `gorm:"column:gender;" json:"gender"` //type:ENUM('f','m')
-	FcmToken       string         `gorm:"column:fcm_token" json:"fcm_token"`
 	CreatedAt      *time.Time     `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time     `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      gorm.DeletedAt `gorm:"column:deleted_at" json:"-"`
@@ -114,7 +110,6 @@ type UserWithoutPasswordOracle struct {
 	Bio            *string        `gorm:"column:BIO" json:"bio"`
 	Birthday       time.Time      `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
 	Email          string         `gorm:"column:EMAIL" json:"email"`
-	FcmToken       *string        `gorm:"column:FCM_TOKEN" json:"fcm_token"`
 	FirstName      *string        `gorm:"column:FIRST_NAME" json:"first_name"`
 	Gender         string         `gorm:"column:GENDER" json:"gender"`
 	LastName       *string        `gorm:"column:LAST_NAME" json:"last_name"`
@@ -147,7 +142,6 @@ type UserWithoutPasswordUUID struct {
 	Birthday       time.Time      `gorm:"column:birthday;type:DATE" json:"birthday"`
 	Phone          string         `gorm:"column:phone" json:"phone"`
 	Gender         string         `gorm:"column:gender;" json:"gender"` //type:ENUM('f','m')
-	FcmToken       string         `gorm:"column:fcm_token" json:"fcm_token"`
 	CreatedAt      *time.Time     `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time     `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      gorm.DeletedAt `gorm:"column:deleted_at" json:"-"`

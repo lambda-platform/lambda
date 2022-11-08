@@ -7,8 +7,6 @@ import (
 	"github.com/lambda-platform/lambda/exportImport/models"
 	"os"
 	"strings"
-
-	"net/http"
 )
 
 func Export(c *fiber.Ctx) error {
@@ -37,19 +35,18 @@ func Export(c *fiber.Ctx) error {
 
 	byteData, err := json.Marshal(exportData)
 	if err != nil {
-		c.Status(http.StatusBadRequest).JSON(map[string]string{
+		return c.JSON(map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	err = os.WriteFile("lambda/crud-export.json", byteData, 0755)
+	err = os.WriteFile("lambda/schemas/crud-export.json", byteData, 0755)
 	if err != nil {
-		c.Status(http.StatusBadRequest).JSON(map[string]string{
+		return c.JSON(map[string]string{
 			"error": err.Error(),
 		})
+	} else {
+		return c.Download("lambda/schemas/crud-export.json")
 	}
 
-	c.Attachment("lambda/crud-export.json")
-
-	return nil
 }

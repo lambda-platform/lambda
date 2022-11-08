@@ -10,7 +10,6 @@ var _ = time.Time{}
 var _ = DB.Date{}
 
 type Users struct {
-	FcmToken  string     `gorm:"column:FCM_TOKEN" json:"fcm_token"`
 	ID        int        `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
 	Password  string     `gorm:"column:PASSWORD" json:"password"`
 	CreatedAt *time.Time `gorm:"column:CREATED_AT" json:"created_at"`
@@ -28,7 +27,6 @@ type UserForm struct {
 	Bio            *string        `gorm:"column:BIO" json:"bio"`
 	Birthday       DB.Date        `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
 	Email          string         `gorm:"column:EMAIL" json:"email"`
-	FcmToken       string         `gorm:"column:FCM_TOKEN" json:"fcm_token"`
 	FirstName      string         `gorm:"column:FIRST_NAME" json:"first_name"`
 	Gender         string         `gorm:"column:GENDER" json:"gender"`
 	LastName       string         `gorm:"column:LAST_NAME" json:"last_name"`
@@ -53,7 +51,6 @@ type UserProfile struct {
 	Bio            *string `gorm:"column:BIO" json:"bio"`
 	Birthday       DB.Date `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
 	Email          string  `gorm:"column:EMAIL" json:"email"`
-	FcmToken       *string `gorm:"column:FCM_TOKEN" json:"fcm_token"`
 	FirstName      string  `gorm:"column:FIRST_NAME" json:"first_name"`
 	Gender         string  `gorm:"column:GENDER" json:"gender"`
 	LastName       string  `gorm:"column:LAST_NAME" json:"last_name"`

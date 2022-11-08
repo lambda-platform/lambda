@@ -17,26 +17,40 @@ import (
 )
 
 func GetNewNotifications(c *fiber.Ctx) error {
-	var unseenCount int64
-	user_id := c.Params("user_id")
-	DB.DB.Table("notification_status").Where("receiver_id = ? and seen = 0", user_id).Count(&unseenCount)
+	if config.Config.Database.Connection == "oracle" {
+		var unseenCount int64
+		user_id := c.Params("user_id")
+		DB.DB.Table("NOTIFICATION_STATUS").Where("RECEIVER_ID = ? and SEEN = 0", user_id).Count(&unseenCount)
 
-	if config.Config.SysAdmin.UUID {
-		var notifications []models.UserNotifactionsUUID
-		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
+		var notifications []models.UserNotificationsOracle
+		DB.DB.Table("NOTIFICATION_STATUS").Select("NOTIFICATIONS.*, USERS.FIRST_NAME, USERS.LOGIN, NOTIFICATION_STATUS.ID as SID, NOTIFICATION_STATUS.SEEN").Joins("LEFT JOIN NOTIFICATIONS on NOTIFICATIONS.ID = NOTIFICATION_STATUS.NOTIF_ID LEFT JOIN USERS on USERS.ID = NOTIFICATION_STATUS.RECEIVER_ID").Where("RECEIVER_ID = ? and SEEN = 0", user_id).Order("NOTIFICATIONS.CREATED_AT DESC").Limit(30).Find(&notifications)
 
 		return c.JSON(map[string]interface{}{
 			"count":         unseenCount,
 			"notifications": notifications,
 		})
 	} else {
-		var notifications []models.UserNotifactions
-		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
+		var unseenCount int64
+		user_id := c.Params("user_id")
+		DB.DB.Table("notification_status").Where("receiver_id = ? and seen = 0", user_id).Count(&unseenCount)
 
-		return c.JSON(map[string]interface{}{
-			"count":         unseenCount,
-			"notifications": notifications,
-		})
+		if config.Config.SysAdmin.UUID {
+			var notifications []models.UserNotificationsUUID
+			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
+
+			return c.JSON(map[string]interface{}{
+				"count":         unseenCount,
+				"notifications": notifications,
+			})
+		} else {
+			var notifications []models.UserNotifications
+			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
+
+			return c.JSON(map[string]interface{}{
+				"count":         unseenCount,
+				"notifications": notifications,
+			})
+		}
 	}
 
 }
@@ -45,7 +59,7 @@ func GetAllNotifications(c *fiber.Ctx) error {
 	user_id := c.Params("user_id")
 
 	if config.Config.SysAdmin.UUID {
-		var notifications []models.UserNotifactionsUUID
+		var notifications []models.UserNotificationsUUID
 
 		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user_id).Order("n.created_at DESC").Find(&notifications)
 
@@ -54,14 +68,25 @@ func GetAllNotifications(c *fiber.Ctx) error {
 			"notifications": notifications,
 		})
 	} else {
-		var notifications []models.UserNotifactions
+		if config.Config.Database.Connection == "oracle" {
+			var notifications []models.UserNotificationsOracle
+			DB.DB.Table("NOTIFICATION_STATUS").Select("NOTIFICATIONS.*, USERS.FIRST_NAME, USERS.LOGIN, NOTIFICATION_STATUS.ID as SID, NOTIFICATION_STATUS.SEEN").Joins("LEFT JOIN NOTIFICATIONS on NOTIFICATIONS.ID = NOTIFICATION_STATUS.NOTIF_ID LEFT JOIN USERS on USERS.ID = NOTIFICATION_STATUS.RECEIVER_ID").Where("RECEIVER_ID = ?", user_id).Order("NOTIFICATIONS.CREATED_AT DESC").Find(&notifications)
 
-		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user_id).Order("n.created_at DESC").Find(&notifications)
+			return c.JSON(map[string]interface{}{
+				"count":         0,
+				"notifications": notifications,
+			})
+		} else {
+			var notifications []models.UserNotifications
 
-		return c.JSON(map[string]interface{}{
-			"count":         0,
-			"notifications": notifications,
-		})
+			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user_id).Order("n.created_at DESC").Find(&notifications)
+
+			return c.JSON(map[string]interface{}{
+				"count":         0,
+				"notifications": notifications,
+			})
+		}
+
 	}
 
 }
@@ -93,21 +118,40 @@ func SetSeen(c *fiber.Ctx) error {
 	} else {
 		authUser := agentUtils.AuthUser(c)
 
-		var status models.NotificationStatus
+		if config.Config.Database.Connection == "oracle" {
+			var status models.NotificationStatusOracle
 
-		DB.DB.Where("notif_id = ? AND receiver_id = ?", id, authUser.ID).First(&status)
+			DB.DB.Where("NOTIF_ID = ? AND RECEIVER_ID = ?", id, authUser.ID).First(&status)
 
-		if status.ID >= 1 {
-			status.Seen = 1
-			status.SeenTime = time.Now()
-			DB.DB.Save(&status)
-			return c.JSON(map[string]interface{}{
-				"status": true,
-			})
+			if status.ID >= 1 {
+				status.Seen = 1
+				status.SeenTime = time.Now()
+				DB.DB.Save(&status)
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			} else {
+				return c.JSON(map[string]interface{}{
+					"status": false,
+				})
+			}
 		} else {
-			return c.JSON(map[string]interface{}{
-				"status": false,
-			})
+			var status models.NotificationStatus
+
+			DB.DB.Where("notif_id = ? AND receiver_id = ?", id, authUser.ID).First(&status)
+
+			if status.ID >= 1 {
+				status.Seen = 1
+				status.SeenTime = time.Now()
+				DB.DB.Save(&status)
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			} else {
+				return c.JSON(map[string]interface{}{
+					"status": false,
+				})
+			}
 		}
 	}
 
@@ -135,66 +179,47 @@ func SetToken(c *fiber.Ctx) error {
 			})
 		}
 	} else {
-		var savedToken models.UserFcmTokens
+		if config.Config.Database.Connection == "oracle" {
+			var savedToken models.UserFcmTokens
 
-		DB.DB.Where("user_id = ? AND fcm_token", user_id, token).First(&savedToken)
+			DB.DB.Where("user_id = ? AND fcm_token = ?", user_id, token).Find(&savedToken)
 
-		if savedToken.ID == 0 {
-			savedToken.FcmToken = token
-			intID, _ := strconv.Atoi(user_id)
-			savedToken.UserID = intID
-			DB.DB.Save(&savedToken)
-			return c.JSON(map[string]interface{}{
-				"status": true,
-			})
+			if savedToken.ID == 0 {
+				savedToken.FcmToken = token
+				intID, _ := strconv.Atoi(user_id)
+				savedToken.UserID = intID
+				DB.DB.Save(&savedToken)
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			} else {
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			}
 		} else {
-			return c.JSON(map[string]interface{}{
-				"status": true,
-			})
+			var savedToken models.UserFcmTokensOracle
+
+			DB.DB.Where("USER_ID = ? AND FCM_TOKEN = ?", user_id, token).Find(&savedToken)
+
+			if savedToken.ID == 0 {
+				savedToken.FcmToken = token
+				intID, _ := strconv.Atoi(user_id)
+				savedToken.UserID = intID
+				DB.DB.Save(&savedToken)
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			} else {
+				return c.JSON(map[string]interface{}{
+					"status": true,
+				})
+			}
 		}
 	}
 
 }
-func SetTokenUrlParam(c *fiber.Ctx) error {
 
-	user_id := c.Query("user")
-	token := c.Query("token")
-	if config.Config.SysAdmin.UUID {
-		var User agentModels.UserUUID
-
-		DB.DB.Where("id = ?", user_id).First(&User)
-
-		if User.ID != "" {
-			User.FcmToken = token
-			DB.DB.Save(&User)
-			return c.JSON(map[string]interface{}{
-				"status": true,
-			})
-		} else {
-			return c.JSON(map[string]interface{}{
-				"status": false,
-			})
-		}
-
-	} else {
-		var User agentModels.User
-
-		DB.DB.Where("id = ?", user_id).First(&User)
-
-		if User.ID >= 1 {
-			User.FcmToken = token
-			DB.DB.Save(&User)
-			return c.JSON(map[string]interface{}{
-				"status": true,
-			})
-		} else {
-			return c.JSON(map[string]interface{}{
-				"status": false,
-			})
-		}
-	}
-
-}
 func Fcm(c *fiber.Ctx) error {
 
 	receivers := []string{"d3hK8PY53VEUhO1sb2m0pr:APA91bGe_ZU_q91sq_AOgntrK_A_Dv-Piv-AesP5r7T2EgoS2m_ID_ifJ1cZrRdJGhXEABNqA3W-4hCNoJ_RoTnuZCdV9wlMfrDPo44CQHMuo8JQjlk5pgAY4YOM0-eHO6meS7WW8F88"}
@@ -202,7 +227,7 @@ func Fcm(c *fiber.Ctx) error {
 	msg := models.FCMData{
 		Title: "This is a title. title",
 		Body:  "This is a subtitle. subtitle",
-		Sound: "/github.com/lambda-platform/lambda/notification.mp3",
+		Sound: config.LambdaConfig.Notify.Sound,
 		Icon:  "http://localhost/asc/logo.png",
 		Link:  "/p/db4172e3-25ba-807f-1c2b-da6a11d10f3b/d7fb539c-8813-5b66-e893-b4d0b1dd971b/9ac627de-77fe-055f-d347-4bdf63513e90",
 	}
@@ -222,54 +247,116 @@ func Fcm(c *fiber.Ctx) error {
 }
 
 func CreateNotification(data models.NotificationData) int64 {
-	var tokens []string
-	var Users []agentModels.User
+	if config.Config.Database.Connection == "oracle" {
+		var tokens []string
+		var Users []agentModels.USERSOracle
 
-	if len(data.Roles) >= 1 {
-		DB.DB.Where("role IN (?)", data.Roles).Find(&Users)
+		if len(data.Roles) >= 1 {
+			DB.DB.Where("ROLE IN (?)", data.Roles).Find(&Users)
+		} else {
+			DB.DB.Where("ID IN (?)", data.Users).Find(&Users)
+		}
+
+		for _, User := range Users {
+
+			var savedTokens []models.UserFcmTokensOracle
+			DB.DB.Where("USER_ID = ?", User.ID).Find(&savedTokens)
+
+			for _, savedToken := range savedTokens {
+				tokens = append(tokens, savedToken.FcmToken)
+			}
+
+		}
+
+		//authUser := agentUtils.AuthUser(c)
+
+		notification := models.NotificationOracle{
+			Link:      data.Data.Link,
+			Sender:    1,
+			Title:     data.Data.Title,
+			Body:      data.Data.Body,
+			CreatedAt: time.Now(),
+		}
+
+		DB.DB.Create(&notification)
+
+		if data.Data.FirstName == "" {
+			data.Data.FirstName = "Системээс"
+		}
+
+		data.Data.CreatedAt = notification.CreatedAt
+		data.Data.ID = notification.ID
+		SendNotification(tokens, data.Data, data.Notification)
+
+		for _, User := range Users {
+			DB.DB.Table("notification_status")
+			NotificationStatus := models.NotificationStatusOracle{
+				NotifID:    notification.ID,
+				ReceiverID: User.ID,
+				Seen:       0,
+				SeenTime:   time.Now(),
+			}
+
+			DB.DB.Create(&NotificationStatus)
+		}
+
+		return notification.ID
+
 	} else {
-		DB.DB.Where("id IN (?)", data.Users).Find(&Users)
-	}
+		var tokens []string
+		var Users []agentModels.User
 
-	for _, User := range Users {
-		if User.FcmToken != "" {
-			tokens = append(tokens, User.FcmToken)
-		}
-	}
-
-	//authUser := agentUtils.AuthUser(c)
-
-	notification := models.Notification{
-		Link:      data.Data.Link,
-		Sender:    1,
-		Title:     data.Data.Title,
-		Body:      data.Data.Body,
-		CreatedAt: time.Now(),
-	}
-
-	DB.DB.Create(&notification)
-
-	if data.Data.FirstName == "" {
-		data.Data.FirstName = "Системээс"
-	}
-
-	data.Data.CreatedAt = notification.CreatedAt
-	data.Data.ID = notification.ID
-	SendNotification(tokens, data.Data, data.Notification)
-
-	for _, User := range Users {
-		DB.DB.Table("notification_status")
-		NotificationStatus := models.NotificationStatus{
-			NotifID:    notification.ID,
-			ReceiverID: User.ID,
-			Seen:       0,
-			SeenTime:   time.Now(),
+		if len(data.Roles) >= 1 {
+			DB.DB.Where("role IN (?)", data.Roles).Find(&Users)
+		} else {
+			DB.DB.Where("id IN (?)", data.Users).Find(&Users)
 		}
 
-		DB.DB.Create(&NotificationStatus)
-	}
+		for _, User := range Users {
 
-	return notification.ID
+			var savedTokens []models.UserFcmTokens
+			DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
+
+			for _, savedToken := range savedTokens {
+				tokens = append(tokens, savedToken.FcmToken)
+			}
+
+		}
+
+		//authUser := agentUtils.AuthUser(c)
+
+		notification := models.Notification{
+			Link:      data.Data.Link,
+			Sender:    1,
+			Title:     data.Data.Title,
+			Body:      data.Data.Body,
+			CreatedAt: time.Now(),
+		}
+
+		DB.DB.Create(&notification)
+
+		if data.Data.FirstName == "" {
+			data.Data.FirstName = "Системээс"
+		}
+
+		data.Data.CreatedAt = notification.CreatedAt
+		data.Data.ID = notification.ID
+		SendNotification(tokens, data.Data, data.Notification)
+
+		for _, User := range Users {
+			DB.DB.Table("notification_status")
+			NotificationStatus := models.NotificationStatus{
+				NotifID:    notification.ID,
+				ReceiverID: User.ID,
+				Seen:       0,
+				SeenTime:   time.Now(),
+			}
+
+			DB.DB.Create(&NotificationStatus)
+		}
+
+		return notification.ID
+	}
 
 }
 

@@ -27,6 +27,6 @@ type Krud struct {
 	Grid       int        `gorm:"column:grid" json:"grid"`
 	Form       int        `gorm:"column:form" json:"form"`
 	Actions    string     `gorm:"column:actions" json:"actions"`
-	FormSchema Schemas    `json:"form_schema"`
-	GridSchema Schemas    `json:"grid_schema"`
+	FormSchema Schemas    `gorm:"-" json:"form_schema"`
+	GridSchema Schemas    `gorm:"-" json:"grid_schema"`
 }

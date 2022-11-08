@@ -2,6 +2,8 @@ package notify
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/lambda-platform/lambda/dataform"
+	"github.com/lambda-platform/lambda/datagrid"
 
 	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/config"
@@ -21,13 +23,15 @@ func Set(c *fiber.App) {
 	g.Get("/all/:user_id", agentMW.IsLoggedIn(), handler.GetAllNotifications)
 	g.Get("/seen/:id", agentMW.IsLoggedIn(), handler.SetSeen)
 	g.Get("/token/:user_id/:token", agentMW.IsLoggedIn(), handler.SetToken)
-	g.Get("/token", handler.SetTokenUrlParam)
+
 	g.Get("/fcm", handler.Fcm)
 
 }
 
-//func MW() echo.MiddlewareFunc {
-//
-//	return middleware.BodyDump(handler.BodyDump)
-//
-//}
+func MW(GetGridMODEL func(schema_id string) datagrid.Datagrid, GetMODEL func(schema_id string) dataform.Dataform) fiber.Handler {
+
+	return func(c *fiber.Ctx) error {
+		return handler.BodyDump(c, GetGridMODEL, GetMODEL)
+	}
+
+}

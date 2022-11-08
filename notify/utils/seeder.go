@@ -19,25 +19,44 @@ func AutoMigrateSeed() {
 
 			&models.NotificationUUID{},
 			&models.NotificationStatusUUID{},
-			//&models.NotificationTarget{},
-
+			&models.UserFcmTokensUUID{},
+			&models.NotificationTarget{},
 		)
 	} else {
-		DB.DB.AutoMigrate(
+		if config.Config.Database.Connection == "oracle" {
+			DB.DB.AutoMigrate(
 
-			&models.Notification{},
-			&models.NotificationStatus{},
-			//&models.NotificationTarget{},
+				&models.NotificationOracle{},
+				&models.NotificationStatusOracle{},
+				&models.UserFcmTokensOracle{},
+				&models.NotificationTargetOracle{},
+			)
+		} else {
+			DB.DB.AutoMigrate(
 
-		)
+				&models.Notification{},
+				&models.NotificationStatus{},
+				&models.UserFcmTokens{},
+				&models.NotificationTarget{},
+			)
+		}
+
 	}
 
 	if config.Config.App.Seed == "true" {
 
-		var vbs []puzzleModels.VBSchemaAdmin
-		DB.DB.Where("name = ?", "Зорилтод мэдэгдэл").Find(&vbs)
-		if len(vbs) <= 0 {
-			seedData()
+		if config.Config.Database.Connection == "oracle" {
+			var vbs []puzzleModels.VBSchemaAdminOracle
+			DB.DB.Where("NAME = ?", "Зорилтод мэдэгдэл").Find(&vbs)
+			if len(vbs) <= 0 {
+				seedData()
+			}
+		} else {
+			var vbs []puzzleModels.VBSchemaAdmin
+			DB.DB.Where("name = ?", "Зорилтод мэдэгдэл").Find(&vbs)
+			if len(vbs) <= 0 {
+				seedData()
+			}
 		}
 	}
 }
@@ -84,5 +103,4 @@ func seedData() {
 
 	}
 
-	
 }

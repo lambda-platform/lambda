@@ -2,74 +2,129 @@ package handler
 
 import (
 	"bytes"
-	"encoding/json"
+	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/lambda-platform/lambda/DB"
 	models2 "github.com/lambda-platform/lambda/agent/models"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/notify/models"
 	"regexp"
+	"strings"
 	"text/template"
 )
 
-func BuildNotification(rawData []byte, schemaId int64, action string, userId int64) {
+func BuildNotification(dataJson map[string]interface{}, schemaId int64, action string, userPre map[string]interface{}) {
 
-	target := models.NotificationTarget{}
+	if config.Config.Database.Connection == "oracle" {
+		target := models.NotificationTargetOracle{}
 
-	DB.DB.Where("schema_id = ? AND target_actions LIKE ?", schemaId, "%"+action+"%").Find(&target)
+		DB.DB.Where("SCHEMA_ID = ? AND TARGET_ACTIONS LIKE ?", schemaId, "%"+action+"%").Find(&target)
 
-	if target.ID >= 1 {
+		if target.ID >= 1 {
 
-		user := models2.User{}
+			user := models2.USERSOracle{}
 
-		DB.DB.Where("id = ?", userId).Find(&user)
+			DB.DB.Where("ID = ?", userPre["id"]).Find(&user)
 
-		dataJson := new(map[string]interface{})
-		json.Unmarshal(rawData, dataJson)
+			var re1 = regexp.MustCompile(`{`)
+			template := re1.ReplaceAllString(target.Condition, ``)
+			var re2 = regexp.MustCompile(`}`)
+			template = re2.ReplaceAllString(template, ``)
+			var re3 = regexp.MustCompile(`'`)
+			template = re3.ReplaceAllString(template, `"`)
 
-		var re1 = regexp.MustCompile(`'{`)
-		template := re1.ReplaceAllString(target.Condition, ``)
-		var re2 = regexp.MustCompile(`}'`)
-		template = re2.ReplaceAllString(template, ``)
-		var re3 = regexp.MustCompile(`'`)
-		template = re3.ReplaceAllString(template, `"`)
+			value, _ := gval.Evaluate(template, dataJson)
 
-		value, _ := gval.Evaluate(template, *dataJson)
+			Body := Execute(dataJson, target.Body)
 
-		Body := Execute(dataJson, target.Body)
+			if value == true {
 
-		if value == true {
+				FCMData := models.FCMData{
+					Title:       target.Title,
+					Body:        Body,
+					FirstName:   user.FirstName,
+					Sound:       config.LambdaConfig.Notify.Sound,
+					Icon:        config.LambdaConfig.Favicon,
+					Link:        target.Link,
+					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+				}
 
-			FCMData := models.FCMData{
-				Title:       target.Title,
-				Body:        Body,
-				FirstName:   user.FirstName,
-				Sound:       "/notification.mp3",
-				Icon:        config.LambdaConfig.Favicon,
-				Link:        target.Link,
-				ClickAction: config.LambdaConfig.Domain + "/control#" + target.Link,
+				FCMNotification := models.FCMNotification{
+					Title:       target.Title,
+					Body:        Body,
+					Icon:        config.LambdaConfig.Domain + "/" + config.LambdaConfig.Favicon,
+					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+				}
+
+				data := models.NotificationData{
+					Roles:        []int{target.TargetRole},
+					Data:         FCMData,
+					Notification: FCMNotification,
+				}
+				CreateNotification(data)
+
 			}
+		}
+	} else {
+		target := models.NotificationTarget{}
 
-			FCMNotification := models.FCMNotification{
-				Title:       target.Title,
-				Body:        Body,
-				Icon:        config.LambdaConfig.Domain + "/" + config.LambdaConfig.Favicon,
-				ClickAction: config.LambdaConfig.Domain + "/control#" + target.Link,
+		DB.DB.Where("schema_id = ? AND target_actions LIKE ?", schemaId, "%"+action+"%").Find(&target)
+
+		if target.ID >= 1 {
+
+			user := models2.User{}
+
+			DB.DB.Where("id = ?", userPre["id"]).Find(&user)
+
+			var re1 = regexp.MustCompile(`{`)
+			template := re1.ReplaceAllString(target.Condition, ``)
+			var re2 = regexp.MustCompile(`}`)
+			template = re2.ReplaceAllString(template, ``)
+			var re3 = regexp.MustCompile(`'`)
+			template = re3.ReplaceAllString(template, `"`)
+
+			value, _ := gval.Evaluate(template, dataJson)
+
+			fmt.Println(template)
+			fmt.Println(dataJson)
+
+			Body := Execute(dataJson, target.Body)
+
+			if value == true {
+
+				FCMData := models.FCMData{
+					Title:       target.Title,
+					Body:        Body,
+					FirstName:   user.FirstName,
+					Sound:       config.LambdaConfig.Notify.Sound,
+					Icon:        config.LambdaConfig.Favicon,
+					Link:        target.Link,
+					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+				}
+
+				FCMNotification := models.FCMNotification{
+					Title:       target.Title,
+					Body:        Body,
+					Icon:        config.LambdaConfig.Domain + "/" + config.LambdaConfig.Favicon,
+					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+				}
+
+				data := models.NotificationData{
+					Roles:        []int{target.TargetRole},
+					Data:         FCMData,
+					Notification: FCMNotification,
+				}
+				CreateNotification(data)
+
 			}
-
-			data := models.NotificationData{
-				Roles:        []int{target.TargetRole},
-				Data:         FCMData,
-				Notification: FCMNotification,
-			}
-			CreateNotification(data)
-
 		}
 	}
 
 }
 
 func Execute(data interface{}, TBody string) string {
+	TBody = strings.Replace(TBody, "{", "{{.", -1)
+	TBody = strings.Replace(TBody, "}", "}}", -1)
 	t := template.Must(template.New("").Parse(TBody))
 	buf := bytes.Buffer{}
 	t.Execute(&buf, data)

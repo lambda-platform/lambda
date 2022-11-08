@@ -10,13 +10,12 @@ var _ = DB.Date{}
 
 type Users struct {
 	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
-	FcmToken  string     `gorm:"column:fcm_token" json:"fcm_token"`
 	ID        string     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Password  string     `gorm:"column:password" json:"password"`
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (u *Users) TableName() string {
 	return "users"
 }
@@ -28,7 +27,6 @@ type UserForm struct {
 	CreatedAt      *time.Time `gorm:"column:created_at" json:"-"`
 	DeletedAt      *time.Time `gorm:"column:deleted_at" json:"-"`
 	Email          string     `gorm:"column:email" json:"email"`
-	FcmToken       string     `gorm:"column:fcm_token" json:"fcm_token"`
 	FirstName      string     `gorm:"column:first_name" json:"first_name"`
 	Gender         string     `gorm:"column:gender" json:"gender"`
 	ID             string     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
@@ -42,7 +40,7 @@ type UserForm struct {
 	UpdatedAt *time.Time `gorm:"column:updated_at" json:"-"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (u *UserForm) TableName() string {
 	return "users"
 }
@@ -61,7 +59,7 @@ type UserProfile struct {
 	RegisterNumber string  `gorm:"column:register_number;not null;unique" json:"register_number"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (u *UserProfile) TableName() string {
 	return "users"
 }
