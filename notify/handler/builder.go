@@ -46,14 +46,14 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 					Sound:       config.LambdaConfig.Notify.Sound,
 					Icon:        config.LambdaConfig.Favicon,
 					Link:        target.Link,
-					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
 				}
 
 				FCMNotification := models.FCMNotification{
 					Title:       target.Title,
 					Body:        Body,
 					Icon:        config.LambdaConfig.Domain + "/" + config.LambdaConfig.Favicon,
-					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
 				}
 
 				data := models.NotificationData{
@@ -99,14 +99,14 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 					Sound:       config.LambdaConfig.Notify.Sound,
 					Icon:        config.LambdaConfig.Favicon,
 					Link:        target.Link,
-					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
 				}
 
 				FCMNotification := models.FCMNotification{
 					Title:       target.Title,
 					Body:        Body,
 					Icon:        config.LambdaConfig.Domain + "/" + config.LambdaConfig.Favicon,
-					ClickAction: config.LambdaConfig.Domain + "/admin" + target.Link,
+					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
 				}
 
 				data := models.NotificationData{
