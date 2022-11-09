@@ -234,6 +234,8 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "varchar"
 			} else if column.DataType == "LONG" {
 				dataType = "text"
+			} else if column.DataType == "NUMBER" {
+				dataType = "int"
 			}
 
 			tableMetas = append(tableMetas, models.TableMeta{
