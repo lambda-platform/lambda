@@ -14,9 +14,9 @@ var _ = gorm.DB{}
 
 var KrudGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	Name:      "Крүд тохиргоо",
-	Identity:  "id",
-	DataTable: "krud",
-	MainTable: "krud",
+	Identity:  "ID",
+	DataTable: "KRUD",
+	MainTable: "KRUD",
 	DataModel: new(KrudGrid),
 	Data:      new([]KrudGrid),
 	MainModel: new(KrudGridMain),
@@ -26,7 +26,7 @@ var KrudGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 			Label: "Гарчиг",
 		},
 	},
-	ColumnList:  []string{"id", "title"},
+	ColumnList:  []string{"ID", "TITLE"},
 	Filters:     map[string]string{},
 	Relations:   []models.GridRelation{},
 	Condition:   "",
@@ -59,7 +59,7 @@ type KrudGrid struct {
 }
 
 func (k *KrudGrid) TableName() string {
-	return "VB_SCHEMAS"
+	return "KRUD"
 }
 
 type KrudGridMain struct {
@@ -75,5 +75,5 @@ type KrudGridMain struct {
 }
 
 func (k *KrudGridMain) TableName() string {
-	return "VB_SCHEMAS"
+	return "KRUD"
 }

@@ -30,7 +30,7 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 		}
 
 		if action == "store" || action == "update" || action == "delete" {
-			go BuildNotification(response.Data, schemaId, action, user)
+			BuildNotification(response.Data, schemaId, action, user)
 		}
 
 	}
