@@ -9,6 +9,7 @@ import (
 	"github.com/lambda-platform/lambda/crudlogger/models"
 	"github.com/lambda-platform/lambda/dataform"
 	"github.com/lambda-platform/lambda/datagrid"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -22,7 +23,8 @@ func CrudLogger(UserAgent string, IP string, action string, resBody []byte, user
 		if err := json.Unmarshal(resBody, &response); err != nil {
 			panic(err)
 		}
-		RowId = strconv.Itoa(response.Data.ID)
+
+		RowId = GetID(response.ID)
 	}
 	if config.Config.Database.Connection == "oracle" {
 		Log := models.CrudLogOracle{
@@ -76,4 +78,48 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 	}
 
 	return nil
+}
+func CrudLogHistory(c *fiber.Ctx) error {
+	HistoryRequest := models.HistoryRequest{}
+
+	if err := c.BodyParser(&HistoryRequest); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(map[string]string{
+			"error": "Wrong request",
+		})
+	} else {
+		if config.Config.Database.Connection == "oracle" {
+			var crudLogs []models.CrudLogFullOracle
+
+			DB.DB.Select("ID, LAST_NAME, FIRST_NAME, ACTION, CREATED_AT").Where("SCHEMA_ID = ? AND ROW_ID = ?", HistoryRequest.SchemaID, GetID(HistoryRequest.RowID)).Order("ID DESC").Find(&crudLogs)
+
+			return c.JSON(crudLogs)
+		} else {
+			var crudLogs []models.CrudLogFull
+
+			DB.DB.Select("id, last_name, first_name, action, created_at").Where("schema_id = ? AND row_id = ?", HistoryRequest.SchemaID, GetID(HistoryRequest.RowID)).Order("id DESC").Find(&crudLogs)
+
+			return c.JSON(crudLogs)
+		}
+	}
+
+}
+func GetID(idPre interface{}) string {
+	var id string
+
+	roleDataType := reflect.TypeOf(idPre).String()
+
+	if roleDataType == "float64" {
+		id = strconv.Itoa(int(idPre.(float64)))
+	} else if roleDataType == "float32" {
+		id = strconv.Itoa(int(idPre.(float32)))
+	} else if roleDataType == "int" {
+		id = strconv.Itoa(int(idPre.(int)))
+	} else if roleDataType == "int32" {
+		id = strconv.Itoa(int(idPre.(int32)))
+	} else if roleDataType == "int64" {
+		id = strconv.Itoa(int(idPre.(int64)))
+	} else if roleDataType == "string" {
+		id = idPre.(string)
+	}
+	return id
 }

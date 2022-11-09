@@ -23,7 +23,6 @@ type Dataform struct {
 	TriggerNameSpace   string
 }
 
-//
 func (d *Dataform) getStringField(field string) string {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
@@ -53,6 +52,11 @@ func (d *Dataform) getIntField(field string) int {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
 	return int(f.Int())
+}
+func (d *Dataform) getFieldValue(field string) interface{} {
+	r := reflect.ValueOf(d.Model)
+	f := reflect.Indirect(r).FieldByName(field)
+	return f.Interface()
 }
 func Clear(v interface{}) {
 	p := reflect.ValueOf(v).Elem()

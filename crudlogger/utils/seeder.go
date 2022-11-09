@@ -52,25 +52,7 @@ func AutoMigrateSeed() {
 }
 func seedData() {
 
-	var vbs []puzzleModels.VBSchemaAdmin
 	AbsolutePath := AbsolutePath()
-	dataFile, err := os.Open(AbsolutePath + "initialData/vb_schemas_admin.json")
-	defer dataFile.Close()
-	if err != nil {
-		fmt.Println("PUZZLE SEED ERROR")
-	}
-	jsonParser := json.NewDecoder(dataFile)
-	err = jsonParser.Decode(&vbs)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("PUZZLE SEED DATA ERROR")
-	}
-	//fmt.Println(len(vbs))
-
-	for _, vb := range vbs {
-
-		DB.DB.Create(&vb)
-	}
 
 	var vbs2 []puzzleModels.VBSchema
 
@@ -84,7 +66,7 @@ func seedData() {
 		fmt.Println("PUZZLE SEED ERROR")
 	}
 	jsonParser2 := json.NewDecoder(dataFile2)
-	err = jsonParser2.Decode(&vbs2)
+	err := jsonParser2.Decode(&vbs2)
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("PUZZLE SEED DATA ERROR")

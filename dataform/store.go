@@ -3,6 +3,7 @@ package dataform
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/DBSchema"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/thedevsaddam/govalidator"
 	"net/http"
@@ -86,6 +87,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			return c.JSON(map[string]interface{}{
 				"status": true,
 				"data":   dataform.Model,
+				"id":     dataform.getFieldValue(DBSchema.FieldName(dataform.Identity)),
 			})
 		}
 	}
