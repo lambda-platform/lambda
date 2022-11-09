@@ -45,6 +45,7 @@ var TypeStrings = []string{
 	"JSON",
 	"ROWID",
 	"UROWID",
+	"jsonb",
 }
 var TypeTimes = []string{
 	"time",

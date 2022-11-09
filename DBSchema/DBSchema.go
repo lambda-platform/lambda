@@ -167,6 +167,10 @@ func TableMetas(tableName string) []models.TableMeta {
 
 		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
 
+		Enums := []models.PostgresEnum{}
+		//
+		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
+
 		for _, column := range currentTableMetas {
 
 			key := ""
@@ -179,6 +183,12 @@ func TableMetas(tableName string) []models.TableMeta {
 				if strings.Contains(*column.ColumnDefault, "nextval(") {
 					key = "PRI"
 					extra = "auto_increment"
+				}
+			}
+
+			for _, enum := range Enums {
+				if enum.Typname == column.DataType {
+					column.DataType = "varchar"
 				}
 			}
 
