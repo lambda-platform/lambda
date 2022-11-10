@@ -252,7 +252,7 @@ func TableMetas(tableName string) []models.TableMeta {
 	} else {
 
 		currentTableMetas := []models.MySQLTableMata{}
-		DB.DB.Raw(fmt.Sprintf("SELECT column_name, column_key, data_type, is_nullable FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '%s' AND table_schema = '%s' ORDER BY ORDINAL_POSITION", tableName, config.Config.Database.Database)).Scan(&currentTableMetas)
+		DB.DB.Raw(fmt.Sprintf("SELECT column_name as column_name, column_key as column_key, data_type as data_type, is_nullable as is_nullable FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '%s' AND table_schema = '%s' ORDER BY ORDINAL_POSITION", tableName, config.Config.Database.Database)).Scan(&currentTableMetas)
 
 		for _, column := range currentTableMetas {
 
