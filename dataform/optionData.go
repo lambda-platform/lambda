@@ -107,6 +107,11 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 
 	if config.Config.Database.Connection == "oracle" {
 		labels = strings.Join(relation.Fields[:], " || ', ' || ")
+
+		if parentFieldOfTable != "" {
+			parent_column = ", " + parentFieldOfTable + " as \"parent_value\""
+		}
+
 		return GetTableData(key+" as \"value\", "+labels+" as \"label\" "+parent_column, table, where_value, order_value)
 	} else {
 		return GetTableData(key+" as value, "+concatTxt+"("+labels+") as label "+parent_column, table, where_value, order_value)
