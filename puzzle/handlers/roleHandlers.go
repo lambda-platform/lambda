@@ -274,36 +274,71 @@ func GetKrudFieldsConsole(c *fiber.Ctx) error {
 }
 func GetKrudFields(c *fiber.Ctx) error {
 	id := c.Params("id")
-	krud := krudModels.Krud{}
-	form := models.VBSchema{}
-	grid := models.VBSchema{}
 
-	DB.DB.Where("id = ?", id).Find(&krud)
-	DB.DB.Where("id = ?", krud.Form).Find(&form)
-	DB.DB.Where("id = ?", krud.Grid).Find(&grid)
+	if config.Config.Database.Connection == "oracle" {
+		krud := krudModels.KrudOracle{}
+		form := models.VBSchemaOracle{}
+		grid := models.VBSchemaOracle{}
 
-	var schema models.SCHEMA
-	var gridSchema models.SCHEMAGRID
+		DB.DB.Where("ID = ?", id).Find(&krud)
+		DB.DB.Where("ID = ?", krud.Form).Find(&form)
+		DB.DB.Where("ID = ?", krud.Grid).Find(&grid)
 
-	json.Unmarshal([]byte(form.Schema), &schema)
-	json.Unmarshal([]byte(grid.Schema), &gridSchema)
+		var schema models.SCHEMA
+		var gridSchema models.SCHEMAGRID
 
-	formFields := []string{}
-	gridFields := []string{}
+		json.Unmarshal([]byte(form.Schema), &schema)
+		json.Unmarshal([]byte(grid.Schema), &gridSchema)
 
-	for _, field := range schema.Schema {
-		formFields = append(formFields, field.Model)
+		formFields := []string{}
+		gridFields := []string{}
+
+		for _, field := range schema.Schema {
+			formFields = append(formFields, field.Model)
+		}
+		for _, field := range gridSchema.Schema {
+			gridFields = append(gridFields, field.Model)
+		}
+
+		return c.JSON(map[string]interface{}{
+			"status":           "true",
+			"user_fields":      config.LambdaConfig.UserDataFields,
+			"form_fields":      formFields,
+			"grid_fields":      gridFields,
+			"grid_fields_full": gridSchema.Schema,
+		})
+	} else {
+		krud := krudModels.Krud{}
+		form := models.VBSchema{}
+		grid := models.VBSchema{}
+
+		DB.DB.Where("id = ?", id).Find(&krud)
+		DB.DB.Where("id = ?", krud.Form).Find(&form)
+		DB.DB.Where("id = ?", krud.Grid).Find(&grid)
+
+		var schema models.SCHEMA
+		var gridSchema models.SCHEMAGRID
+
+		json.Unmarshal([]byte(form.Schema), &schema)
+		json.Unmarshal([]byte(grid.Schema), &gridSchema)
+
+		formFields := []string{}
+		gridFields := []string{}
+
+		for _, field := range schema.Schema {
+			formFields = append(formFields, field.Model)
+		}
+		for _, field := range gridSchema.Schema {
+			gridFields = append(gridFields, field.Model)
+		}
+
+		return c.JSON(map[string]interface{}{
+			"status":           "true",
+			"user_fields":      config.LambdaConfig.UserDataFields,
+			"form_fields":      formFields,
+			"grid_fields":      gridFields,
+			"grid_fields_full": gridSchema.Schema,
+		})
 	}
-	for _, field := range gridSchema.Schema {
-		gridFields = append(gridFields, field.Model)
-	}
-
-	return c.JSON(map[string]interface{}{
-		"status":           "true",
-		"user_fields":      config.LambdaConfig.UserDataFields,
-		"form_fields":      formFields,
-		"grid_fields":      gridFields,
-		"grid_fields_full": gridSchema.Schema,
-	})
 
 }
