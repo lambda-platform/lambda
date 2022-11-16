@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/agent/agentMW"
 	agentModels "github.com/lambda-platform/lambda/agent/models"
 	"github.com/lambda-platform/lambda/config"
 	"net/http"
@@ -106,7 +107,7 @@ func GetPermission(c *fiber.Ctx) PermissionData {
 	page_id := c.Query("page_id")
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
-	role := claims["role"]
+	role := agentMW.GetUserRole(claims)
 
 	if config.Config.Database.Connection == "oracle" {
 		Role := agentModels.RoleOracle{}
@@ -125,4 +126,3 @@ func GetPermission(c *fiber.Ctx) PermissionData {
 	}
 
 }
-
