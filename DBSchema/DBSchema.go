@@ -223,6 +223,7 @@ func TableMetas(tableName string) []models.TableMeta {
 			key := ""
 			extra := ""
 			Nullable := "YES"
+			scale := ""
 
 			if column.IdentityColumn == "YES" {
 				key = "PRI"
@@ -248,6 +249,10 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "int"
 			}
 
+			if column.DataType == "BLOB" {
+				scale = ";serializer:gob"
+			}
+
 			tableMetas = append(tableMetas, models.TableMeta{
 				Model:    column.ColumnName,
 				Title:    column.ColumnName,
@@ -256,6 +261,7 @@ func TableMetas(tableName string) []models.TableMeta {
 				Key:      key,
 				Extra:    extra,
 				Nullable: Nullable,
+				Scale:    scale,
 			})
 		}
 

@@ -46,6 +46,7 @@ var TypeStrings = []string{
 	"ROWID",
 	"UROWID",
 	"jsonb",
+	"BLOB",
 }
 var TypeTimes = []string{
 	"time",
@@ -83,7 +84,6 @@ var TypeBinaries = []string{
 	"longblob",
 	"mediumblob",
 	"varbinary",
-	"BLOB",
 	"BFILE",
 }
 
