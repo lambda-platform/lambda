@@ -112,6 +112,7 @@ type PostgresTableMata struct {
 	IsIdentity    string  `gorm:"column:is_identity" json:"is_identity"`
 	ISNullAble    string  `gorm:"column:is_nullable" json:"is_nullable"`
 	ColumnDefault *string `gorm:"column:column_default" json:"column_default"`
+	NumericScale  *int    `gorm:"column:numeric_scale" json:"numeric_scale"`
 }
 
 type MySQLTableMata struct {
@@ -174,6 +175,7 @@ type TableMeta struct {
 	Key      string `json:"key"`
 	Extra    string `json:"extra"`
 	Nullable string `json:"nullable"`
+	Scale    string `json:"scale"`
 }
 type DBSCHEMA struct {
 	TableList      []string               `json:"tableList"`

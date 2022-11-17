@@ -189,7 +189,7 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		//fmt.Println(key)
+
 		columnType := obj[key]
 		nullable := false
 		if columnType["nullable"] == "YES" {
@@ -214,6 +214,13 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 			//primary = ""
 		}
 
+		scale := ""
+		if columnType["scale"] != "" {
+			scale = columnType["scale"]
+			//primary = ""
+
+		}
+
 		// Get the corresponding go value type for this mysql type
 		var valueType string
 		// If the guregu (https://github.com/guregu/null) CLI option is passed use its types, otherwise use go's sql.NullX
@@ -223,7 +230,7 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 		fieldName := FmtFieldName(strings.ToLower(StringifyFirstChar(key)))
 		var annotations []string
 		if gormAnnotation == true {
-			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", key, primary))
+			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s%s\"", key, primary, scale))
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))

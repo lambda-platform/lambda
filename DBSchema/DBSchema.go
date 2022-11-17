@@ -165,7 +165,7 @@ func TableMetas(tableName string) []models.TableMeta {
 
 		var currentTableMetas []models.PostgresTableMata
 
-		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
+		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default, numeric_scale FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
 
 		Enums := []models.PostgresEnum{}
 		//
@@ -175,6 +175,7 @@ func TableMetas(tableName string) []models.TableMeta {
 
 			key := ""
 			extra := ""
+			scale := ""
 
 			if column.IsIdentity == "YES" {
 				key = "PRI"
@@ -192,6 +193,14 @@ func TableMetas(tableName string) []models.TableMeta {
 				}
 			}
 
+			if column.NumericScale != nil {
+				if *column.NumericScale >= 1 {
+
+					scale = ";scale:2"
+				}
+
+			}
+
 			tableMetas = append(tableMetas, models.TableMeta{
 				Model:    column.ColumnName,
 				Title:    column.ColumnName,
@@ -199,6 +208,7 @@ func TableMetas(tableName string) []models.TableMeta {
 				Table:    tableName,
 				Key:      key,
 				Extra:    extra,
+				Scale:    scale,
 				Nullable: column.ISNullAble,
 			})
 		}

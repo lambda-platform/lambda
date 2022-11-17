@@ -12,6 +12,7 @@ var TypeIntegers = []string{
 	"SMALLINT",
 	"INT",
 	"INTEGER",
+	"LONG",
 }
 var TypeBigIntegers = []string{
 	"bigint",
@@ -38,7 +39,6 @@ var TypeStrings = []string{
 	"VARCHAR2",
 	"NVARCHAR2",
 	"CLOB",
-	"LONG",
 	"CHAR",
 	"NCHAR",
 	"NCLOB",

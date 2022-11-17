@@ -92,7 +92,7 @@ func GetColumnsFromTableMeta(columns []lambdaModels.TableMeta, hiddenColumns []s
 		}
 		if isHidden == false {
 
-			columnDataTypes[tableColumn.Model] = map[string]string{"value": tableColumn.DbType, "nullable": tableColumn.Nullable, "primary": tableColumn.Key}
+			columnDataTypes[tableColumn.Model] = map[string]string{"value": tableColumn.DbType, "nullable": tableColumn.Nullable, "primary": tableColumn.Key, "scale": tableColumn.Scale}
 		}
 	}
 

@@ -18,7 +18,10 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 	if err != nil {
 		errData := map[string]interface{}{"error": err}
 		errData["status"] = false
-		return c.Status(http.StatusBadRequest).JSON(err)
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+			"status": false,
+			"error":  err.Error(),
+		})
 	}
 
 	if len(dataform.ValidationRules) >= 1 {
