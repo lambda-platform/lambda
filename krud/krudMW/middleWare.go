@@ -108,7 +108,6 @@ func GetPermission(c *fiber.Ctx) PermissionData {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	role := agentMW.GetUserRole(claims)
-
 	if config.Config.Database.Connection == "oracle" {
 		Role := agentModels.RoleOracle{}
 		DB.DB.Where("ID = ?", role).Find(&Role)
@@ -121,7 +120,6 @@ func GetPermission(c *fiber.Ctx) PermissionData {
 		DB.DB.Where("id = ?", role).Find(&Role)
 		Permissions_ := Permissions{}
 		json.Unmarshal([]byte(Role.Permissions), &Permissions_)
-
 		return Permissions_.Permissions[page_id]
 	}
 

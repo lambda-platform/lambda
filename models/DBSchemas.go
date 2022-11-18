@@ -90,6 +90,7 @@ type FormItem struct {
 	UseTableType                   bool                   `json:"useTableType"`
 	CheckEmpty                     bool                   `json:"checkEmpty"`
 	AddFromGrid                    bool                   `json:"addFromGrid"`
+	NoFormat                       bool                   `json:"no_format"`
 	TableTypeColumn                string                 `json:"tableTypeColumn"`
 	TableTypeValue                 string                 `json:"tableTypeValue"`
 	EmptyErrorMsg                  string                 `json:"EmptyErrorMsg"`
