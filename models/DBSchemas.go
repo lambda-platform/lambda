@@ -107,16 +107,19 @@ type FormItem struct {
 }
 
 type SCHEMA struct {
-	Model         string      `json:"model"`
-	Identity      string      `json:"identity"`
-	Timestamp     bool        `json:"timestamp"`
-	LabelPosition string      `json:"labelPosition"`
-	LabelWidth    interface{} `json:"labelWidth"`
-	Width         string      `json:"width"`
-	Padding       int         `json:"padding"`
-	Schema        []FormItem  `json:"schema"`
-	UI            interface{} `json:"ui"`
-	Formula       []Formula   `json:"formula"`
+	FormType      string        `json:"formType"`
+	FormSubName   string        `json:"formSubName"`
+	Model         string        `json:"model"`
+	Identity      string        `json:"identity"`
+	Timestamp     bool          `json:"timestamp"`
+	LabelPosition string        `json:"labelPosition"`
+	LabelWidth    interface{}   `json:"labelWidth"`
+	ExtraButtons  []interface{} `json:"extraButtons"`
+	Width         string        `json:"width"`
+	Padding       int           `json:"padding"`
+	Schema        []FormItem    `json:"schema"`
+	UI            interface{}   `json:"ui"`
+	Formula       []Formula     `json:"formula"`
 	Triggers      struct {
 		Namespace string `json:"namespace"`
 		Insert    struct {
@@ -128,8 +131,14 @@ type SCHEMA struct {
 			After  string `json:"after"`
 		} `json:"update"`
 	} `json:"triggers"`
-	SortField string `json:"sortField"`
-	SordOrder string `json:"sordOrder"`
+	SortField                string `json:"sortField"`
+	SordOrder                string `json:"sordOrder"`
+	Use2ColumnLayout         bool   `json:"use2ColumnLayout"`
+	WithBackButton           bool   `json:"withBackButton"`
+	SaveBtnText              bool   `json:"save_btn_text"`
+	IsWarnText               bool   `json:"isWarnText"`
+	WarnText                 string `json:"warnText"`
+	FormValidationCustomText string `json:"formValidationCustomText"`
 }
 
 type SCHEMAGRID struct {
