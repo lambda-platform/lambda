@@ -97,7 +97,9 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 
 	concatTxt := "CONCAT"
 	if config.Config.Database.Connection == "mssql" {
-
+		if len(relation.Fields) == 1 {
+			concatTxt = ""
+		}
 	}
 
 	//rows, _ := DB.Query("SELECT " + key + " as value, "+concatTxt+"(" + labels + ") as label " + parent_column + "  FROM " + table + " " + where_value + " " + order_value)
