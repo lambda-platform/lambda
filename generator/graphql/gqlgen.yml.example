@@ -5,8 +5,9 @@ schema:
 
 # Where should the generated server code go?
 exec:
-  layout: follow-schema
-  dir:  lambda/graph/generated
+#  layout: follow-schema
+#  dir:  lambda/graph/generated
+  filename: lambda/graph/generated/generated.go
   package: generated
 
 # Uncomment to enable federation
