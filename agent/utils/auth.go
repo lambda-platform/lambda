@@ -55,107 +55,112 @@ func AuthUserUUID(c *fiber.Ctx) *models.UserUUID {
 }
 func AuthUserObject(c *fiber.Ctx) map[string]interface{} {
 
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-
-	Id := claims["id"]
-
-	query := ""
-	if config.Config.SysAdmin.UUID {
-		query = fmt.Sprintf("SELECT * FROM users WHERE id = '%s'", Id.(string))
-
+	if c.Locals("user") == nil {
+		return map[string]interface{}{}
 	} else {
-		userQuery := "SELECT * FROM users  WHERE id = '%d'"
+		user := c.Locals("user").(*jwt.Token)
+		claims := user.Claims.(jwt.MapClaims)
 
-		if config.Config.Database.Connection == "oracle" {
-			userQuery = "SELECT * FROM \"USERS\" WHERE \"ID\" = '%d'"
-		}
+		Id := claims["id"]
 
-		query = fmt.Sprintf(userQuery, int(Id.(float64)))
+		query := ""
+		if config.Config.SysAdmin.UUID {
+			query = fmt.Sprintf("SELECT * FROM users WHERE id = '%s'", Id.(string))
 
-	}
+		} else {
+			userQuery := "SELECT * FROM users  WHERE id = '%d'"
 
-	rows, _ := DB.DB.Raw(query).Rows()
-
-	columns, _ := rows.Columns()
-	count := len(columns)
-	values := make([]interface{}, count)
-	valuePtrs := make([]interface{}, count)
-
-	userData := map[string]interface{}{}
-	result_id := 0
-	for rows.Next() {
-		for i, _ := range columns {
-			valuePtrs[i] = &values[i]
-		}
-		rows.Scan(valuePtrs...)
-
-		for i, col := range columns {
-
-			val := values[i]
-
-			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
-				//if col == "id"{
-				//	if config.Config.SysAdmin.UUID {
-				//		b, ok := val.([]byte)
-				//		if ok {
-				//			stringValue := string(b)
-				//			userData[col] = stringValue
-				//		} else {
-				//			userData[col] = val
-				//		}
-				//	} else {
-				//		userData[col] = val
-				//	}
-				//} else {
-				//	userData[col] = val
-				//}
-
-				b, ok := val.([]byte)
-				if ok {
-					v, err := strconv.ParseInt(string(b), 10, 64)
-					if err != nil {
-						stringValue := string(b)
-						//	fmt.Println(stringValue)
-
-						userData[col] = stringValue
-					} else {
-						userData[col] = v
-					}
-
-				} else {
-					userData[col] = val
-				}
-			} else {
-				if config.Config.Database.Connection == "oracle" {
-					col = strings.ToLower(col)
-				}
-				b, ok := val.([]byte)
-				if ok {
-					v, err := strconv.ParseInt(string(b), 10, 64)
-					if err != nil {
-						stringValue := string(b)
-						//	fmt.Println(stringValue)
-
-						userData[col] = stringValue
-					} else {
-						userData[col] = v
-					}
-
-				} else {
-					userData[col] = val
-				}
+			if config.Config.Database.Connection == "oracle" {
+				userQuery = "SELECT * FROM \"USERS\" WHERE \"ID\" = '%d'"
 			}
 
+			query = fmt.Sprintf(userQuery, int(Id.(float64)))
+
 		}
 
-		result_id++
+		rows, _ := DB.DB.Raw(query).Rows()
+
+		columns, _ := rows.Columns()
+		count := len(columns)
+		values := make([]interface{}, count)
+		valuePtrs := make([]interface{}, count)
+
+		userData := map[string]interface{}{}
+		result_id := 0
+		for rows.Next() {
+			for i, _ := range columns {
+				valuePtrs[i] = &values[i]
+			}
+			rows.Scan(valuePtrs...)
+
+			for i, col := range columns {
+
+				val := values[i]
+
+				if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
+					//if col == "id"{
+					//	if config.Config.SysAdmin.UUID {
+					//		b, ok := val.([]byte)
+					//		if ok {
+					//			stringValue := string(b)
+					//			userData[col] = stringValue
+					//		} else {
+					//			userData[col] = val
+					//		}
+					//	} else {
+					//		userData[col] = val
+					//	}
+					//} else {
+					//	userData[col] = val
+					//}
+
+					b, ok := val.([]byte)
+					if ok {
+						v, err := strconv.ParseInt(string(b), 10, 64)
+						if err != nil {
+							stringValue := string(b)
+							//	fmt.Println(stringValue)
+
+							userData[col] = stringValue
+						} else {
+							userData[col] = v
+						}
+
+					} else {
+						userData[col] = val
+					}
+				} else {
+					if config.Config.Database.Connection == "oracle" {
+						col = strings.ToLower(col)
+					}
+					b, ok := val.([]byte)
+					if ok {
+						v, err := strconv.ParseInt(string(b), 10, 64)
+						if err != nil {
+							stringValue := string(b)
+							//	fmt.Println(stringValue)
+
+							userData[col] = stringValue
+						} else {
+							userData[col] = v
+						}
+
+					} else {
+						userData[col] = val
+					}
+				}
+
+			}
+
+			result_id++
+		}
+
+		delete(userData, "password")
+
+		userData["role"] = agentMW.GetUserRole(claims)
+		return userData
 	}
 
-	delete(userData, "password")
-
-	userData["role"] = agentMW.GetUserRole(claims)
-	return userData
 }
 
 func AuthUserObjectByLogin(login string) map[string]interface{} {
