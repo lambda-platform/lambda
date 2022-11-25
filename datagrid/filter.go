@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
+	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/utils"
 	"gorm.io/gorm"
 	"reflect"
@@ -53,8 +54,19 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 						query = query.Where(k+" = ?", v)
 					case "Tag":
 						query = query.Where(k+" IN (?)", v)
+					case "Date":
+						if config.Config.Database.Connection == "oracle" {
+							query = query.Where(k+" = TO_DATE(?,'YYYY-MM-DD')", fmt.Sprintf("%v", v))
+						} else {
+							query = query.Where(k+" = ?", fmt.Sprintf("%v", v))
+						}
+
 					case "DateRange":
-						query = query.Where(k+" BETWEEN ? AND ?", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
+						if config.Config.Database.Connection == "oracle" {
+							query = query.Where(k+" BETWEEN TO_DATE(?,'YYYY-MM-DD') AND TO_DATE(?,'YYYY-MM-DD')", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
+						} else {
+							query = query.Where(k+" BETWEEN ? AND ?", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
+						}
 					case "DateRangeDouble":
 						start := reflect.ValueOf(v).Index(0).Interface().(string)
 						end := reflect.ValueOf(v).Index(1).Interface().(string)
