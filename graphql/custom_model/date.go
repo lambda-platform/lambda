@@ -13,13 +13,25 @@ func MarshalDate(f DB.Date) Marshaler {
 	})
 }
 
-
 func UnmarshalDate(v interface{}) (DB.Date, error) {
 
-
 	s := strings.Trim(v.(string), `"`)
-	nt, err := time.Parse(DB.CtLayout, s)
-	ct := DB.Date(nt)
 
-	return ct, err
+	if s != "null" && s != "" {
+		nt, err := time.Parse(DB.CtLayout, s)
+		if err != nil {
+			return DB.Date{
+				IsNotNull: false,
+			}, err
+		}
+		return DB.Date{
+			DateValue: nt,
+			IsNotNull: true,
+		}, err
+	} else {
+		return DB.Date{
+			IsNotNull: false,
+		}, nil
+	}
+
 }

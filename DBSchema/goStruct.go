@@ -27,7 +27,7 @@ const (
 	gureguNullTime = "*time.Time"
 	golangTime     = "time.Time"
 	date           = "DB.Date"
-	dateNull       = "*DB.Date"
+	dateNull       = "DB.Date"
 )
 
 func GenerateOnlyStruct(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
