@@ -3,9 +3,9 @@ package DB
 import (
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"strings"
 	"time"
-	"fmt"
 )
 
 // CustomTime provides an example of how to declare a new time Type with a custom formatter.
@@ -15,7 +15,7 @@ type Date time.Time
 
 const CtLayout = "2006-01-02"
 
-func Time(ct *Date)  time.Time{
+func Time(ct *Date) time.Time {
 	return time.Time(*ct)
 }
 
@@ -30,12 +30,14 @@ func (date Date) GobEncode() ([]byte, error) {
 func (date *Date) GobDecode(b []byte) error {
 	return (*time.Time)(date).GobDecode(b)
 }
+
 // UnmarshalJSON Parses the json string in the custom format
 func (ct *Date) UnmarshalJSON(b []byte) (err error) {
 	s := strings.Trim(string(b), `"`)
-	if s != "null"{
+
+	if s != "null" && s != "" {
 		nt, err := time.Parse(CtLayout, s)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		*ct = Date(nt)
@@ -50,10 +52,15 @@ func (date *Date) Scan(value interface{}) (err error) {
 	return
 }
 
-func (date Date) Value() (driver.Value, error) {
-	y, m, d := time.Time(date).Date()
-	return time.Date(y, m, d, 0, 0, 0, 0, time.Time(date).Location()), nil
+func (date *Date) Value() (driver.Value, error) {
+	if date != nil {
+		y, m, d := time.Time(*date).Date()
+		return time.Date(y, m, d, 0, 0, 0, 0, time.Time(*date).Location()), nil
+	} else {
+		return nil, nil
+	}
 }
+
 // MarshalJSON writes a quoted string in the custom format
 func (ct Date) MarshalJSON() ([]byte, error) {
 	return []byte(ct.String()), nil
