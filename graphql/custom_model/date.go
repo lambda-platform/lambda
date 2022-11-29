@@ -1,6 +1,7 @@
 package custom_model
 
 import (
+	"encoding/json"
 	"github.com/lambda-platform/lambda/DB"
 	"io"
 	"strings"
@@ -8,8 +9,15 @@ import (
 )
 
 func MarshalDate(f DB.Date) Marshaler {
+
 	return WriterFunc(func(w io.Writer) {
-		io.WriteString(w, f.String())
+		if f.IsNotNull {
+			w.Write([]byte(f.String()))
+		} else {
+			v, _ := json.Marshal(nil)
+			w.Write(v)
+		}
+
 	})
 }
 
