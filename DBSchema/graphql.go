@@ -16,7 +16,7 @@ const (
 	gqlString     = "String!"
 	gqlNullTime   = "Time"
 	gqlTime       = "Time!"
-	dbNullDate    = "Date"
+	dbNullDate    = "Date!"
 	dbDate        = "Date!"
 )
 
