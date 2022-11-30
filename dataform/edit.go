@@ -35,30 +35,36 @@ func Edit(c *fiber.Ctx, dataform Dataform, id string) error {
 			json.Unmarshal(subData, &dataSub)
 
 			dataWitSub := []map[string]interface{}{}
-			for _, sData := range dataSub {
+			for _, dataS := range dataSub {
 
 				subIdentity := Sub["subIdentity"].(string)
 
-				parentId := fmt.Sprintf("%g", sData[subIdentity])
+				parentId := fmt.Sprintf("%g", dataS[subIdentity])
 
 				for _, Sub2 := range subForm.SubForms {
 
 					connectionField2 := Sub2["connection_field"].(string)
-					tableTypeColumn := Sub2["tableTypeColumn"].(string)
-					tableTypeValue := Sub2["tableTypeValue"].(string)
+					tableTypeColumn2 := Sub2["tableTypeColumn"].(string)
+					tableTypeValue2 := Sub2["tableTypeValue"].(string)
 					subTable2 := Sub2["table"].(string)
 					subForm2Array := Sub2["subFormArray"]
-					if tableTypeColumn != "" && tableTypeValue != "" {
-						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ?", id, tableTypeValue).Find(Sub2["subForm"])
+
+					dataS[subTable2] = []interface{}{}
+
+					if tableTypeColumn2 != "" && tableTypeValue2 != "" {
+						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn2+" = ?", id, tableTypeValue2).Find(subForm2Array)
 					} else {
 						DB.DB.Where(connectionField2+" = ?", parentId).Find(subForm2Array)
 					}
 
-					sData[subTable2] = subForm2Array
+					dataS[subTable2] = subForm2Array
 
 				}
+				dataSubNew := map[string]interface{}{}
+				subDataNew, _ := json.Marshal(dataS)
+				json.Unmarshal(subDataNew, &dataSubNew)
 
-				dataWitSub = append(dataWitSub, sData)
+				dataWitSub = append(dataWitSub, dataSubNew)
 			}
 
 			data[subTable] = dataWitSub
