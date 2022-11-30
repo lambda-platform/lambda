@@ -37,11 +37,12 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 				} else {
 					parentId = dataform.getIntField(DBSchema.FieldName(parentIdentity))
 				}
-
+				Clear(subForm.Model)
 				if tableTypeColumn != "" && tableTypeValue != "" {
 					DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ?", parentId, tableTypeValue).Unscoped().Delete(subForm.Model)
 				} else {
-					DB.DB.Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
+
+					DB.DB.Table(subForm.Table).Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
 				}
 
 				currentData := subData.([]interface{})
