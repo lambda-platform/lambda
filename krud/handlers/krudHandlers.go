@@ -5,6 +5,7 @@ import (
 	"github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/dataform"
 	"github.com/lambda-platform/lambda/datagrid"
+	"time"
 )
 
 func Crud(GetMODEL func(schema_id string) dataform.Dataform) fiber.Handler {
@@ -17,6 +18,12 @@ func Crud(GetMODEL func(schema_id string) dataform.Dataform) fiber.Handler {
 	}
 }
 
+func Today(c *fiber.Ctx) error {
+	currentTime := time.Now()
+	return c.JSON(map[string]string{
+		"today": currentTime.Format("2006-01-02"),
+	})
+}
 func CheckUnique(c *fiber.Ctx) error {
 	return dataform.CheckUnique(c)
 }
