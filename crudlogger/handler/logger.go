@@ -68,13 +68,17 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 		if action == "edit" {
 			action = "view"
 		}
-		user := c.Locals("user").(*jwt.Token)
-		claims := user.Claims.(jwt.MapClaims)
+		userPre := c.Locals("user")
+		if userPre != nil {
+			user := c.Locals("user").(*jwt.Token)
+			claims := user.Claims.(jwt.MapClaims)
 
-		Id := claims["id"].(float64)
-		schemaId, _ := strconv.ParseInt(c.Params("schemaId"), 10, 64)
-		rowID := c.Params("id")
-		CrudLogger(string(c.Context().UserAgent()), c.IP(), action, c.Response().Body(), int64(Id), schemaId, rowID)
+			Id := claims["id"].(float64)
+			schemaId, _ := strconv.ParseInt(c.Params("schemaId"), 10, 64)
+			rowID := c.Params("id")
+			CrudLogger(string(c.Context().UserAgent()), c.IP(), action, c.Response().Body(), int64(Id), schemaId, rowID)
+		}
+
 	}
 
 	return nil

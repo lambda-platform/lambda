@@ -51,7 +51,6 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	*/
 	public := e.Group("/lambda/krud-public")
 	public.Post("/:schemaId/:action", handlers.Crud(GetMODEL))
-	p := e.Group("lambda/krud-public")
-	p.Post("/:schemaId/:action", handlers.Crud(GetMODEL))
+	public.Post("/:schemaId/:action/:id", handlers.Crud(GetMODEL))
 
 }
