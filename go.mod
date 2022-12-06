@@ -3,7 +3,7 @@ module github.com/lambda-platform/lambda
 go 1.16
 
 require (
-	github.com/99designs/gqlgen v0.17.20
+	github.com/99designs/gqlgen v0.17.21
 	github.com/PaesslerAG/gval v1.1.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dzwvip/oracle v1.2.5
