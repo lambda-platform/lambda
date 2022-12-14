@@ -88,23 +88,136 @@ func FieldName(s string) string {
 }
 func FmtFieldName(s string) string {
 
-	if s != "" {
-		name := lintFieldName(s)
-		runes := []rune(name)
-		for i, c := range runes {
-			ok := unicode.IsLetter(c) || unicode.IsDigit(c)
-			if i == 0 {
-				ok = unicode.IsLetter(c)
-			}
-			if !ok {
-				runes[i] = '_'
-			}
-		}
-		return string(runes)
-	} else {
+	return ToGo(s)
+
+}
+func ToGo(name string) string {
+	if name == "_" {
+		return "_"
+	}
+	runes := make([]rune, 0, len(name))
+
+	wordWalker(name, wordWalkerFunc(false, &runes))
+
+	return string(runes)
+}
+
+func UcFirst(s string) string {
+	if s == "" {
+		return ""
+	}
+	r := []rune(s)
+	r[0] = unicode.ToUpper(r[0])
+	return string(r)
+}
+
+func LcFirst(s string) string {
+	if s == "" {
 		return ""
 	}
 
+	r := []rune(s)
+	r[0] = unicode.ToLower(r[0])
+	return string(r)
+}
+func wordWalkerFunc(private bool, nameRunes *[]rune) func(*wordInfo) {
+	return func(info *wordInfo) {
+		word := info.Word
+
+		switch {
+		case private && info.WordOffset == 0:
+			if strings.ToUpper(word) == word || strings.ToLower(word) == word {
+				// ID → id, CAMEL → camel
+				word = strings.ToLower(info.Word)
+			} else {
+				// ITicket → iTicket
+				word = LcFirst(info.Word)
+			}
+
+		case info.MatchCommonInitial:
+			word = strings.ToUpper(word)
+
+		case !info.HasCommonInitial && (strings.ToUpper(word) == word || strings.ToLower(word) == word):
+			// FOO or foo → Foo
+			// FOo → FOo
+			word = UcFirst(strings.ToLower(word))
+		}
+
+		*nameRunes = append(*nameRunes, []rune(word)...)
+	}
+}
+func isDelimiter(c rune) bool {
+	return c == '-' || c == '_' || unicode.IsSpace(c)
+}
+
+// This function is based on the following code.
+// https://github.com/golang/lint/blob/06c8688daad7faa9da5a0c2f163a3d14aac986ca/lint.go#L679
+func wordWalker(str string, f func(*wordInfo)) {
+	runes := []rune(strings.TrimFunc(str, isDelimiter))
+	w, i, wo := 0, 0, 0 // index of start of word, scan, word offset
+	hasCommonInitial := false
+	for i+1 <= len(runes) {
+		eow := false // whether we hit the end of a word
+		switch {
+		case i+1 == len(runes):
+			eow = true
+		case isDelimiter(runes[i+1]):
+			// underscore; shift the remainder forward over any run of underscores
+			eow = true
+			n := 1
+			for i+n+1 < len(runes) && isDelimiter(runes[i+n+1]) {
+				n++
+			}
+
+			// Leave at most one underscore if the underscore is between two digits
+			if i+n+1 < len(runes) && unicode.IsDigit(runes[i]) && unicode.IsDigit(runes[i+n+1]) {
+				n--
+			}
+
+			copy(runes[i+1:], runes[i+n+1:])
+			runes = runes[:len(runes)-n]
+		case unicode.IsLower(runes[i]) && !unicode.IsLower(runes[i+1]):
+			// lower->non-lower
+			eow = true
+		}
+		i++
+
+		// [w,i) is a word.
+		word := string(runes[w:i])
+		if !eow && commonInitialisms[word] && !unicode.IsLower(runes[i]) {
+			// through
+			// split IDFoo → ID, Foo
+			// but URLs → URLs
+		} else if !eow {
+			if commonInitialisms[word] {
+				hasCommonInitial = true
+			}
+			continue
+		}
+
+		matchCommonInitial := false
+		if commonInitialisms[strings.ToUpper(word)] {
+			hasCommonInitial = true
+			matchCommonInitial = true
+		}
+
+		f(&wordInfo{
+			WordOffset:         wo,
+			Word:               word,
+			MatchCommonInitial: matchCommonInitial,
+			HasCommonInitial:   hasCommonInitial,
+		})
+		hasCommonInitial = false
+		w = i
+		wo++
+	}
+}
+
+type wordInfo struct {
+	WordOffset         int
+	Word               string
+	MatchCommonInitial bool
+	HasCommonInitial   bool
 }
 
 func lintFieldName(name string) string {

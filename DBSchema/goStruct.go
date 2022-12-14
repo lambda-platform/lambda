@@ -227,7 +227,7 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 
 		valueType = sqlTypeToGoType(columnType["value"], nullable, gureguTypes)
 
-		fieldName := FmtFieldName(strings.ToLower(StringifyFirstChar(key)))
+		fieldName := FmtFieldName(StringifyFirstChar(key))
 		var annotations []string
 		if gormAnnotation == true {
 			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s%s\"", key, primary, scale))

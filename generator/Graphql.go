@@ -413,7 +413,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 
 		utils.WriteFileFormat(resolver, "lambda/graph/resolvers/"+modelAlias+".go")
 
-		utils.WriteFile(schema, "lambda/graph/schemas/"+GetModelAlias(strings.ToLower(modelAlias))+".graphql")
+		utils.WriteFile(schema, "lambda/graph/schemas/"+GetModelAlias(modelAlias)+".graphql")
 
 		paginationReturn := "return &Paginate, nil"
 
@@ -458,7 +458,7 @@ func Paginate(ctx context.Context, sorts []*model.Sort, groupFilters []*model.Gr
 		Paginate.LastPage = pagination.LastPage
 		Paginate.Total = int(pagination.Total)
 		%s
-	}`, strings.ToLower(table.Table), authCheck, table.Identity, parentConnectsions, modelAlias, modelAlias, GetModelAlias(strings.ToLower(table.Table)), paginationReturn) + "\n"
+	}`, strings.ToLower(table.Table), authCheck, table.Identity, parentConnectsions, modelAlias, modelAlias, GetModelAlias(table.Table), paginationReturn) + "\n"
 
 	}
 
@@ -757,7 +757,7 @@ func Delete%s(ctx context.Context, id string) (*models.%s, error) {
 	for _, column := range colunms {
 		if column["column"] != table.Identity && column["column"] != "created_at" && column["column"] != "updated_at" && column["column"] != "deleted_at" && column["column"] != "CREATED_AT" && column["column"] != "UPDATED_AT" && column["column"] != "DELETED_AT" {
 
-			columnReady := GetModelAlias(strings.ToLower(column["column"]))
+			columnReady := GetModelAlias(column["column"])
 
 			//	fmt.Println(column["column"])
 			//	fmt.Println(column["dataType"])

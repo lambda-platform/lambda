@@ -100,7 +100,7 @@ func GetColumnsFromTableMeta(columns []lambdaModels.TableMeta, hiddenColumns []s
 
 }
 func GetModelAlias(modelName string) string {
-	return DBSchema.FmtFieldName(strings.ToLower(DBSchema.StringifyFirstChar(modelName)))
+	return DBSchema.FmtFieldName(DBSchema.StringifyFirstChar(modelName))
 }
 
 func TableMetaToStruct(columns []lambdaModels.TableMeta, table string, hiddenColumns []string, pkgName string, Subs []string) string {
