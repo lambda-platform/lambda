@@ -46,13 +46,14 @@ func New(lambdaSettings ...*Settings) *Lambda {
 
 	lambda := &Lambda{
 		App: fiber.New(fiber.Config{
-			Views: engine,
+			Views:     engine,
+			BodyLimit: 100 * 1024 * 1024, // this is the default limit of 100MB
 			//JSONEncoder: json.Marshal,
 			//JSONDecoder: json.Unmarshal,
 		}),
 		ModuleName: lambdaSettings[0].ModuleName,
 	}
 	lambda.App.Static("/", "public")
-	
+
 	return lambda
 }
