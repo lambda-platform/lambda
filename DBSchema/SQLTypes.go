@@ -47,9 +47,10 @@ var TypeStrings = []string{
 	"UROWID",
 	"jsonb",
 	"BLOB",
+	"time",
 }
 var TypeTimes = []string{
-	"time",
+
 	"timestamp",
 	"datetimeoffset",
 	"timestamptz",
