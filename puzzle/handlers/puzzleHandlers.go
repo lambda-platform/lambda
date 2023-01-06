@@ -155,6 +155,8 @@ func GetVB(c *fiber.Ctx) error {
 						VBSchema.Schema = string(byteValue)
 						id_, _ := strconv.ParseUint(id, 0, 64)
 						VBSchema.ID = id_
+					} else {
+						fmt.Println(err.Error())
 					}
 
 				} else {
