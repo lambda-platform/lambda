@@ -34,10 +34,18 @@ func Set(e *fiber.App) {
 	a.Post("/password-reset", handlers.PasswordReset)
 
 	u := e.Group("/agent")
-	u.Get("/users", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetUsers)
-	u.Get("/search/:q", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.SearchUsers)
-	u.Get("/users/deleted", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetDeletedUsers)
-	u.Get("/delete/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.DeleteUser)
-	u.Get("/roles", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRoles)
+	if config.LambdaConfig.ProjectKey != "" && config.LambdaConfig.LambdaMainServicePath != "" {
+		u.Get("/users", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.GetUsers)
+		u.Get("/search/:q", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.SearchUsers)
+		u.Get("/users/deleted", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.GetDeletedUsers)
+		u.Get("/delete/:id", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.DeleteUser)
+		u.Get("/roles", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.GetRoles)
+	} else {
+		u.Get("/users", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetUsers)
+		u.Get("/search/:q", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.SearchUsers)
+		u.Get("/users/deleted", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetDeletedUsers)
+		u.Get("/delete/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.DeleteUser)
+		u.Get("/roles", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRoles)
+	}
 
 }

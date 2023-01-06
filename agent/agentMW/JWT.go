@@ -6,6 +6,7 @@ import (
 	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/config"
+	"net/http"
 	"reflect"
 )
 
@@ -56,6 +57,18 @@ func IsAdmin(c *fiber.Ctx) error {
 	}
 	return c.Next()
 
+}
+
+func IsCloudUser(c *fiber.Ctx) error {
+
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	role := GetUserRole(claims)
+
+	if role == 1.0 || role == 2.0 {
+		c.Status(http.StatusSeeOther).Redirect("/auth/login")
+	}
+	return c.Next()
 }
 
 func GetUserRole(claims jwt.MapClaims) int64 {

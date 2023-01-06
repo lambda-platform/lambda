@@ -13,6 +13,7 @@ import (
 	puzzleModels "github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/utils"
 	"io"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
@@ -216,45 +217,68 @@ func GetPermissions(c *fiber.Ctx) error {
 }
 func PermissionData(roleID int64) map[string]interface{} {
 
-	if config.Config.Database.Connection == "oracle" {
-		Role := models.RoleOracle{}
-		DB.DB.Where("ID = ?", roleID).Find(&Role)
+	if config.LambdaConfig.ProjectKey != "" && config.LambdaConfig.LambdaMainServicePath != "" {
+		RoleData := map[string]interface{}{}
 
-		Permissions_ := Permissions{}
-		json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+		jsonFile, err := os.Open("lambda/role_" + fmt.Sprintf("%v", roleID) + ".json")
+		defer jsonFile.Close()
+		if err != nil {
 
-		Menu := puzzleModels.VBSchemaOracle{}
-		DB.DB.Where("ID = ?", Permissions_.MenuID).Find(&Menu)
+		}
+		byteValue, _ := ioutil.ReadAll(jsonFile)
+		json.Unmarshal(byteValue, &RoleData)
 
-		MenuSchema := new(interface{})
-		json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
-		Kruds := []krudModels.KrudOracle{}
-		DB.DB.Find(&Kruds)
 		return map[string]interface{}{
-			"menu":        MenuSchema,
-			"kruds":       Kruds,
-			"permissions": Permissions_,
+			"menu":                 RoleData["menu"],
+			"kruds":                RoleData["cruds"],
+			"permissions":          RoleData["permissions"],
+			"subCrudFormGrid":      RoleData["subCrudFormGrid"],
+			"subCrudSection":       RoleData["subCrudSection"],
+			"subCruds":             RoleData["subCruds"],
+			"microserviceSettings": RoleData["microserviceSettings"],
 		}
 	} else {
-		Role := models.Role{}
-		DB.DB.Where("id = ?", roleID).Find(&Role)
+		if config.Config.Database.Connection == "oracle" {
+			Role := models.RoleOracle{}
+			DB.DB.Where("ID = ?", roleID).Find(&Role)
 
-		Permissions_ := Permissions{}
-		json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+			Permissions_ := Permissions{}
+			json.Unmarshal([]byte(Role.Permissions), &Permissions_)
 
-		Menu := puzzleModels.VBSchema{}
-		DB.DB.Where("id = ?", Permissions_.MenuID).Find(&Menu)
+			Menu := puzzleModels.VBSchemaOracle{}
+			DB.DB.Where("ID = ?", Permissions_.MenuID).Find(&Menu)
 
-		MenuSchema := new(interface{})
-		json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
-		Kruds := []krudModels.Krud{}
-		DB.DB.Where("deleted_at IS NULL").Find(&Kruds)
-		return map[string]interface{}{
-			"menu":        MenuSchema,
-			"kruds":       Kruds,
-			"permissions": Permissions_,
+			MenuSchema := new(interface{})
+			json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
+			Kruds := []krudModels.KrudOracle{}
+			DB.DB.Find(&Kruds)
+			return map[string]interface{}{
+				"menu":        MenuSchema,
+				"kruds":       Kruds,
+				"permissions": Permissions_,
+			}
+		} else {
+			Role := models.Role{}
+			DB.DB.Where("id = ?", roleID).Find(&Role)
+
+			Permissions_ := Permissions{}
+			json.Unmarshal([]byte(Role.Permissions), &Permissions_)
+
+			Menu := puzzleModels.VBSchema{}
+			DB.DB.Where("id = ?", Permissions_.MenuID).Find(&Menu)
+
+			MenuSchema := new(interface{})
+			json.Unmarshal([]byte(Menu.Schema), &MenuSchema)
+			Kruds := []krudModels.Krud{}
+			DB.DB.Where("deleted_at IS NULL").Find(&Kruds)
+			return map[string]interface{}{
+				"menu":        MenuSchema,
+				"kruds":       Kruds,
+				"permissions": Permissions_,
+			}
 		}
 	}
+
 }
 func Logout(c *fiber.Ctx) error {
 

@@ -6,6 +6,7 @@ import (
 	"github.com/lambda-platform/lambda/DB"
 	pb "github.com/lambda-platform/lambda/grpc/proto"
 	"github.com/lambda-platform/lambda/puzzle/handlers"
+	"os"
 )
 
 func GetIntData(ctx context.Context, in *pb.TableOption) (*pb.IntRows, error) {
