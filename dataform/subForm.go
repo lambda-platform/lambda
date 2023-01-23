@@ -125,7 +125,7 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 
 					}
 				}
-
+				Clear(subForm.Model)
 				if tableTypeColumn != "" && tableTypeValue != "" {
 					DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ? AND "+subIdentity+" NOT IN ?", parentId, tableTypeValue, existingIDS).Unscoped().Delete(subForm.Model)
 				} else {
