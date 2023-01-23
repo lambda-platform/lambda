@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/lambda-platform/lambda/models"
 	"reflect"
+	"strconv"
 )
 
 type Dataform struct {
@@ -55,6 +56,51 @@ func (d *Dataform) getIntField(field string) int {
 }
 func (d *Dataform) getFieldValue(field string) interface{} {
 	r := reflect.ValueOf(d.Model)
+	f := reflect.Indirect(r).FieldByName(field)
+	return f.Interface()
+}
+func (d *Dataform) getModelFieldValue(Model interface{}, field string) interface{} {
+	r := reflect.ValueOf(Model)
+	f := reflect.Indirect(r).FieldByName(field)
+	return f.Interface()
+}
+func (d *Dataform) setModelField(Model interface{}, field string, value interface{}) {
+	r := reflect.ValueOf(Model)
+	f := reflect.Indirect(r).FieldByName(field)
+
+	switch vtype := value.(type) {
+	case string:
+		f.SetString(value.(string))
+	default:
+		fmt.Println(vtype)
+		f.SetInt(int64(GetInt(value)))
+	}
+}
+func GetInt(value interface{}) int {
+	intValue := 0
+
+	switch v := value.(type) {
+	case int:
+		intValue = value.(int)
+	case int64:
+		intValue = int(value.(int64))
+	case int32:
+		intValue = int(value.(int32))
+	case float64:
+		intValue = int(value.(float64))
+	case float32:
+		intValue = int(value.(float32))
+	case string:
+		i, _ := strconv.Atoi(value.(string))
+		intValue = i
+	default:
+		fmt.Println(v)
+	}
+	return intValue
+}
+
+func (d *Dataform) setModelFieldValue(Model interface{}, field string) interface{} {
+	r := reflect.ValueOf(Model)
 	f := reflect.Indirect(r).FieldByName(field)
 	return f.Interface()
 }

@@ -38,12 +38,8 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 					parentId = dataform.getIntField(DBSchema.FieldName(parentIdentity))
 				}
 				Clear(subForm.Model)
-				if tableTypeColumn != "" && tableTypeValue != "" {
-					DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ?", parentId, tableTypeValue).Unscoped().Delete(subForm.Model)
-				} else {
 
-					DB.DB.Table(subForm.Table).Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
-				}
+				existingIDS := []interface{}{}
 
 				currentData := subData.([]interface{})
 
@@ -61,7 +57,6 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 								intVar, _ := strconv.Atoi(tableTypeValue)
 								subD[tableTypeColumn] = intVar
 							} else {
-
 								subD[tableTypeColumn] = tableTypeValue
 							}
 
@@ -77,73 +72,65 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 						saveData, _ := json.Marshal(subD)
 						json.Unmarshal(saveData, subForm.Model)
 
-						err := DB.DB.Create(subForm.Model).Error
+						var err error = nil
 
-						//err := DB.DB.Save(subForm).Error
+						createNewRow := true
+
+						if subIdentityValue != nil {
+							switch vtype := subIdentityValue.(type) {
+							case string:
+								if subIdentityValue.(string) != "" {
+									createNewRow = false
+								}
+							case int:
+								if subIdentityValue.(int) >= 1 {
+									createNewRow = false
+								}
+							case float64:
+								if subIdentityValue.(float64) >= 1 {
+									createNewRow = false
+								}
+							case float32:
+								if subIdentityValue.(float32) >= 1 {
+									createNewRow = false
+								}
+							case int64:
+								if subIdentityValue.(int64) >= 1 {
+									createNewRow = false
+								}
+							case int32:
+								if subIdentityValue.(int32) >= 1 {
+									createNewRow = false
+								}
+							default:
+
+								fmt.Println(vtype)
+							}
+						}
+						if createNewRow {
+							err = DB.DB.Create(subForm.Model).Error
+						} else {
+							dataform.setModelField(subForm.Model, DBSchema.FieldName(dataform.Identity), subIdentityValue)
+							err = DB.DB.Save(subForm.Model).Error
+						}
+
+						currentID := dataform.getModelFieldValue(subForm.Model, DBSchema.FieldName(dataform.Identity))
+
+						existingIDS = append(existingIDS, currentID)
 
 						if err == nil {
 							//	CallTrigger("afterUpdate", subForm, subD, "")
-
 							saveNestedSubItem(subForm, subD)
 						}
 
-						/*creareNewRow := true
-
-
-						switch vtype := subIdentityValue.(type) {
-						case int:
-							if(subIdentityValue.(int) >= 1){
-								creareNewRow = false
-
-							}
-						case float64:
-							if(subIdentityValue.(float64) >= 1){
-						DB.Date		creareNewRow = false
-
-							}
-						case float32:
-							if(subIdentityValue.(float32) >= 1){
-								creareNewRow = false
-
-							}
-						case int64:
-
-							if(subIdentityValue.(int64) >= 1){
-								creareNewRow = false
-
-							}
-						default:
-
-							fmt.Println(vtype)
-						}
-
-
-						if (!creareNewRow){
-
-
-							err := DB.DB.Save(subForm).Error
-
-							if err == nil {
-								CallTrigger("afterUpdate", subForm, subD, "")
-
-								saveNestedSubItem(subForm, subD)
-							}
-
-						} else {
-
-							DB.DB.NewRecord(subForm)
-							err := DB.DB.Create(subForm).Error
-
-							if err == nil {
-
-								CallTrigger("afterInsert", subForm, subD, "")
-								saveNestedSubItem(subForm, subD)
-
-							}
-
-						}*/
-
 					}
+				}
+
+				if tableTypeColumn != "" && tableTypeValue != "" {
+					DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ? AND "+subIdentity+" NOT IN ?", parentId, tableTypeValue, existingIDS).Unscoped().Delete(subForm.Model)
+				} else {
+
+					DB.DB.Table(subForm.Table).Where(connectionField+" = ? AND "+subIdentity+" NOT IN ?", parentId, existingIDS).Unscoped().Delete(subForm.Model)
 				}
 
 			}
