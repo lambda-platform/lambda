@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-session/session"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
@@ -12,8 +13,10 @@ import (
 	krudModels "github.com/lambda-platform/lambda/krud/models"
 	puzzleModels "github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/utils"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -81,7 +84,7 @@ func Login(c *fiber.Ctx) error {
 
 		var roleID int64 = 0
 		var userID int64 = 0
-		var userUUID string = ""
+		var userUUID = ""
 
 		if config.Config.Database.Connection == "oracle" {
 
@@ -145,11 +148,14 @@ func Login(c *fiber.Ctx) error {
 
 			c.Cookie(cookie)
 
+			OAuth := withOAuth(u.Login, c)
+
 			return c.Status(fiber.StatusOK).JSON(models.LoginData{
 				Token:  token,
 				Path:   checkRole(roleID),
 				Status: true,
 				Data:   foundUser,
+				OAuth:  OAuth,
 			})
 		} else {
 
@@ -175,11 +181,14 @@ func Login(c *fiber.Ctx) error {
 
 			c.Cookie(cookie)
 
+			OAuth := withOAuth(u.Login, c)
+
 			return c.Status(fiber.StatusOK).JSON(models.LoginData{
 				Token:  token,
 				Path:   checkRole(roleID),
 				Status: true,
 				Data:   foundUser,
+				OAuth:  OAuth,
 			})
 		}
 
@@ -191,7 +200,25 @@ func Login(c *fiber.Ctx) error {
 	})
 
 }
+func withOAuth(username string, c *fiber.Ctx) bool {
+	OAuth := false
 
+	fasthttpadaptor.NewFastHTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		sessionStore, err := session.Start(nil, w, r)
+		if err == nil {
+			_, ok := sessionStore.Get("ReturnUri")
+			if ok {
+				sessionStore.Set("LoggedInUserID", username)
+				sessionStore.Save()
+				OAuth = true
+			}
+		}
+
+	})(c.Context())
+
+	return OAuth
+}
 func GetPermissions(c *fiber.Ctx) error {
 
 	user := agentUtils.AuthUserObject(c)

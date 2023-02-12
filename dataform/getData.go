@@ -12,7 +12,7 @@ import (
 )
 
 func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[string]interface{}, error) {
-
+	
 	requestData := new(map[string]interface{})
 
 	bodyBytes := utils.GetBody(c)

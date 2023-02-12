@@ -7,6 +7,8 @@ require (
 	github.com/PaesslerAG/gval v1.1.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dzwvip/oracle v1.2.5
+	github.com/go-oauth2/oauth2/v4 v4.5.2
+	github.com/go-session/session v3.1.2+incompatible
 	github.com/gofiber/fiber/v2 v2.37.0-rc.1
 	github.com/gofiber/jwt/v3 v3.2.13
 	github.com/gofiber/template v1.6.29

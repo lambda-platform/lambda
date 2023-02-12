@@ -38,8 +38,7 @@ func (d *Dataform) getFieldType(field string) string {
 func (d *Dataform) setStringField(field string, value string) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
-	fmt.Println(f.Type())
-	fmt.Println(f.String())
+
 	f.SetString(value)
 }
 func (d *Dataform) setIntField(field string, value int) {
