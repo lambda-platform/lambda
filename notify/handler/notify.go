@@ -180,7 +180,7 @@ func SetToken(c *fiber.Ctx) error {
 		}
 	} else {
 		if config.Config.Database.Connection == "oracle" {
-			var savedToken models.UserFcmTokens
+			var savedToken models.UserFcmTokensOracle
 
 			DB.DB.Where("user_id = ? AND fcm_token = ?", user_id, token).Find(&savedToken)
 
@@ -198,7 +198,7 @@ func SetToken(c *fiber.Ctx) error {
 				})
 			}
 		} else {
-			var savedToken models.UserFcmTokensOracle
+			var savedToken models.UserFcmTokens
 
 			DB.DB.Where("USER_ID = ? AND FCM_TOKEN = ?", user_id, token).Find(&savedToken)
 
