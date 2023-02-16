@@ -26,7 +26,7 @@ func UnmarshalDate(v interface{}) (DB.Date, error) {
 	s := strings.Trim(v.(string), `"`)
 
 	if s != "null" && s != "" {
-		nt, err := time.Parse(DB.CtLayout, s)
+		nt, err := time.Parse(DB.DatetimeLayout, s)
 		if err != nil {
 			return DB.Date{
 				IsNotNull: false,

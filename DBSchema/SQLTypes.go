@@ -50,20 +50,20 @@ var TypeStrings = []string{
 	"time",
 }
 var TypeTimes = []string{
-
-	"timestamp",
 	"datetimeoffset",
 	"timestamptz",
 	"TIMESTAMP(6) WITH TIME ZONE",
 	"TIMESTAMP(6) WITH LOCAL TIME ZONE",
 	"TIMESTAMP",
 	"TIMESTAMP(6)",
-}
-var TypeDates = []string{
 	"datetime",
 	"date",
 	"DATE",
+	"timestamp",
+	"TIMESTAMP",
 }
+
+var TypeDates = []string{}
 var TypeFloat64 = []string{
 	"decimal",
 	"double",

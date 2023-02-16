@@ -17,7 +17,7 @@ func MarshalGormDeletedAt(f gorm.DeletedAt) Marshaler {
 func UnmarshalGormDeletedAt(v interface{}) (gorm.DeletedAt, error) {
 
 	s := strings.Trim(v.(string), `"`)
-	nt, err := time.Parse(DB.CtLayout, s)
+	nt, err := time.Parse(DB.DatetimeLayout, s)
 	ct := time.Time(nt)
 
 	dct := gorm.DeletedAt{}

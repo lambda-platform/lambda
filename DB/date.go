@@ -9,52 +9,62 @@ import (
 	"time"
 )
 
-// Date CustomTime provides an example of how to declare a new time Type with a custom formatter.
-// Note that time.Time methods are not available, if needed you can add and cast like the String method does
-// Otherwise, only use in the json struct at marshal/unmarshal time.
+// Date provides a custom time type that can represent a date or datetime with a custom formatter.
 type Date struct {
 	DateValue time.Time
 	IsNotNull bool
 }
 
-const CtLayout = "2006-01-02"
+// Supported date and datetime layouts
+const (
+	DateLayout     = "2006-01-02"
+	DatetimeLayout = "2006-01-02 15:04:05"
+)
 
-func Time(ct *Date) time.Time {
-	return time.Time(ct.DateValue)
-
+// Time returns the underlying time value of the Date type.
+func (date *Date) Time() time.Time {
+	return date.DateValue
 }
 
-// GormDataType gorm common data type
+// GormDataType returns the data type that GORM should use for the Date type.
 func (date Date) GormDataType() string {
 	return "date"
 }
-func (date Date) GobEncode() ([]byte, error) {
-	return time.Time(date.DateValue).GobEncode()
+
+// GobEncode encodes the Date type to a binary format for use with the gob package.
+func (date *Date) GobEncode() ([]byte, error) {
+	return date.DateValue.GobEncode()
 }
 
+// GobDecode decodes the binary data from GobEncode into the Date type.
 func (date *Date) GobDecode(b []byte) error {
-
-	return (*time.Time)(&date.DateValue).GobDecode(b)
+	return date.DateValue.GobDecode(b)
 }
 
-// UnmarshalJSON Parses the json string in the custom format
-func (date *Date) UnmarshalJSON(b []byte) (err error) {
+// UnmarshalJSON parses a JSON string in the custom format and sets the Date value.
+func (date *Date) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), `"`)
 
 	if s != "null" && s != "" {
-		nt, err := time.Parse(CtLayout, s)
+		// Try parsing the string as a date first
+		nt, err := time.Parse(DateLayout, s)
 		if err != nil {
-			return err
+			// If parsing as a date failed, try parsing as a datetime
+			nt, err = time.Parse(DatetimeLayout, s)
+			if err != nil {
+				return err
+			}
 		}
 		date.DateValue = nt
 		date.IsNotNull = true
-
 	} else {
 		date.IsNotNull = false
 	}
 
-	return
+	return nil
 }
+
+// Scan scans the value from the database and sets the Date value.
 func (date *Date) Scan(value interface{}) error {
 	nullTime := &sql.NullTime{}
 	err := nullTime.Scan(value)
@@ -67,49 +77,39 @@ func (date *Date) Scan(value interface{}) error {
 	return err
 }
 
+// Value returns the database driver value for the Date type.
 func (date Date) Value() (driver.Value, error) {
-
 	if date.IsNotNull {
-
-		y, m, d := time.Time(date.DateValue).Date()
-		return time.Date(y, m, d, 0, 0, 0, 0, time.Time(date.DateValue).Location()), nil
+		return date.DateValue, nil
+		//return time.Time(date.DateValue).Format(DatetimeLayout), nil
 	} else {
 		return nil, nil
 	}
 }
 
-// MarshalJSON writes a quoted string in the custom format
+// MarshalJSON writes a quoted string in the custom format.
 func (date Date) MarshalJSON() ([]byte, error) {
-
 	if date.IsNotNull {
-
 		return []byte(date.String()), nil
 	} else {
 		return json.Marshal(nil)
 	}
-
 }
 
-// String returns the time in the custom format
+// String returns the Date value in the custom format.
 func (date *Date) String() string {
-
 	if date.IsNotNull {
-		t := time.Time(date.DateValue)
-		return fmt.Sprintf("%q", t.Format(CtLayout))
+		return fmt.Sprintf("%q", date.DateValue.Format(DatetimeLayout))
 	} else {
 		return ""
 	}
-
-	//return t.Format(CtLayout)
 }
 
-// String returns the time in the custom format
-func (date *Date) StringValua() string {
-	if !date.IsNotNull {
-		return ""
+// StringValue returns the Date value as a string in the custom format.
+func (date *Date) StringValue() string {
+	if date.IsNotNull {
+		return date.DateValue.Format(DatetimeLayout)
 	} else {
-		t := time.Time(date.DateValue)
-
-		return t.Format(CtLayout)
+		return ""
 	}
 }
