@@ -18,6 +18,7 @@ const (
 	gqlTime       = "Time!"
 	dbNullDate    = "Date!"
 	dbDate        = "Date!"
+	gqlBinary     = "Byte!"
 )
 
 func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
@@ -224,7 +225,7 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 		}
 		return gqlFloat
 	case TypeContains(columnType, TypeBinaries):
-		return gqlString
+		return gqlBinary
 	}
 	return ""
 }

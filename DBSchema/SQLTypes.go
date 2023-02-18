@@ -46,7 +46,6 @@ var TypeStrings = []string{
 	"ROWID",
 	"UROWID",
 	"jsonb",
-	"BLOB",
 	"time",
 }
 var TypeTimes = []string{
@@ -86,6 +85,7 @@ var TypeBinaries = []string{
 	"mediumblob",
 	"varbinary",
 	"BFILE",
+	"BLOB",
 }
 
 func TypeContains(v string, a []string) bool {

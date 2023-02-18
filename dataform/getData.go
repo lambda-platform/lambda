@@ -2,6 +2,7 @@ package dataform
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DBSchema"
@@ -12,15 +13,16 @@ import (
 )
 
 func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[string]interface{}, error) {
-	
+
 	requestData := new(map[string]interface{})
+
+	if err := c.BodyParser(dataform.Model); err != nil {
+		fmt.Println("hihihihi")
+		return requestData, err
+	}
 
 	bodyBytes := utils.GetBody(c)
 	json.Unmarshal([]byte(bodyBytes), requestData)
-
-	if err := c.BodyParser(dataform.Model); err != nil {
-		return requestData, err
-	}
 
 	if len(dataform.FieldTypes) >= 1 {
 

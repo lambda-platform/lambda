@@ -249,9 +249,9 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "int"
 			}
 
-			if column.DataType == "BLOB" {
-				scale = ";serializer:gob"
-			}
+			//if column.DataType == "BLOB" {
+			//	//scale = ";serializer:gob"
+			//}
 
 			tableMetas = append(tableMetas, models.TableMeta{
 				Model:    column.ColumnName,

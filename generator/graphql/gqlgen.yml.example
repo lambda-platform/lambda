@@ -70,3 +70,6 @@ models:
   GormDeletedAt:
     model:
       - github.com/lambda-platform/lambda/graphql/custom_model.GormDeletedAt
+  Byte:
+    model:
+      - github.com/lambda-platform/lambda/graphql/custom_model.Byte

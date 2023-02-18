@@ -1,3 +1,5 @@
 scalar Time
 scalar Date
 scalar GormDeletedAt
+scalar Byte
+

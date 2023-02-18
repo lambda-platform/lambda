@@ -8,9 +8,9 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
-
 	//"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
+
 	"gorm.io/gorm/logger"
 	"sync"
 )
@@ -89,4 +89,20 @@ func DBConnection() *sql.DB {
 	var DB_ *sql.DB
 	DB_, _ = DB.DB()
 	return DB_
+}
+
+// Serialize serializes the input string into a BLOB value using utl_raw.cast_to_raw and utl_raw.CAST_TO_VARCHAR2
+func SerializeBLOBString(value string) ([]byte, error) {
+
+	var blobValue []byte
+	_, err := DBConnection().Exec(
+		"BEGIN ? := utl_raw.cast_to_raw(utl_raw.CAST_TO_VARCHAR2(?)); END;",
+		sql.Out{Dest: &blobValue},
+		value,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return blobValue, nil
 }
