@@ -130,6 +130,6 @@ type LambdaConfigFile struct {
 		ServerKey string `json:"serverKey"`
 		Sound     string `json:"sound"`
 		Icon      string `json:"icon"`
-	} `json:"notify"`,
+	} `json:"notify"`
 	CustomIcons []interface{} `json:"custom_icons"`
 }
