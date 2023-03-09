@@ -68,6 +68,7 @@ type lambdaConfig struct {
 		Sound     string `json:"sound"`
 		Icon      string `json:"icon"`
 	} `json:"notify"`
+	CustomIcons []interface{} `json:"custom_icons"`
 }
 type LambdaConfigFile struct {
 	SchemaLoadMode string `json:"schema_load_mode"`
