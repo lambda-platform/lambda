@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/DBSchema"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
