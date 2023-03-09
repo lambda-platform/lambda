@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/DBSchema"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
@@ -71,6 +70,7 @@ func Index(c *fiber.Ctx) error {
 		"data_grid_custom_elements": config.LambdaConfig.DataGridCustomElements,
 		"mix":                       utils.Mix,
 		"csrfToken":                 csrfToken,
+		"custom_icons":              config.LambdaConfig.CustomIcons,
 	})
 
 }

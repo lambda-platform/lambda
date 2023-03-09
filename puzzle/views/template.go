@@ -45,7 +45,8 @@ var PuzzleTemplate = `<html>
         user_fields: {{.user_fields}},
         user_roles: {{.user_roles}},
         data_form_custom_elements: {{.data_form_custom_elements}},
-        data_grid_custom_elements: {{.data_grid_custom_elements}}
+        data_grid_custom_elements: {{.data_grid_custom_elements}},
+        custom_icons: {{.custom_icons}},
     };
 </script>
 <script src="{{index .mix "/assets/lambda/js/moqup.js"}}"></script>
