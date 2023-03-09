@@ -25,7 +25,7 @@ type UserForm struct {
 	ID             int64          `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
 	Avatar         *string        `gorm:"column:AVATAR" json:"avatar"`
 	Bio            *string        `gorm:"column:BIO" json:"bio"`
-	Birthday       DB.Date        `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
+	Birthday       *time.Time     `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
 	Email          string         `gorm:"column:EMAIL" json:"email"`
 	FirstName      string         `gorm:"column:FIRST_NAME" json:"first_name"`
 	Gender         string         `gorm:"column:GENDER" json:"gender"`
@@ -46,18 +46,18 @@ func (u *UserForm) TableName() string {
 }
 
 type UserProfile struct {
-	ID             int64   `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
-	Avatar         *string `gorm:"column:AVATAR" json:"avatar"`
-	Bio            *string `gorm:"column:BIO" json:"bio"`
-	Birthday       DB.Date `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
-	Email          string  `gorm:"column:EMAIL" json:"email"`
-	FirstName      string  `gorm:"column:FIRST_NAME" json:"first_name"`
-	Gender         string  `gorm:"column:GENDER" json:"gender"`
-	LastName       string  `gorm:"column:LAST_NAME" json:"last_name"`
-	Login          string  `gorm:"column:LOGIN" json:"login"`
-	Password       string  `gorm:"column:PASSWORD" json:"password"`
-	Phone          string  `gorm:"column:PHONE" json:"phone"`
-	RegisterNumber string  `gorm:"column:REGISTER_NUMBER" json:"register_number"`
+	ID             int64      `gorm:"column:ID;primaryKey;autoIncrement" json:"id"`
+	Avatar         *string    `gorm:"column:AVATAR" json:"avatar"`
+	Bio            *string    `gorm:"column:BIO" json:"bio"`
+	Birthday       *time.Time `gorm:"column:BIRTHDAY;type:DATE" json:"birthday"`
+	Email          string     `gorm:"column:EMAIL" json:"email"`
+	FirstName      string     `gorm:"column:FIRST_NAME" json:"first_name"`
+	Gender         string     `gorm:"column:GENDER" json:"gender"`
+	LastName       string     `gorm:"column:LAST_NAME" json:"last_name"`
+	Login          string     `gorm:"column:LOGIN" json:"login"`
+	Password       string     `gorm:"column:PASSWORD" json:"password"`
+	Phone          string     `gorm:"column:PHONE" json:"phone"`
+	RegisterNumber string     `gorm:"column:REGISTER_NUMBER" json:"register_number"`
 }
 
 // TableName sets the insert table name for this struct type

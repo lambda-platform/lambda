@@ -23,7 +23,7 @@ func (u *Users) TableName() string {
 type UserForm struct {
 	Avatar         string     `gorm:"column:avatar" json:"avatar"`
 	Bio            string     `gorm:"column:bio" json:"bio"`
-	Birthday       DB.Date    `gorm:"column:birthday" json:"birthday"`
+	Birthday       *time.Time `gorm:"column:birthday" json:"birthday"`
 	CreatedAt      *time.Time `gorm:"column:created_at" json:"-"`
 	DeletedAt      *time.Time `gorm:"column:deleted_at" json:"-"`
 	Email          string     `gorm:"column:email" json:"email"`
@@ -46,17 +46,17 @@ func (u *UserForm) TableName() string {
 }
 
 type UserProfile struct {
-	Avatar         string  `gorm:"column:avatar" json:"avatar"`
-	Bio            string  `gorm:"column:bio" json:"bio"`
-	Birthday       DB.Date `gorm:"column:birthday" json:"birthday"`
-	Phone          string  `gorm:"column:phone" json:"phone"`
-	FirstName      string  `gorm:"column:first_name" json:"first_name"`
-	Gender         string  `gorm:"column:gender" json:"gender"`
-	ID             string  `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	LastName       string  `gorm:"column:last_name" json:"last_name"`
-	Login          string  `gorm:"column:login;unique_index;not null;unique" json:"login"`
-	Email          string  `gorm:"column:email;unique_index;not null;unique" json:"email"`
-	RegisterNumber string  `gorm:"column:register_number;not null;unique" json:"register_number"`
+	Avatar         string     `gorm:"column:avatar" json:"avatar"`
+	Bio            string     `gorm:"column:bio" json:"bio"`
+	Birthday       *time.Time `gorm:"column:birthday" json:"birthday"`
+	Phone          string     `gorm:"column:phone" json:"phone"`
+	FirstName      string     `gorm:"column:first_name" json:"first_name"`
+	Gender         string     `gorm:"column:gender" json:"gender"`
+	ID             string     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	LastName       string     `gorm:"column:last_name" json:"last_name"`
+	Login          string     `gorm:"column:login;unique_index;not null;unique" json:"login"`
+	Email          string     `gorm:"column:email;unique_index;not null;unique" json:"email"`
+	RegisterNumber string     `gorm:"column:register_number;not null;unique" json:"register_number"`
 }
 
 // TableName sets the insert table name for this struct type
