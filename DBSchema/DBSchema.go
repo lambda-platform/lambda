@@ -185,6 +185,10 @@ func TableMetas(tableName string) []models.TableMeta {
 					key = "PRI"
 					extra = "auto_increment"
 				}
+				if strings.Contains(*column.ColumnDefault, "gen_random_uuid") {
+					key = "PRI"
+					extra = "auto_increment"
+				}
 			}
 
 			for _, enum := range Enums {
