@@ -2,106 +2,6 @@ package models
 
 import "time"
 
-type NotificationTarget struct {
-	ID            int64  `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Link          string `gorm:"column:link" json:"link"`
-	Title         string `gorm:"column:title" json:"title"`
-	Body          string `gorm:"column:body" json:"body"`
-	SchemaId      int    `gorm:"column:schema_id" json:"schema_id"`
-	TargetRole    int    `gorm:"column:target_role" json:"target_role"`
-	Condition     string `gorm:"column:condition" json:"condition"`
-	TargetActions string `gorm:"column:target_actions" json:"target_actions"`
-}
-
-func (n *NotificationTarget) TableName() string {
-	return "notification_targets"
-}
-
-type Notification struct {
-	ID        int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Link      string    `gorm:"column:link" json:"link"`
-	Sender    uint      `gorm:"column:sender" json:"sender"`
-	Title     string    `gorm:"column:title" json:"title"`
-	Body      string    `gorm:"column:body" json:"body"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-}
-
-func (n *Notification) TableName() string {
-	return "notifications"
-}
-
-type UserFcmTokens struct {
-	ID       int64  `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserID   int    `gorm:"column:user_id" json:"user_id"`
-	FcmToken string `gorm:"column:fcm_token" json:"fcm_token"`
-}
-
-func (u *UserFcmTokens) TableName() string {
-	return "notification_user_tokens"
-}
-
-type NotificationStatus struct {
-	ID         int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	NotifID    int64     `gorm:"column:notif_id" json:"notif_id"`
-	ReceiverID int64     `gorm:"column:receiver_id" json:"receiver_id"`
-	Seen       int       `gorm:"column:seen" json:"seen"`
-	SeenTime   time.Time `gorm:"column:seen_time" json:"seen_time"`
-}
-
-func (n *NotificationStatus) TableName() string {
-	return "notification_status"
-}
-
-type UserFcmTokensUUID struct {
-	ID       string `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserID   string `gorm:"column:user_id" json:"user_id"`
-	FcmToken string `gorm:"column:fcm_token" json:"fcm_token"`
-}
-
-func (u *UserFcmTokensUUID) TableName() string {
-	return "notification_user_tokens"
-}
-
-type NotificationUUID struct {
-	ID        string    `gorm:"column:id;primaryKey;autoIncrement;default:gen_random_uuid();type:uuid" json:"id"`
-	Link      string    `gorm:"column:link" json:"link"`
-	Sender    string    `gorm:"column:sender" json:"sender"`
-	Title     string    `gorm:"column:title" json:"title"`
-	Body      string    `gorm:"column:body" json:"body"`
-	Data      string    `gorm:"column:data" json:"data"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
-}
-
-func (n *NotificationUUID) TableName() string {
-	return "notifications"
-}
-
-type NotificationStatusUUID struct {
-	ID         string    `gorm:"column:id;primaryKey;autoIncrement;default:gen_random_uuid();type:uuid" json:"id"`
-	NotifID    string    `gorm:"column:notif_id;type:uuid" json:"notif_id"`
-	ReceiverID string    `gorm:"column:receiver_id;type:uuid" json:"receiver_id"`
-	Seen       int       `gorm:"column:seen" json:"seen"`
-	SeenTime   time.Time `gorm:"column:seen_time" json:"seen_time"`
-}
-
-func (n *NotificationStatusUUID) TableName() string {
-	return "notification_status"
-}
-
-type UserNotificationsOracle struct {
-	ID         int64      `gorm:"column:ID;primaryKey;autoIncrement;" json:"id"`
-	Link       string     `gorm:"column:LINK" json:"link"`
-	Sender     string     `gorm:"column:SENDER" json:"sender"`
-	Title      string     `gorm:"column:TITLE" json:"title"`
-	Body       string     `gorm:"column:BODY" json:"body"`
-	CreatedAt  *time.Time `gorm:"column:CREATED_AT" json:"created_at"`
-	SID        int64      `gorm:"column:SID" json:"sid"`
-	ReceiverID int64      `gorm:"column:RECEIVER_ID" json:"receiver_id"`
-	Seen       int        `gorm:"column:SEEN" json:"seen"`
-	SeenTime   *time.Time `gorm:"column:SEEN_TIME" json:"seen_time"`
-	FirstName  string     `gorm:"column:FIRST_NAME" json:"first_name"`
-	Login      string     `gorm:"column:LOGIN" json:"login"`
-}
 type UserNotifications struct {
 	ID         int64      `gorm:"column:id;primaryKey;autoIncrement;" json:"id"`
 	Link       string     `gorm:"column:link" json:"link"`
@@ -162,4 +62,19 @@ type NotificationData struct {
 	Roles        []int
 	Data         FCMData         `json:"data"`
 	Notification FCMNotification `json:"notification"`
+}
+
+type UserNotificationsOracle struct {
+	ID         int64      `gorm:"column:ID;primaryKey;autoIncrement;" json:"id"`
+	Link       string     `gorm:"column:LINK" json:"link"`
+	Sender     string     `gorm:"column:SENDER" json:"sender"`
+	Title      string     `gorm:"column:TITLE" json:"title"`
+	Body       string     `gorm:"column:BODY" json:"body"`
+	CreatedAt  *time.Time `gorm:"column:CREATED_AT" json:"created_at"`
+	SID        int64      `gorm:"column:SID" json:"sid"`
+	ReceiverID int64      `gorm:"column:RECEIVER_ID" json:"receiver_id"`
+	Seen       int        `gorm:"column:SEEN" json:"seen"`
+	SeenTime   *time.Time `gorm:"column:SEEN_TIME" json:"seen_time"`
+	FirstName  string     `gorm:"column:FIRST_NAME" json:"first_name"`
+	Login      string     `gorm:"column:LOGIN" json:"login"`
 }
