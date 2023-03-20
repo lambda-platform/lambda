@@ -2,7 +2,6 @@ package dataform
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DBSchema"
@@ -17,7 +16,6 @@ func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[st
 	requestData := new(map[string]interface{})
 
 	if err := c.BodyParser(dataform.Model); err != nil {
-		fmt.Println("hihihihi")
 		return requestData, err
 	}
 
