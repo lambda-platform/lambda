@@ -24,49 +24,78 @@ type Dataform struct {
 	TriggerNameSpace   string
 }
 
-func (d *Dataform) getStringField(field string) string {
+func (d *Dataform) getStringField(field string) (string, error) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
-	return string(f.String())
+	if f.IsValid() {
+		return string(f.String()), nil
+	} else {
+		return "", fmt.Errorf("Field not found: " + field)
+	}
+
 }
 
-func (d *Dataform) getFieldType(field string) string {
+func (d *Dataform) getFieldType(field string) (string, error) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
-	return f.Type().String()
+	if f.IsValid() {
+		return f.Type().String(), nil
+	} else {
+		return "", fmt.Errorf("Field not found: " + field)
+	}
 }
-func (d *Dataform) setStringField(field string, value string) {
+func (d *Dataform) setStringField(field string, value string) error {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
+	if f.IsValid() {
+		f.SetString(value)
+		return nil
+	} else {
+		return fmt.Errorf("Field not found: " + field)
+	}
 
-	f.SetString(value)
 }
-func (d *Dataform) setIntField(field string, value int) {
+func (d *Dataform) setIntField(field string, value int) error {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
+	if f.IsValid() {
+		f.SetInt(int64(value))
+		return nil
+	} else {
+		return fmt.Errorf("Field not found: " + field)
+	}
+}
 
-	f.SetInt(int64(value))
-}
-
-func (d *Dataform) getIntField(field string) int {
+func (d *Dataform) getIntField(field string) (int, error) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
-	return int(f.Int())
+	if !f.IsValid() {
+		return 0, fmt.Errorf("Field not found: " + field)
+	}
+	return int(f.Int()), nil
 }
-func (d *Dataform) getFieldValue(field string) interface{} {
+func (d *Dataform) getFieldValue(field string) (interface{}, error) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
-	return f.Interface()
+	if !f.IsValid() {
+		return nil, fmt.Errorf("Field not found: " + field)
+	}
+	return f.Interface(), nil
 }
-func (d *Dataform) getModelFieldValue(Model interface{}, field string) interface{} {
+func (d *Dataform) getModelFieldValue(Model interface{}, field string) (interface{}, error) {
 	r := reflect.ValueOf(Model)
 	f := reflect.Indirect(r).FieldByName(field)
-	return f.Interface()
+	if !f.IsValid() {
+		return nil, fmt.Errorf("Field not found: " + field)
+	}
+	return f.Interface(), nil
 }
-func (d *Dataform) setModelField(Model interface{}, field string, value interface{}) {
+func (d *Dataform) setModelField(Model interface{}, field string, value interface{}) error {
 	r := reflect.ValueOf(Model)
 	f := reflect.Indirect(r).FieldByName(field)
-
+	if !f.IsValid() {
+		return fmt.Errorf("Field not found: " + field)
+	}
 	switch vtype := value.(type) {
 	case string:
 		f.SetString(value.(string))
@@ -74,6 +103,8 @@ func (d *Dataform) setModelField(Model interface{}, field string, value interfac
 		fmt.Println(vtype)
 		f.SetInt(int64(GetInt(value)))
 	}
+	return nil
+
 }
 func GetInt(value interface{}) int {
 	intValue := 0
@@ -98,10 +129,13 @@ func GetInt(value interface{}) int {
 	return intValue
 }
 
-func (d *Dataform) setModelFieldValue(Model interface{}, field string) interface{} {
+func (d *Dataform) setModelFieldValue(Model interface{}, field string) (interface{}, error) {
 	r := reflect.ValueOf(Model)
 	f := reflect.Indirect(r).FieldByName(field)
-	return f.Interface()
+	if !f.IsValid() {
+		return nil, fmt.Errorf("Field not found: " + field)
+	}
+	return f.Interface(), nil
 }
 func Clear(v interface{}) {
 	p := reflect.ValueOf(v).Elem()

@@ -28,7 +28,11 @@ func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[st
 
 			if fieldType == "Password" {
 				fieldName := DBSchema.FieldName(field)
-				value := dataform.getStringField(fieldName)
+				value, err := dataform.getStringField(fieldName)
+
+				if err != nil {
+					return requestData, err
+				}
 
 				if action == "store" {
 					password, _ := agentUtils.Hash(value)

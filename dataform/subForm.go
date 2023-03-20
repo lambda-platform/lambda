@@ -29,13 +29,20 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 
 			if subData != nil {
 
-				parentIdentityType := dataform.getFieldType(DBSchema.FieldName(parentIdentity))
+				parentIdentityType, err := dataform.getFieldType(DBSchema.FieldName(parentIdentity))
 
 				var parentId interface{}
 				if parentIdentityType == "string" {
-					parentId = dataform.getStringField(DBSchema.FieldName(parentIdentity))
+					preParentID, preParentIDErr := dataform.getStringField(DBSchema.FieldName(parentIdentity))
+					if err == preParentIDErr {
+						parentId = preParentID
+					}
+
 				} else {
-					parentId = dataform.getIntField(DBSchema.FieldName(parentIdentity))
+					preParentID, preParentIDErr := dataform.getIntField(DBSchema.FieldName(parentIdentity))
+					if err == preParentIDErr {
+						parentId = preParentID
+					}
 				}
 				Clear(subForm.Model)
 
@@ -114,8 +121,9 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 							err = DB.DB.Save(subForm.Model).Error
 						}
 
-						currentID := dataform.getModelFieldValue(subForm.Model, DBSchema.FieldName(subForm.Identity))
+						currentID, currentIDErr := dataform.getModelFieldValue(subForm.Model, DBSchema.FieldName(subForm.Identity))
 
+						fmt.Println(currentIDErr)
 						existingIDS = append(existingIDS, currentID)
 
 						if err == nil {

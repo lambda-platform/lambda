@@ -87,10 +87,20 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 				dataform.AfterInsert(dataform.Model)
 			}
 
+			idValue, errIDValue := dataform.getFieldValue(DBSchema.FieldName(dataform.Identity))
+
+			if errIDValue != nil {
+
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"status": false,
+					"error":  errIDValue.Error(),
+				})
+			}
+
 			return c.JSON(map[string]interface{}{
 				"status": true,
 				"data":   dataform.Model,
-				"id":     dataform.getFieldValue(DBSchema.FieldName(dataform.Identity)),
+				"id":     idValue,
 			})
 		}
 	}
