@@ -26,8 +26,7 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 		columnDataTypeQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + dbTable + "'"
 	} else if config.Config.Database.Connection == "postgres" {
 
-		rowPK := DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as pkColumn FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", dbTable, config.Config.Database.Database, "'%_pkey'")).Row()
-		rowPK.Scan(&pkColumn)
+		DB.DB.Raw(fmt.Sprintf("SELECT k.COLUMN_NAME as \"COLUMN_NAME\" FROM information_schema.key_column_usage k   WHERE k.table_name = '%s' AND k.table_catalog ='%s'AND k.constraint_name LIKE %s", dbTable, config.Config.Database.Database, "'%_pkey'")).Scan(&pkColumn)
 
 		columnDataTypeQuery = fmt.Sprintf("SELECT  COLUMN_NAME, udt_name as DATA_TYPE, IS_NULLABLE FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s'", config.Config.Database.Database, dbTable)
 	} else if config.Config.Database.Connection == "oracle" {
@@ -74,6 +73,7 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 		}
 		if isHidden == false {
 			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" || config.Config.Database.Connection == "oracle" {
+
 				if pkColumn.ColumnName == column {
 					columnKey = "PRI"
 				}

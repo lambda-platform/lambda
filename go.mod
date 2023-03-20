@@ -6,13 +6,13 @@ require (
 	github.com/99designs/gqlgen v0.17.21
 	github.com/PaesslerAG/gval v1.1.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/dzwvip/oracle v1.2.5
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/go-session/session v3.1.2+incompatible
 	github.com/gofiber/fiber/v2 v2.37.0-rc.1
 	github.com/gofiber/jwt/v3 v3.2.13
 	github.com/gofiber/template v1.6.29
 	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/iancoleman/strcase v0.2.0
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
