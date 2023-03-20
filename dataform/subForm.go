@@ -114,7 +114,7 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 							err = DB.DB.Save(subForm.Model).Error
 						}
 
-						currentID := dataform.getModelFieldValue(subForm.Model, DBSchema.FieldName(dataform.Identity))
+						currentID := dataform.getModelFieldValue(subForm.Model, DBSchema.FieldName(subForm.Identity))
 
 						existingIDS = append(existingIDS, currentID)
 
