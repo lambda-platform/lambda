@@ -315,6 +315,9 @@ return form.UserFormDataform()
  case "user_profile":
 return form.UserProfile()
 
+ case "user_profile_user":
+return form.UserProfile()
+
  case "user_password":
 return form.UsersDataform()
 
