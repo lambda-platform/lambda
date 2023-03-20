@@ -110,7 +110,7 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 						if createNewRow {
 							err = DB.DB.Create(subForm.Model).Error
 						} else {
-							dataform.setModelField(subForm.Model, DBSchema.FieldName(dataform.Identity), subIdentityValue)
+							dataform.setModelField(subForm.Model, DBSchema.FieldName(subForm.Identity), subIdentityValue)
 							err = DB.DB.Save(subForm.Model).Error
 						}
 
