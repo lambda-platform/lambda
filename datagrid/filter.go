@@ -100,7 +100,9 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 							}
 						default:
 							if filterType == "Text" {
+
 								query = query.Where("LOWER("+k+") LIKE ?", "%"+strings.ToLower(fmt.Sprintf("%v", v))+"%")
+
 							} else {
 								query = query.Where(k+" = ?", fmt.Sprintf("%v", v))
 

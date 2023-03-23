@@ -136,7 +136,7 @@ type SCHEMA struct {
 	SordOrder                string `json:"sordOrder"`
 	Use2ColumnLayout         bool   `json:"use2ColumnLayout"`
 	WithBackButton           bool   `json:"withBackButton"`
-	SaveBtnText              bool   `json:"save_btn_text"`
+	SaveBtnText              string `json:"save_btn_text"`
 	IsWarnText               bool   `json:"isWarnText"`
 	WarnText                 string `json:"warnText"`
 	FormValidationCustomText string `json:"formValidationCustomText"`
