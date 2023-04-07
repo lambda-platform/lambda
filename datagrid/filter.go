@@ -62,6 +62,7 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 						}
 
 					case "DateRange":
+
 						if config.Config.Database.Connection == "oracle" {
 							query = query.Where(k+" BETWEEN TO_DATE(?,'YYYY-MM-DD') AND TO_DATE(?,'YYYY-MM-DD')", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
 						} else {

@@ -18,6 +18,8 @@ func Exec(c *fiber.Ctx, schemaId string, action string, id string, GetGridMODEL 
 		return DeleteData(c, datagrid, id)
 	case "excel":
 		return ExportExcel(c, datagrid)
+	case "print":
+		return Print(c, datagrid)
 	case "update-row":
 		return UpdateRow(c, datagrid)
 	}
