@@ -23,6 +23,7 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 		}
 	}
 	g.Post("/excel/:schemaId", agentMW.IsLoggedIn(), handlers.ExportExcel(GetGridMODEL))
+	g.Post("/print/:schemaId", agentMW.IsLoggedIn(), handlers.Print(GetGridMODEL))
 	if KrudWithPermission {
 		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.UpdateRow(GetGridMODEL))
 		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), krudMW.PermissionCreate, handlers.Crud(GetMODEL))
