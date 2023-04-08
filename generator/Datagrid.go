@@ -165,9 +165,9 @@ func createModel(schema lambdaModels.SCHEMAGRID, dbSchema lambdaModels.DBSCHEMA,
 
 	MainTableColumnDataTypes := GetColumnsFromTableMeta(dbSchema.TableMeta[schema.MainTable], []string{})
 
-	MainTableStructs, _ := DBSchema.GenerateOnlyStruct(*MainTableColumnDataTypes, schema.MainTable, MainTableAliasWithID, "", true, true, true, "", "")
+	MainTableStructs, _ := DBSchema.GenerateOnlyStruct(MainTableColumnDataTypes, schema.MainTable, MainTableAliasWithID, "", true, true, true, "", "")
 
-	struc, _ := DBSchema.GenerateWithImports(importPackages, *columnDataTypes, schema.Model, modelAliasWithID, "grid", true, true, true, "", string(MainTableStructs), virtualColums)
+	struc, _ := DBSchema.GenerateWithImports(importPackages, columnDataTypes, schema.Model, modelAliasWithID, "grid", true, true, true, "", string(MainTableStructs), virtualColums)
 
 	return string(struc)
 

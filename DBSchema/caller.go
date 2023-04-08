@@ -7,25 +7,6 @@ import (
 	"github.com/lambda-platform/lambda/DB"
 )
 
-func GetStruct(table string) {
-
-	if table != "" {
-		var DB_ *sql.DB
-		DB_, _ = DB.DB.DB()
-		hiddenColumns := []string{}
-		columnDataTypes, err := GetColumnsFromSQLlTable(DB_, table, hiddenColumns)
-
-		fmt.Println(columnDataTypes)
-		if err != nil {
-			fmt.Println("Error in creating struct from json: " + err.Error())
-		}
-
-		struc_, _ := GenerateOnlyStruct(*columnDataTypes, table, strcase.ToCamel(table), "models", true, true, true, "", "")
-		fmt.Println(string(struc_))
-	}
-
-}
-
 func TableToStruct(table string, hiddenColumns []string, pkgName string, Subs []string) string {
 
 	if table != "" {
@@ -45,7 +26,7 @@ func TableToStruct(table string, hiddenColumns []string, pkgName string, Subs []
 			subStchemas = subStchemas + "\n    " + strcase.ToCamel(sub) + " []*" + strcase.ToCamel(sub) + ""
 		}
 
-		struc_, _ := GenerateWithImports("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, subStchemas, "", "")
+		struc_, _ := GenerateWithImports("", columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, subStchemas, "", "")
 
 		return string(struc_)
 	}
@@ -67,7 +48,7 @@ func TableToStructNoTime(table string, hiddenColumns []string, pkgName string) s
 			fmt.Println("Error in creating struct from json: " + err.Error())
 		}
 
-		struc_, _ := GenerateWithImportsNoTime("", *columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, "", "")
+		struc_, _ := GenerateWithImportsNoTime("", columnDataTypes, table, strcase.ToCamel(table), pkgName, true, true, true, "", "")
 
 		return string(struc_)
 	}
@@ -89,7 +70,7 @@ func TableToGraphqlOrderBy(table string, hiddenColumns []string) string {
 			fmt.Println("Error in creating struct from json: " + err.Error())
 		}
 
-		struc_, _ := GenerateGrapqlOrder(*columnDataTypes, table, strcase.ToCamel(table)+"OrderBy", "", false, false, true, "", "")
+		struc_, _ := GenerateGrapqlOrder(columnDataTypes, table, strcase.ToCamel(table)+"OrderBy", "", false, false, true, "", "")
 
 		return string(struc_)
 	}
@@ -110,7 +91,7 @@ func TableToGraphql(table string, hiddenColumns []string, Subs []string, isInput
 			fmt.Println("Error in creating struct from json: " + err.Error())
 		}
 
-		struc_, _ := GenerateGrapql(*columnDataTypes, table, strcase.ToCamel(table), "", false, false, true, "", "", Subs, isInpute)
+		struc_, _ := GenerateGrapql(columnDataTypes, table, strcase.ToCamel(table), "", false, false, true, "", "", Subs, isInpute)
 
 		return string(struc_)
 	}

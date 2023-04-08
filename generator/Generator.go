@@ -15,7 +15,7 @@ import (
 	"fmt"
 )
 
-func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.ProjectSchemas, gridSchemas []genertarModels.ProjectSchemas, copyClienModels bool, user_with_uuid string) {
+func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.ProjectSchemas, gridSchemas []genertarModels.ProjectSchemas, copyClientModels bool, WithUUID bool) {
 
 	//dir := projectPath
 	//dir := "schemas/" + projectPath
@@ -58,17 +58,17 @@ func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.Proj
 		os.MkdirAll("lambda/models/grid/caller", 0755)
 	}
 
-	WriteGridsModel(dbSchema, gridSchemas, copyClienModels)
-	WriteFormsModelData(dbSchema, formSchemas, copyClienModels)
+	WriteGridsModel(dbSchema, gridSchemas, copyClientModels)
+	WriteFormsModelData(dbSchema, formSchemas, copyClientModels)
 
-	if copyClienModels {
+	if copyClientModels {
 
 		if config.Config.Database.Connection == "oracle" {
 			copy.Copy(AbsolutePath+"initialModels/dataform/modelsOracle/", "lambda/models/form/")
 			copy.Copy(AbsolutePath+"initialModels/datagrid/modelsOracle/", "lambda/models/grid/")
 		} else {
 			copy.Copy(AbsolutePath+"initialModels/datagrid/models/", "lambda/models/grid/")
-			if config.Config.SysAdmin.UUID || user_with_uuid == "true" {
+			if config.Config.SysAdmin.UUID || WithUUID {
 				copy.Copy(AbsolutePath+"initialModels/dataform/modelsUUID/", "lambda/models/form/")
 			} else {
 				copy.Copy(AbsolutePath+"initialModels/dataform/models/", "lambda/models/form/")
@@ -79,9 +79,9 @@ func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.Proj
 	fmt.Println("MODEL INIT DONE")
 }
 
-func GetColumnsFromTableMeta(columns []lambdaModels.TableMeta, hiddenColumns []string) *map[string]map[string]string {
+func GetColumnsFromTableMeta(columns []lambdaModels.TableMeta, hiddenColumns []string) []genertarModels.ColumnData {
 
-	columnDataTypes := make(map[string]map[string]string)
+	var columnTypes []genertarModels.ColumnData
 	for _, tableColumn := range columns {
 		var isHidden bool = false
 
@@ -92,11 +92,17 @@ func GetColumnsFromTableMeta(columns []lambdaModels.TableMeta, hiddenColumns []s
 		}
 		if isHidden == false {
 
-			columnDataTypes[tableColumn.Model] = map[string]string{"value": tableColumn.DbType, "nullable": tableColumn.Nullable, "primary": tableColumn.Key, "scale": tableColumn.Scale}
+			columnTypes = append(columnTypes, genertarModels.ColumnData{
+				Name:     tableColumn.Model,
+				DataType: tableColumn.DbType,
+				Nullable: tableColumn.Nullable,
+				Primary:  tableColumn.Key,
+				Scale:    tableColumn.Scale,
+			})
 		}
 	}
 
-	return &columnDataTypes
+	return columnTypes
 
 }
 func GetModelAlias(modelName string) string {
@@ -115,7 +121,7 @@ func TableMetaToStruct(columns []lambdaModels.TableMeta, table string, hiddenCol
 			subStchemas = subStchemas + "\n    " + strcase.ToCamel(strings.ToLower(sub)) + " []*" + strcase.ToCamel(strings.ToLower(sub)) + "`gorm:\"-:all\"`"
 		}
 
-		struc_, _ := DBSchema.GenerateWithImports("", *columnDataTypes, table, GetModelAlias(strings.ToLower(table)), pkgName, true, true, true, subStchemas, "", "")
+		struc_, _ := DBSchema.GenerateWithImports("", columnDataTypes, table, GetModelAlias(strings.ToLower(table)), pkgName, true, true, true, subStchemas, "", "")
 
 		return string(struc_)
 	}
@@ -129,7 +135,7 @@ func TableMetaToGraphql(columns []lambdaModels.TableMeta, table string, hiddenCo
 
 		columnDataTypes := GetColumnsFromTableMeta(columns, hiddenColumns)
 
-		struc_, _ := DBSchema.GenerateGrapql(*columnDataTypes, table, GetModelAlias(strings.ToLower(table)), "", false, false, true, "", "", Subs, isInpute)
+		struc_, _ := DBSchema.GenerateGrapql(columnDataTypes, table, GetModelAlias(strings.ToLower(table)), "", false, false, true, "", "", Subs, isInpute)
 
 		return string(struc_)
 	}

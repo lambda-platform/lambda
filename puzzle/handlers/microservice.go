@@ -104,13 +104,8 @@ func GetLambdaSCHEMA() {
 	/*
 	   Generate Form, Grid
 	*/
-	var userUUID string = "false"
 
-	if config.Config.SysAdmin.UUID {
-		userUUID = "true"
-	}
-
-	generator.ModelInit(dbSchema, data.FormSchemas, data.GridSchemas, true, userUUID)
+	generator.ModelInit(dbSchema, data.FormSchemas, data.GridSchemas, true, config.Config.SysAdmin.UUID)
 
 	/*
 	   Generate GRAPHQL

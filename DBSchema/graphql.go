@@ -3,7 +3,7 @@ package DBSchema
 import (
 	"fmt"
 	"github.com/iancoleman/strcase"
-	"sort"
+	generatorModels "github.com/lambda-platform/lambda/generator/models"
 	"strings"
 )
 
@@ -21,7 +21,7 @@ const (
 	gqlBinary     = "Byte!"
 )
 
-func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
+func GenerateGrapql(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
 
 	dbTypes := generateQraphqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 	//if tableName == "aa_sudalsan_sain_turshilga" {
@@ -47,7 +47,7 @@ func GenerateGrapql(columnTypes map[string]map[string]string, tableName string, 
 
 	return []byte(src), nil
 }
-func GenerateGrapqlOrder(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
+func GenerateGrapqlOrder(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 
 	dbTypes := generateQraphqlTypesOrder(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
@@ -59,26 +59,19 @@ func GenerateGrapqlOrder(columnTypes map[string]map[string]string, tableName str
 	return []byte(src), nil
 }
 
-func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
+func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
 
 	structure := " {"
 
-	keys := make([]string, 0, len(obj))
-	for key := range obj {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
+	for _, columnType := range columnTypes {
 
-	for _, key := range keys {
-		//fmt.Println(key)
-		columnType := obj[key]
 		nullable := false
-		if columnType["nullable"] == "YES" {
+		if columnType.Nullable == "YES" {
 			nullable = true
 		}
 
 		primary := ""
-		if columnType["primary"] == "PRI" {
+		if columnType.Primary == "PRI" {
 			primary = ";primaryKey;autoIncrement"
 			//primary = ""
 		}
@@ -87,21 +80,21 @@ func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnot
 		var valueType string
 		// If the guregu (https://github.com/guregu/null) CLI option is passed use its types, otherwise use go's sql.NullX
 
-		valueType = sqlTypeToGraphyType(columnType["value"], nullable, gureguTypes)
+		valueType = sqlTypeToGraphyType(columnType.DataType, nullable, gureguTypes)
 
-		if columnType["primary"] == "PRI" {
+		if columnType.Primary == "PRI" {
 			valueType = "ID!"
 			//primary = ""
 		}
 
-		fieldName := key
+		fieldName := columnType.Name
 		var annotations []string
 		if gormAnnotation == true {
-			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", key, primary))
+			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", columnType.Name, primary))
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 		}
 		if fieldName == "DeletedAt" || fieldName == "deleted_at" || fieldName == "DELETED_AT" {
 			valueType = "GormDeletedAt"
@@ -121,44 +114,35 @@ func generateQraphqlTypes(obj map[string]map[string]string, depth int, jsonAnnot
 
 	return structure
 }
-func generateQraphqlTypesOrder(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
+func generateQraphqlTypesOrder(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
 
 	structure := " {"
 
-	keys := make([]string, 0, len(obj))
-	for key := range obj {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	for _, key := range keys {
-		//fmt.Println(key)
-		columnType := obj[key]
+	for _, columnType := range columnTypes {
 
 		primary := ""
-		if columnType["primary"] == "PRI" {
+		if columnType.Primary == "PRI" {
 			primary = ";primaryKey;autoIncrement"
 			//primary = ""
 		}
 
-		fieldName := key
 		var annotations []string
 		if gormAnnotation == true {
-			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", key, primary))
+			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", columnType.Name, primary))
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 		}
 
 		if len(annotations) > 0 {
 			structure += fmt.Sprintf("\n%s    %s: order_by",
-				fieldName,
+				columnType.Name,
 				strings.Join(annotations, " "))
 
 		} else {
 			structure += fmt.Sprintf("\n    %s: order_by",
-				fieldName)
+				columnType.Name)
 		}
 	}
 

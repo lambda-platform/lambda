@@ -53,13 +53,13 @@ func WriteFormModel(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.Pro
 					}
 
 					subColumnDataTypes := GetColumnsFromTableMeta(dbSchema.TableMeta[field.Model], subHiddenColumns)
-					subStructs, _ := DBSchema.GenerateOnlyStruct(*subColumnDataTypes, field.Model, subForm, "", true, true, true, "", "")
+					subStructs, _ := DBSchema.GenerateOnlyStruct(subColumnDataTypes, field.Model, subForm, "", true, true, true, "", "")
 					gormStructs = gormStructs + string(subStructs)
 				}
 			}
 		}
 
-		struc, _ := DBSchema.GenerateWithImports("", *columnDataTypes, schema.Model, modelAlias+strconv.FormatInt(int64(vb.ID), 10), "formModels", true, true, true, "", gormStructs, "")
+		struc, _ := DBSchema.GenerateWithImports("", columnDataTypes, schema.Model, modelAlias+strconv.FormatInt(int64(vb.ID), 10), "formModels", true, true, true, "", gormStructs, "")
 
 		beforInsertTrigger := "nil"
 		beforUpdateTrigger := "nil"
@@ -87,7 +87,7 @@ func WriteFormModel(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.Pro
 
 		formFields := createFieldTypes(schema)
 		formulas := createFomulas(schema)
-		rules, messages := createValidation(schema, *columnDataTypes)
+		rules, messages := createValidation(schema, columnDataTypes)
 		subForms, gridSubFroms := createSubForms(modelAliasWithID, schema)
 
 		content := fmt.Sprintf(`package form
@@ -239,8 +239,15 @@ func createFomulas(schema lambdaModels.SCHEMA) string {
 			}`
 	return formulas
 }
-
-func createValidation(schema lambdaModels.SCHEMA, columnDataTypes map[string]map[string]string) (string, string) {
+func FindColumn(columnDataList []genertarModels.ColumnData, name string) *genertarModels.ColumnData {
+	for _, columnData := range columnDataList {
+		if columnData.Name == name {
+			return &columnData
+		}
+	}
+	return nil
+}
+func createValidation(schema lambdaModels.SCHEMA, columnTypes []genertarModels.ColumnData) (string, string) {
 
 	rules := `govalidator.MapData{
 		`
@@ -256,8 +263,11 @@ func createValidation(schema lambdaModels.SCHEMA, columnDataTypes map[string]map
 
 				if rule.Type == "required" {
 
-					if columnDataTypes[field.Model]["nullable"] != "YES" {
-						fieldRules = fieldRules + "\"" + rule.Type + "\","
+					column := FindColumn(columnTypes, field.Model)
+					if column != nil {
+						if column.Nullable != "YES" {
+							fieldRules = fieldRules + "\"" + rule.Type + "\","
+						}
 					}
 
 				} else {

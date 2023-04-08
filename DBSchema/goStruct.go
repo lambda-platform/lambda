@@ -2,8 +2,8 @@ package DBSchema
 
 import (
 	"fmt"
+	generatorModels "github.com/lambda-platform/lambda/generator/models"
 	"go/format"
-	"sort"
 	"strings"
 )
 
@@ -30,7 +30,7 @@ const (
 	dateNull       = "DB.Date"
 )
 
-func GenerateOnlyStruct(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
+func GenerateOnlyStruct(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
 	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
@@ -53,7 +53,7 @@ func GenerateOnlyStruct(columnTypes map[string]map[string]string, tableName stri
 	}
 	return formatted, err
 }
-func GenerateWithImports(otherPackage string, columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, virtualColums string) ([]byte, error) {
+func GenerateWithImports(otherPackage string, columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, virtualColums string) ([]byte, error) {
 	var dbTypes string
 
 	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
@@ -79,7 +79,7 @@ func GenerateWithImports(otherPackage string, columnTypes map[string]map[string]
 	}
 	return formatted, err
 }
-func GenerateWithImportsNoTime(otherPackage string, columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
+func GenerateWithImportsNoTime(otherPackage string, columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
 	dbTypes, timeFound := generateStructTypesNoTime(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
@@ -177,46 +177,42 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 	return ""
 }
 
-func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string, bool, bool) {
+func generateStructTypes(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string, bool, bool) {
 
 	structure := "struct {"
 	time_found := false
 	date_found := false
-	keys := make([]string, 0, len(obj))
-	for key := range obj {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
 
-	for _, key := range keys {
+	//sort.Strings(keys)
 
-		columnType := obj[key]
+	for _, columnType := range columnTypes {
+
 		nullable := false
-		if columnType["nullable"] == "YES" {
+		if columnType.Nullable == "YES" {
 			nullable = true
 		}
-		if columnType["value"] == "timestamp" || columnType["value"] == "timestamptz" || columnType["value"] == "datetime" || columnType["value"] == "year" || columnType["value"] == "time" {
+		if columnType.DataType == "timestamp" || columnType.DataType == "timestamptz" || columnType.DataType == "datetime" || columnType.DataType == "year" || columnType.DataType == "time" {
 
 			//if key == "created_at" ||  key == "updated_at" ||  key == "deleted_at"{
 			time_found = true
 			//}
 			//else {
-			//	columnType["value"] = "text"
+			//	columnType.DataType = "text"
 			//}
 
 		}
-		if columnType["value"] == "date" {
+		if columnType.DataType == "date" {
 			date_found = true
 		}
 		primary := ""
-		if columnType["primary"] == "PRI" {
+		if columnType.Primary == "PRI" {
 			primary = ";primaryKey;autoIncrement"
 			//primary = ""
 		}
 
 		scale := ""
-		if columnType["scale"] != "" {
-			scale = columnType["scale"]
+		if columnType.Scale != "" {
+			scale = columnType.Scale
 			//primary = ""
 
 		}
@@ -225,16 +221,16 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 		var valueType string
 		// If the guregu (https://github.com/guregu/null) CLI option is passed use its types, otherwise use go's sql.NullX
 
-		valueType = sqlTypeToGoType(columnType["value"], nullable, gureguTypes)
+		valueType = sqlTypeToGoType(columnType.DataType, nullable, gureguTypes)
 
-		fieldName := FmtFieldName(StringifyFirstChar(key))
+		fieldName := FmtFieldName(StringifyFirstChar(columnType.Name))
 		var annotations []string
 		if gormAnnotation == true {
-			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s%s\"", key, primary, scale))
+			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s%s\"", columnType.Name, primary, scale))
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 		}
 		if fieldName == "DeletedAt" || fieldName == "DELETE_DAT" {
 			valueType = "gorm.DeletedAt"
@@ -254,31 +250,25 @@ func generateStructTypes(obj map[string]map[string]string, depth int, jsonAnnota
 
 	return structure, time_found, date_found
 }
-func generateStructTypesNoTime(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string, bool) {
+func generateStructTypesNoTime(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string, bool) {
 
 	structure := "struct {"
 	time_found := false
-	keys := make([]string, 0, len(obj))
-	for key := range obj {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
 
-	for _, key := range keys {
-		//fmt.Println(key)
-		columnType := obj[key]
+	for _, columnType := range columnTypes {
+
 		nullable := false
-		if columnType["nullable"] == "YES" {
+		if columnType.Nullable == "YES" {
 			nullable = true
 		}
-		if columnType["value"] == "timestamp" || columnType["value"] == "timestamptz" || columnType["value"] == "datetime" || columnType["value"] == "date" || columnType["value"] == "year" || columnType["value"] == "time" {
+		if columnType.DataType == "timestamp" || columnType.DataType == "timestamptz" || columnType.DataType == "datetime" || columnType.DataType == "date" || columnType.DataType == "year" || columnType.DataType == "time" {
 
-			columnType["value"] = "text"
+			columnType.DataType = "text"
 
 		}
 
 		primary := ""
-		if columnType["primary"] == "PRI" {
+		if columnType.Primary == "PRI" {
 			primary = ";primaryKey;autoIncrement"
 			//primary = ""
 		}
@@ -287,16 +277,16 @@ func generateStructTypesNoTime(obj map[string]map[string]string, depth int, json
 		var valueType string
 		// If the guregu (https://github.com/guregu/null) CLI option is passed use its types, otherwise use go's sql.NullX
 
-		valueType = sqlTypeToGoType(columnType["value"], nullable, gureguTypes)
+		valueType = sqlTypeToGoType(columnType.DataType, nullable, gureguTypes)
 
-		fieldName := FmtFieldName(StringifyFirstChar(key))
+		fieldName := FmtFieldName(StringifyFirstChar(columnType.Name))
 		var annotations []string
 		if gormAnnotation == true {
-			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", key, primary))
+			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", columnType.Name, primary))
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 		}
 		if fieldName == "DeletedAt" || fieldName == "DELETEDAT" {
 			valueType = "gorm.DeletedAt"

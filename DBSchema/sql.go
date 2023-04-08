@@ -6,18 +6,19 @@ import (
 	"fmt"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
+	generatorModels "github.com/lambda-platform/lambda/generator/models"
 	"github.com/lambda-platform/lambda/models"
 )
 
-func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string) (*map[string]map[string]string, error) {
+func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string) ([]generatorModels.ColumnData, error) {
 
 	// Store colum as map of maps
-	columnDataTypes := make(map[string]map[string]string)
+	var columnDataTypes []generatorModels.ColumnData
 	// Select columnd data from INFORMATION_SCHEMA
 
 	var pkColumn models.PKColumn
 
-	columnDataTypeQuery := "SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + dbTable + "' AND table_schema = '" + config.Config.Database.Database + "'"
+	columnDataTypeQuery := fmt.Sprintf("SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '%s' AND table_schema = '%s' ORDER BY ORDINAL_POSITION", dbTable, config.Config.Database.Database)
 
 	if config.Config.Database.Connection == "mssql" {
 
@@ -79,12 +80,17 @@ func GetColumnsFromSQLlTable(db *sql.DB, dbTable string, hiddenColumns []string)
 				}
 			}
 
-			columnDataTypes[column] = map[string]string{"value": dataType, "nullable": nullable, "primary": columnKey}
+			columnDataTypes = append(columnDataTypes, generatorModels.ColumnData{
+				Name:     column,
+				DataType: dataType,
+				Nullable: nullable,
+				Primary:  columnKey,
+			})
 		}
 
 	}
 
-	return &columnDataTypes, err
+	return columnDataTypes, err
 }
 
 func GetColumns(db *sql.DB, dbTable string, hiddenColumns []string) (string, error) {

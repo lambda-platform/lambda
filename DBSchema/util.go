@@ -2,6 +2,7 @@ package DBSchema
 
 import (
 	"fmt"
+	generatorModels "github.com/lambda-platform/lambda/generator/models"
 	"go/format"
 	"strconv"
 	"strings"
@@ -57,7 +58,7 @@ var intToWordMap = []string{
 
 var Debug = false
 
-func Generate(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
+func Generate(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
 	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
