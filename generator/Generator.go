@@ -16,53 +16,40 @@ import (
 )
 
 func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.ProjectSchemas, gridSchemas []genertarModels.ProjectSchemas, copyClientModels bool, WithUUID bool) {
-
-	//dir := projectPath
-	//dir := "schemas/" + projectPath
-
-	AbsolutePath := utils.AbsolutePath()
-
 	formPatch := "lambda/models/form/"
 	gridPatch := "lambda/models/grid/"
+	directories := []string{
+		"lambda/models",
+		"lambda/schemas",
+		"lambda/microservices",
+		"lambda/schemas/form",
+		"lambda/schemas/menu",
+		"lambda/schemas/grid",
+		formPatch,
+		"lambda/models/form/formModels/",
+		"lambda/models/form/caller/",
+		gridPatch,
+		"lambda/models/grid/caller",
+	}
 
-	if _, err := os.Stat(formPatch); os.IsNotExist(err) {
+	desiredPermissions := os.FileMode(0700)
+	desiredUser := os.Getuid()
+	desiredGroup := os.Getgid()
 
-		os.MkdirAll("lambda/models", 0755)
-
-		os.MkdirAll("lambda/schemas", 0755)
-		os.MkdirAll("lambda/microservices", 0755)
-		os.MkdirAll("lambda/schemas/form", 0755)
-		os.MkdirAll("lambda/schemas/menu", 0755)
-		os.MkdirAll("lambda/schemas/grid", 0755)
-		os.MkdirAll(formPatch, 0755)
-		os.MkdirAll("lambda/models/form/formModels/", 0755)
-		os.MkdirAll("lambda/models/form/caller/", 0755)
-
-		os.MkdirAll(gridPatch, 0755)
-		os.MkdirAll("lambda/models/grid/caller", 0755)
-
-	} else {
-
-		os.RemoveAll("lambda")
-		os.MkdirAll("lambda/microservices", 0755)
-		os.MkdirAll("lambda/models", 0755)
-		os.MkdirAll("lambda/schemas", 0755)
-		os.MkdirAll("lambda/schemas/form", 0755)
-		os.MkdirAll("lambda/schemas/menu", 0755)
-		os.MkdirAll("lambda/schemas/grid", 0755)
-		os.MkdirAll(formPatch, 0755)
-		os.MkdirAll("lambda/models/form/formModels/", 0755)
-		os.MkdirAll("lambda/models/form/caller/", 0755)
-
-		os.MkdirAll(gridPatch, 0755)
-		os.MkdirAll("lambda/models/grid/caller", 0755)
+	for _, dir := range directories {
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			err = os.MkdirAll(dir, desiredPermissions)
+			err = os.Chown(dir, desiredUser, desiredGroup)
+		} else {
+			err = os.Chmod(dir, desiredPermissions)
+			err = os.Chown(dir, desiredUser, desiredGroup)
+		}
 	}
 
 	WriteGridsModel(dbSchema, gridSchemas, copyClientModels)
 	WriteFormsModelData(dbSchema, formSchemas, copyClientModels)
-
+	AbsolutePath := utils.AbsolutePath()
 	if copyClientModels {
-
 		if config.Config.Database.Connection == "oracle" {
 			copy.Copy(AbsolutePath+"initialModels/dataform/modelsOracle/", "lambda/models/form/")
 			copy.Copy(AbsolutePath+"initialModels/datagrid/modelsOracle/", "lambda/models/grid/")
@@ -74,7 +61,6 @@ func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.Proj
 				copy.Copy(AbsolutePath+"initialModels/dataform/models/", "lambda/models/form/")
 			}
 		}
-
 	}
 	fmt.Println("MODEL INIT DONE")
 }
