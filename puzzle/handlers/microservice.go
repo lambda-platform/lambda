@@ -113,13 +113,13 @@ func GetLambdaSCHEMA() {
 	generator.GQLInit(dbSchema, data.GraphqlSchemas)
 
 	for _, vb := range data.FormSchemas {
-		_ = os.WriteFile("lambda/schemas/form/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
+		_ = os.WriteFile("lambda/schemas/form/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0700)
 	}
 	for _, vb := range data.GridSchemas {
-		_ = os.WriteFile("lambda/schemas/grid/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
+		_ = os.WriteFile("lambda/schemas/grid/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0700)
 	}
 	for _, vb := range data.MenuSchemas {
-		_ = os.WriteFile("lambda/schemas/menu/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0777)
+		_ = os.WriteFile("lambda/schemas/menu/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0700)
 	}
 
 	microservicesList := `
@@ -188,7 +188,7 @@ func GetRoleData() error {
 	for k, data := range roleData {
 
 		bolB, _ := json.Marshal(data)
-		_ = os.WriteFile("lambda/role_"+strconv.Itoa(k)+".json", bolB, 0777)
+		_ = os.WriteFile("lambda/role_"+strconv.Itoa(k)+".json", bolB, 0700)
 	}
 
 	DB.DB.Exec("TRUNCATE roles")

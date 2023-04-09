@@ -827,11 +827,11 @@ func GQLInit(dbSchema lambdaModels.DBSCHEMA, graphqlchemas []models.ProjectSchem
 		schemaCommonPatch := "lambda/graph/schemas-common"
 		if _, err := os.Stat(modelsPatch); os.IsNotExist(err) {
 
-			os.MkdirAll(modelsPatch, 0777)
-			os.MkdirAll(schemaPatch, 0777)
-			os.MkdirAll(resolversPatch, 0777)
-			os.MkdirAll(schemaCommonPatch, 0777)
-			os.MkdirAll(generatedPath, 0777)
+			os.MkdirAll(modelsPatch, 0700)
+			os.MkdirAll(schemaPatch, 0700)
+			os.MkdirAll(resolversPatch, 0700)
+			os.MkdirAll(schemaCommonPatch, 0700)
+			os.MkdirAll(generatedPath, 0700)
 
 		} else {
 
@@ -840,11 +840,11 @@ func GQLInit(dbSchema lambdaModels.DBSCHEMA, graphqlchemas []models.ProjectSchem
 			os.RemoveAll(schemaPatch)
 			os.RemoveAll(resolversPatch)
 			os.RemoveAll(schemaCommonPatch)
-			os.MkdirAll(modelsPatch, 0777)
-			os.MkdirAll(schemaPatch, 0777)
-			os.MkdirAll(resolversPatch, 0777)
-			os.MkdirAll(schemaCommonPatch, 0777)
-			os.MkdirAll(generatedPath, 0777)
+			os.MkdirAll(modelsPatch, 0700)
+			os.MkdirAll(schemaPatch, 0700)
+			os.MkdirAll(resolversPatch, 0700)
+			os.MkdirAll(schemaCommonPatch, 0700)
+			os.MkdirAll(generatedPath, 0700)
 		}
 
 		copy.Copy(AbsolutePath+"graphql/schemas-common/", "lambda/graph/schemas-common/")
@@ -864,12 +864,12 @@ func GQLInit(dbSchema lambdaModels.DBSCHEMA, graphqlchemas []models.ProjectSchem
 		graphqlPatch := "lambda/graph"
 		if _, err := os.Stat(graphqlPatch); os.IsNotExist(err) {
 
-			os.MkdirAll(graphqlPatch, 0777)
+			os.MkdirAll(graphqlPatch, 0700)
 
 		} else {
 
 			os.RemoveAll(graphqlPatch)
-			os.MkdirAll(graphqlPatch, 0777)
+			os.MkdirAll(graphqlPatch, 0700)
 
 		}
 		utils.WriteFile(`package graph
