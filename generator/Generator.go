@@ -33,16 +33,16 @@ func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.Proj
 	}
 
 	desiredPermissions := os.FileMode(0700)
-	desiredUser := os.Getuid()
-	desiredGroup := os.Getgid()
+	//desiredUser := os.Getuid()
+	//desiredGroup := os.Getgid()
 
 	for _, dir := range directories {
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			err = os.MkdirAll(dir, desiredPermissions)
-			err = os.Chown(dir, desiredUser, desiredGroup)
+			//err = os.Chown(dir, desiredUser, desiredGroup)
 		} else {
 			err = os.Chmod(dir, desiredPermissions)
-			err = os.Chown(dir, desiredUser, desiredGroup)
+			//err = os.Chown(dir, desiredUser, desiredGroup)
 		}
 	}
 
