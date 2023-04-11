@@ -8,6 +8,7 @@ type UserNotifications struct {
 	Sender     string     `gorm:"column:sender" json:"sender"`
 	Title      string     `gorm:"column:title" json:"title"`
 	Body       string     `gorm:"column:body" json:"body"`
+	Data       string     `gorm:"column:data" json:"data"`
 	CreatedAt  *time.Time `gorm:"column:created_at" json:"created_at"`
 	SID        int64      `gorm:"column:sid" json:"sid"`
 	ReceiverID int64      `gorm:"column:receiver_id" json:"receiver_id"`
@@ -23,6 +24,7 @@ type UserNotificationsUUID struct {
 	Sender     string     `gorm:"column:sender" json:"sender"`
 	Title      string     `gorm:"column:title" json:"title"`
 	Body       string     `gorm:"column:body" json:"body"`
+	Data       string     `gorm:"column:data" json:"data"`
 	CreatedAt  *time.Time `gorm:"column:created_at" json:"created_at"`
 	SID        string     `gorm:"column:sid" json:"sid"`
 	ReceiverID string     `gorm:"column:receiver_id" json:"receiver_id"`
