@@ -246,7 +246,8 @@ func Fcm(c *fiber.Ctx) error {
 
 }
 
-func CreateNotification(data models.NotificationData) int64 {
+func CreateNotification(data models.NotificationData, dataJson map[string]interface{}) int64 {
+	jsonStrin, _ := json.Marshal(dataJson)
 	if config.Config.Database.Connection == "oracle" {
 		var tokens []string
 		var Users []agentModels.USERSOracle
@@ -275,6 +276,7 @@ func CreateNotification(data models.NotificationData) int64 {
 			Sender:    1,
 			Title:     data.Data.Title,
 			Body:      data.Data.Body,
+			Data:      string(jsonStrin),
 			CreatedAt: time.Now(),
 		}
 
@@ -330,6 +332,7 @@ func CreateNotification(data models.NotificationData) int64 {
 			Sender:    1,
 			Title:     data.Data.Title,
 			Body:      data.Data.Body,
+			Data:      string(jsonStrin),
 			CreatedAt: time.Now(),
 		}
 

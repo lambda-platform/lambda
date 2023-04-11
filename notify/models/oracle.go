@@ -23,6 +23,7 @@ type NotificationOracle struct {
 	Sender    uint      `gorm:"column:SENDER" json:"sender"`
 	Title     string    `gorm:"column:TITLE" json:"title"`
 	Body      string    `gorm:"column:BODY" json:"body"`
+	Data      string    `gorm:"column:DATA" json:"data"`
 	CreatedAt time.Time `gorm:"column:CREATED_AT" json:"created_at"`
 }
 

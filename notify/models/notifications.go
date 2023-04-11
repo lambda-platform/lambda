@@ -8,6 +8,7 @@ type Notification struct {
 	Sender    uint      `gorm:"column:sender" json:"sender"`
 	Title     string    `gorm:"column:title" json:"title"`
 	Body      string    `gorm:"column:body" json:"body"`
+	Data      string    `gorm:"column:data" json:"data"`
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 }
 

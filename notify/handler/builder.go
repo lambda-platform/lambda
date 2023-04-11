@@ -61,7 +61,7 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 					Data:         FCMData,
 					Notification: FCMNotification,
 				}
-				CreateNotification(data)
+				CreateNotification(data, dataJson)
 
 			}
 		}
@@ -114,7 +114,7 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 					Data:         FCMData,
 					Notification: FCMNotification,
 				}
-				CreateNotification(data)
+				CreateNotification(data, dataJson)
 
 			}
 		}
