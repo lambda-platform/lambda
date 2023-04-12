@@ -2,12 +2,12 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/lambda-platform/lambda/puzzle/initialData"
+
 	//"encoding/json"
 	"fmt"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
-	"os"
-
 	//puzzleModels "github.com/lambda-platform/lambda/DB/DBSchema/models"
 	////analyticModels "github.com/lambda-platform/lambda/lambda/plugins/dataanalytic/models"
 	//"os"
@@ -75,14 +75,7 @@ func seedData() {
 	if config.Config.Database.Connection == "oracle" {
 
 		var vbs []puzzleModels.VBSchemaAdminOracle
-		AbsolutePath := AbsolutePath()
-		dataFile, err := os.Open(AbsolutePath + "initialData/vb_schemas_admin_oracle.json")
-		defer dataFile.Close()
-		if err != nil {
-			fmt.Println("PUZZLE SEED ERROR")
-		}
-		jsonParser := json.NewDecoder(dataFile)
-		err = jsonParser.Decode(&vbs)
+		err := json.Unmarshal([]byte(initialData.VBAdminDataOracle), &vbs)
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println("PUZZLE SEED DATA ERROR")
@@ -94,36 +87,29 @@ func seedData() {
 			DB.DB.Create(&vb)
 		}
 
-		var vbs2 []puzzleModels.VBSchemaOracle
-
-		dataFile2, err2 := os.Open(AbsolutePath + "initialData/vb_schemas.json")
-		defer dataFile2.Close()
-		if err2 != nil {
-			fmt.Println("PUZZLE SEED ERROR")
-		}
-		jsonParser2 := json.NewDecoder(dataFile2)
-		err = jsonParser2.Decode(&vbs2)
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("PUZZLE SEED DATA ERROR")
-		}
-		//fmt.Println(len(vbs))
-
-		for _, vb := range vbs2 {
-
-			DB.DB.Create(&vb)
-
-		}
+		//var vbs2 []puzzleModels.VBSchemaOracle
+		//
+		//dataFile2, err2 := os.Open(AbsolutePath + "initialData/vb_schemas.json")
+		//defer dataFile2.Close()
+		//if err2 != nil {
+		//	fmt.Println("PUZZLE SEED ERROR")
+		//}
+		//jsonParser2 := json.NewDecoder(dataFile2)
+		//err = jsonParser2.Decode(&vbs2)
+		//if err != nil {
+		//	fmt.Println(err)
+		//	fmt.Println("PUZZLE SEED DATA ERROR")
+		//}
+		////fmt.Println(len(vbs))
+		//
+		//for _, vb := range vbs2 {
+		//
+		//	DB.DB.Create(&vb)
+		//
+		//}
 	} else {
 		var vbs []puzzleModels.VBSchemaAdmin
-		AbsolutePath := AbsolutePath()
-		dataFile, err := os.Open(AbsolutePath + "initialData/vb_schemas_admin.json")
-		defer dataFile.Close()
-		if err != nil {
-			fmt.Println("PUZZLE SEED ERROR")
-		}
-		jsonParser := json.NewDecoder(dataFile)
-		err = jsonParser.Decode(&vbs)
+		err := json.Unmarshal([]byte(initialData.VBAdminData), &vbs)
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println("PUZZLE SEED DATA ERROR")
@@ -135,26 +121,26 @@ func seedData() {
 			DB.DB.Create(&vb)
 		}
 
-		var vbs2 []puzzleModels.VBSchema
-
-		dataFile2, err2 := os.Open(AbsolutePath + "initialData/vb_schemas.json")
-		defer dataFile2.Close()
-		if err2 != nil {
-			fmt.Println("PUZZLE SEED ERROR")
-		}
-		jsonParser2 := json.NewDecoder(dataFile2)
-		err = jsonParser2.Decode(&vbs2)
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("PUZZLE SEED DATA ERROR")
-		}
-		//fmt.Println(len(vbs))
-
-		for _, vb := range vbs2 {
-
-			DB.DB.Create(&vb)
-
-		}
+		//var vbs2 []puzzleModels.VBSchema
+		//
+		//dataFile2, err2 := os.Open(AbsolutePath + "initialData/vb_schemas.json")
+		//defer dataFile2.Close()
+		//if err2 != nil {
+		//	fmt.Println("PUZZLE SEED ERROR")
+		//}
+		//jsonParser2 := json.NewDecoder(dataFile2)
+		//err = jsonParser2.Decode(&vbs2)
+		//if err != nil {
+		//	fmt.Println(err)
+		//	fmt.Println("PUZZLE SEED DATA ERROR")
+		//}
+		////fmt.Println(len(vbs))
+		//
+		//for _, vb := range vbs2 {
+		//
+		//	DB.DB.Create(&vb)
+		//
+		//}
 	}
 
 }
