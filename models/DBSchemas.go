@@ -140,6 +140,7 @@ type SCHEMA struct {
 	IsWarnText               bool   `json:"isWarnText"`
 	WarnText                 string `json:"warnText"`
 	FormValidationCustomText string `json:"formValidationCustomText"`
+	DisableReset             bool   `json:"disableReset"`
 }
 
 type SCHEMAGRID struct {
