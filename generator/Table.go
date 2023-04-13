@@ -19,3 +19,18 @@ func GetStruct(table string) {
 	}
 
 }
+
+func GetProtobuf(table string) {
+
+	if table != "" {
+
+		tableMeta := DBSchema.TableMetas(table)
+
+		columnDataTypes := GetColumnsFromTableMeta(tableMeta, []string{})
+
+		tableStruct, _ := DBSchema.GenerateProtobuf(columnDataTypes, table, strcase.ToCamel(table), table, true, true, true, "", "", []string{}, false)
+
+		fmt.Println(string(tableStruct))
+	}
+
+}

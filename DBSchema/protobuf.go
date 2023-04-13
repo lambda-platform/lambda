@@ -3,11 +3,22 @@ package DBSchema
 import (
 	"fmt"
 	"github.com/iancoleman/strcase"
-	"sort"
-	"strings"
+	generatorModels "github.com/lambda-platform/lambda/generator/models"
 )
 
-func GenerateProtobuf(columnTypes map[string]map[string]string, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
+const (
+	protoByteArray = "[]byte"
+	protoInt       = "int32"
+	protoBigInt    = "int64"
+	protoBool      = "bool"
+	protoString    = "string"
+	protoFloat32   = "float32"
+	protoFloat64   = "double"
+	protoDate      = "string"
+	protoTime      = "string"
+)
+
+func GenerateProtobuf(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
 
 	dbTypes := generateProtobufTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
@@ -17,12 +28,15 @@ func GenerateProtobuf(columnTypes map[string]map[string]string, tableName string
 		subStchemas = subStchemas + "\n    " + sub + ":[" + strcase.ToCamel(sub) + "!]"
 	}
 
-	typeSchema := "type"
+	typeSchema := "message"
 	if isInpute {
 		typeSchema = "input"
 		structName = structName + "Input"
 	}
-	src := fmt.Sprintf("%s %s %s %s %s \n} %s",
+
+	src := fmt.Sprintf("syntax = \"proto3\";\n\npackage %s;\noption go_package = \"./;%s\";\n%s %s %s %s %s \n} %s",
+		tableName,
+		tableName,
 		typeSchema,
 		structName,
 		dbTypes,
@@ -31,61 +45,52 @@ func GenerateProtobuf(columnTypes map[string]map[string]string, tableName string
 	return []byte(src), nil
 }
 
-func generateProtobufTypes(obj map[string]map[string]string, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
+func generateProtobufTypes(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
 
 	structure := " {"
 
-	keys := make([]string, 0, len(obj))
-	for key := range obj {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	for _, key := range keys {
-		//fmt.Println(key)
-		columnType := obj[key]
+	for index, columnType := range columnTypes {
 		nullable := false
-		if columnType["nullable"] == "YES" {
+		if columnType.Nullable == "YES" {
 			nullable = true
 		}
 
 		primary := ""
-		if columnType["primary"] == "PRI" {
+		if columnType.Primary == "PRI" {
 			primary = ";primaryKey;autoIncrement"
 			//primary = ""
 		}
 
 		// Get the corresponding go value type for this mysql type
 		var valueType string
-		// If the guregu (https://github.com/guregu/null) CLI option is passed use its types, otherwise use go's sql.NullX
 
-		valueType = sqlTypeToProtobufType(columnType["value"], nullable, gureguTypes)
+		valueType = sqlTypeToProtobufType(columnType.DataType, nullable, gureguTypes)
 
-		if columnType["primary"] == "PRI" {
-			valueType = "ID!"
-			//primary = ""
-		}
-
-		fieldName := key
+		fieldName := FmtFieldName(StringifyFirstChar(columnType.Name))
 		var annotations []string
 		if gormAnnotation == true {
-			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", key, primary))
+			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", columnType.Name, primary))
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, ""))
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 		}
 
 		if len(annotations) > 0 {
-			structure += fmt.Sprintf("\n%s    %s: `%s`",
-				fieldName,
+			structure += fmt.Sprintf("\n\t%s %s = %d;",
+
 				valueType,
-				strings.Join(annotations, " "))
+				fieldName,
+				index+1)
+
+			//strings.Join(annotations, " "))
 
 		} else {
-			structure += fmt.Sprintf("\n    %s: %s",
+			structure += fmt.Sprintf("\n\t%s %s = %d;",
+
+				valueType,
 				fieldName,
-				valueType)
+				index+1)
 		}
 	}
 
@@ -97,55 +102,63 @@ func sqlTypeToProtobufType(columnType string, nullable bool, gureguTypes bool) s
 	case TypeContains(columnType, TypeIntegers):
 		if nullable {
 			if gureguTypes {
-				return gqlNullInt
+				return protoInt
 			}
-			return gqlNullInt
+			return protoInt
 		}
-		return gqlInt
+		return protoInt
+	case TypeContains(columnType, TypeBool):
+		if nullable {
+			if gureguTypes {
+				return protoBool
+			}
+			return protoBool
+		}
+		return protoBool
+	case TypeContains(columnType, TypeBigIntegers):
+		if nullable {
+			if gureguTypes {
+				return protoBigInt
+			}
+			return protoBigInt
+		}
+		return protoBigInt
 	case TypeContains(columnType, TypeStrings):
 		if nullable {
 			if gureguTypes {
-				return gqlNullInt
+				return protoString
 			}
-			return gqlNullInt
+			return protoString
 		}
-		return gqlInt
-	case TypeContains(columnType, TypeStrings):
-		if nullable {
-			if gureguTypes {
-				return gqlNullString
-			}
-			return gqlNullString
-		}
-		return gqlString
+		return protoString
 	case TypeContains(columnType, TypeTimes):
 		if nullable && gureguTypes {
-			return gqlNullTime
+			return protoTime
 		}
-		return gqlTime
+		return protoTime
 	case TypeContains(columnType, TypeDates):
 		if nullable && gureguTypes {
-			return dbNullDate
+			return protoDate
 		}
-		return dbDate
+		return protoDate
 	case TypeContains(columnType, TypeFloat64):
 		if nullable {
 			if gureguTypes {
-				return gqlNullFloat
+				return protoFloat64
 			}
-			return gqlNullFloat
+			return protoFloat64
 		}
-		return gqlFloat
+		return protoFloat64
 	case TypeContains(columnType, TypeFloat32):
 		if nullable {
 			if gureguTypes {
-				return gqlNullFloat
+				return protoFloat32
 			}
-			return gqlNullFloat
+			return protoFloat32
 		}
-		return gqlFloat
+		return protoFloat32
 	case TypeContains(columnType, TypeBinaries):
-		return gqlString
+		return protoByteArray
 	}
 	return ""
 }
