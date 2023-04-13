@@ -22,6 +22,13 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 			g.Use(krudMiddleWare)
 		}
 	}
+	p := e.Group("/lambda/puzzle")
+	if len(krudMiddleWares) >= 1 {
+		for _, krudMiddleWare := range krudMiddleWares {
+			p.Use(krudMiddleWare)
+		}
+	}
+
 	g.Post("/excel/:schemaId", agentMW.IsLoggedIn(), handlers.ExportExcel(GetGridMODEL))
 	g.Post("/print/:schemaId", agentMW.IsLoggedIn(), handlers.Print(GetGridMODEL))
 	if KrudWithPermission {
