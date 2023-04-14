@@ -7,12 +7,12 @@ import (
 )
 
 const (
-	protoByteArray = "[]byte"
+	protoByteArray = "bytes"
 	protoInt       = "int32"
 	protoBigInt    = "int64"
 	protoBool      = "bool"
 	protoString    = "string"
-	protoFloat32   = "float32"
+	protoFloat32   = "float"
 	protoFloat64   = "double"
 	protoDate      = "string"
 	protoTime      = "string"
