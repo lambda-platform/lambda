@@ -5,7 +5,6 @@ var TypeIntegers = []string{
 	"int",
 	"smallint",
 	"mediumint",
-	"int8",
 	"int4",
 	"int2",
 	"year",
@@ -17,6 +16,7 @@ var TypeIntegers = []string{
 var TypeBigIntegers = []string{
 	"bigint",
 	"NUMBER",
+	"int8",
 }
 var TypeBool = []string{
 	"bool",
