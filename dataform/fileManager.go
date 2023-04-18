@@ -2,6 +2,7 @@ package dataform
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"github.com/thedevsaddam/govalidator"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
