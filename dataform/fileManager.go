@@ -44,7 +44,7 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 	if fileType == "sharedlib" {
 		publicPath = ""
 		uploadPath = ""
-		fullPath = "sharedlib"
+		fullPath = "sharedlib/"
 	}
 
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
