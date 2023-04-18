@@ -2,7 +2,6 @@ package dataform
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"github.com/thedevsaddam/govalidator"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
@@ -42,11 +41,13 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 	var fullPath string = publicPath + uploadPath
 
 	if fileType == "sharedlib" {
+		publicPath = ""
+		uploadPath = ""
 		fullPath = "sharedlib"
 	}
 
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		os.MkdirAll(fullPath, 0755)
+		os.MkdirAll(fullPath, 0700)
 		// Create your file
 	}
 
