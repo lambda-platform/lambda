@@ -41,6 +41,10 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 	var uploadPath string = "/uploaded/" + fileType + "/" + year + "/" + month + "/"
 	var fullPath string = publicPath + uploadPath
 
+	if fileType == "sharedlib" {
+		fullPath = "sharedlib"
+	}
+
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		os.MkdirAll(fullPath, 0755)
 		// Create your file
@@ -150,6 +154,16 @@ func Upload(c *fiber.Ctx) error {
 			"audio/wav",
 		}
 		fileType = "audios"
+	}
+
+	if ext == "so" {
+		rules = govalidator.MapData{
+			"file:file": []string{"ext:so", "size:40000000", "required"},
+		}
+		mimeTypes = []string{
+			"application/x-sharedlib",
+		}
+		fileType = "sharedlib"
 	}
 
 	//mimeType, _, err  := mimetype.DetectReader(srcMime)
