@@ -149,7 +149,7 @@ func Upload(c *fiber.Ctx) error {
 	}
 	if ext == "mp3" || ext == "wav" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:mp3,wav,MP3,WAV", "size:400000", "required"},
+			"file:file": []string{"ext:mp3,wav,MP3,WAV", "size:40000000", "required"},
 		}
 		mimeTypes = []string{
 			"audio/mpeg",
