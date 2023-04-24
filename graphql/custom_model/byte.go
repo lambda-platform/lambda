@@ -13,9 +13,9 @@ func MarshalByte(f []byte) Marshaler {
 
 func UnmarshalByte(v interface{}) ([]byte, error) {
 
-	bytes, ok := v.([]byte)
+	bytes, ok := v.(string)
 	if !ok {
-		return bytes, nil
+		return []byte(bytes), nil
 	} else {
 		return nil, nil
 	}
