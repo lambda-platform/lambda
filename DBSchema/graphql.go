@@ -213,13 +213,7 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 		}
 		return gqlFloat
 	case TypeContains(columnType, TypeBinaries):
-		if nullable {
-			if gureguTypes {
-				return gqlNullString
-			}
-			return gqlNullString
-		}
-		return gqlString
+		return gqlBinary
 	}
 	return ""
 }
