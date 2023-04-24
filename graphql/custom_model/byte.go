@@ -11,13 +11,13 @@ func MarshalByte(f []byte) Marshaler {
 	})
 }
 
-func UnmarshalByte(v interface{}) (string, error) {
+func UnmarshalByte(v interface{}) ([]byte, error) {
 
 	bytes, ok := v.([]byte)
 	if !ok {
-		return string(bytes), nil
+		return bytes, nil
 	} else {
-		return "", nil
+		return nil, nil
 	}
 
 }
