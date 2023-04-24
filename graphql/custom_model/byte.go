@@ -1,22 +1,23 @@
 package custom_model
 
 import (
-	"github.com/pkg/errors"
 	"io"
 )
 
-func MarshalByte(f string) Marshaler {
+func MarshalByte(f []byte) Marshaler {
 
 	return WriterFunc(func(w io.Writer) {
-		io.WriteString(w, string(f))
+		w.Write(f)
 	})
 }
 
 func UnmarshalByte(v interface{}) ([]byte, error) {
-	bytes, ok := v.(string)
+
+	bytes, ok := v.([]byte)
 	if !ok {
-		return nil, errors.New("could not unmarshal byte, value is not a string")
+		return nil, nil
+	} else {
+		return bytes, nil
 	}
 
-	return []byte(bytes), nil
 }
