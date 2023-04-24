@@ -10,10 +10,11 @@ import (
 const (
 	golangByteArray = "[]byte"
 	//gureguNullInt    = "null.Int"
-	gureguNullInt   = "*int32"
-	sqlNullInt      = "sql.NullInt64"
+	golangNullInt = "*int32"
+
 	golangInt       = "int32"
 	golangBool      = "bool"
+	golangNullInt64 = "*int64"
 	golangInt64     = "int64"
 	gureguNullFloat = "*float32"
 	sqlNullFloat    = "sql.NullFloat64"
@@ -116,9 +117,9 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 	case TypeContains(columnType, TypeIntegers):
 		if nullable {
 			if gureguTypes {
-				return gureguNullInt
+				return golangNullInt
 			}
-			return sqlNullInt
+			return golangNullInt
 		}
 		return golangInt
 	case TypeContains(columnType, TypeBool):
@@ -132,9 +133,9 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 	case TypeContains(columnType, TypeBigIntegers):
 		if nullable {
 			if gureguTypes {
-				return gureguNullInt
+				return golangNullInt64
 			}
-			return sqlNullInt
+			return golangNullInt64
 		}
 		return golangInt64
 	case TypeContains(columnType, TypeStrings):

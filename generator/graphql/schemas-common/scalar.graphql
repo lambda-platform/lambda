@@ -1,6 +1,5 @@
 scalar Time
 scalar Date
-scalar Int
 scalar Int32
 scalar Int64
 scalar GormDeletedAt
