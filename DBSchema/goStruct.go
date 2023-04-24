@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	golangByteArray = "interface{}"
+	golangByteArray = "[]byte"
 	//gureguNullInt    = "null.Int"
 	golangNullInt = "*int32"
 
