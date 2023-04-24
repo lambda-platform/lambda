@@ -76,4 +76,4 @@ models:
       - github.com/lambda-platform/lambda/graphql/custom_model.GormDeletedAt
   Byte:
     model:
-      - github.com/lambda-platform/lambda/graphql/custom_model.Byte
+      - github.com/99designs/gqlgen/graphql.Any
