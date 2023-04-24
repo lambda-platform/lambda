@@ -53,6 +53,7 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	//g.OPTIONS("/upload", handlers.Upload, agentMW.IsLoggedIn())
 	g.Post("/unique", handlers.CheckUnique)
 	g.Get("/today", handlers.Today)
+	g.Get("/now", handlers.Now)
 	g.Post("/check_current_password", agentMW.IsLoggedIn(), handlers.CheckCurrentPassword)
 
 	/*

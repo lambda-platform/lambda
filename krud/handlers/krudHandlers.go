@@ -24,6 +24,12 @@ func Today(c *fiber.Ctx) error {
 		"today": currentTime.Format("2006-01-02"),
 	})
 }
+func Now(c *fiber.Ctx) error {
+	currentTime := time.Now()
+	return c.JSON(map[string]interface{}{
+		"today": currentTime,
+	})
+}
 func CheckUnique(c *fiber.Ctx) error {
 	return dataform.CheckUnique(c)
 }
