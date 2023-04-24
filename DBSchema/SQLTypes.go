@@ -11,12 +11,12 @@ var TypeIntegers = []string{
 	"SMALLINT",
 	"INT",
 	"INTEGER",
-	"LONG",
 }
 var TypeBigIntegers = []string{
 	"bigint",
 	"NUMBER",
 	"int8",
+	"LONG",
 }
 var TypeBool = []string{
 	"bool",

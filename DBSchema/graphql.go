@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	gqlNullInt    = "Int"
-	gqlInt        = "Int!"
+	gqlNullInt    = "Int32"
+	gqlInt        = "Int32!"
+	gqlNullBigInt = "Int32"
+	gqlBigInt     = "Int32!"
 	gqlNullFloat  = "Float"
 	gqlFloat      = "Float!"
 	gqlNullString = "String"
@@ -169,11 +171,11 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 	case TypeContains(columnType, TypeBigIntegers):
 		if nullable {
 			if gureguTypes {
-				return gqlNullInt
+				return gqlNullBigInt
 			}
-			return gqlNullInt
+			return gqlBigInt
 		}
-		return gqlInt
+		return gqlBigInt
 	case TypeContains(columnType, TypeStrings):
 		if nullable {
 			if gureguTypes {
