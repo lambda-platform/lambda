@@ -7,7 +7,7 @@ import (
 func MarshalByte(f []byte) Marshaler {
 
 	return WriterFunc(func(w io.Writer) {
-		w.Write(f)
+		io.WriteString(w, string(f))
 	})
 }
 
