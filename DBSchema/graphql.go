@@ -8,19 +8,21 @@ import (
 )
 
 const (
-	gqlNullInt    = "Int32"
-	gqlInt        = "Int32!"
-	gqlNullBigInt = "Int32"
-	gqlBigInt     = "Int32!"
-	gqlNullFloat  = "Float"
-	gqlFloat      = "Float!"
-	gqlNullString = "String"
-	gqlString     = "String!"
-	gqlNullTime   = "Time"
-	gqlTime       = "Time!"
-	dbNullDate    = "Date!"
-	dbDate        = "Date!"
-	gqlBinary     = "Byte!"
+	gqlNullInt     = "Int32"
+	gqlInt         = "Int32!"
+	gqlNullBoolean = "Boolean"
+	gqlBoolean     = "Boolean!"
+	gqlNullBigInt  = "Int32"
+	gqlBigInt      = "Int32!"
+	gqlNullFloat   = "Float"
+	gqlFloat       = "Float!"
+	gqlNullString  = "String"
+	gqlString      = "String!"
+	gqlNullTime    = "Time"
+	gqlTime        = "Time!"
+	dbNullDate     = "Date!"
+	dbDate         = "Date!"
+	gqlBinary      = "Byte!"
 )
 
 func GenerateGrapql(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
@@ -163,17 +165,17 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 	case TypeContains(columnType, TypeBool):
 		if nullable {
 			if gureguTypes {
-				return gqlNullInt
+				return gqlNullBoolean
 			}
-			return gqlNullInt
+			return gqlNullBoolean
 		}
-		return gqlInt
+		return gqlBoolean
 	case TypeContains(columnType, TypeBigIntegers):
 		if nullable {
 			if gureguTypes {
 				return gqlNullBigInt
 			}
-			return gqlBigInt
+			return gqlNullBigInt
 		}
 		return gqlBigInt
 	case TypeContains(columnType, TypeStrings):
