@@ -30,7 +30,7 @@ const (
 	date           = "DB.Date"
 	dateNull       = "DB.Date"
 )
-inter
+
 func GenerateOnlyStruct(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
