@@ -57,12 +57,9 @@ models:
   Int:
     model:
       - github.com/99designs/gqlgen/graphql.Int
-  Int32:
-   model:
       - github.com/99designs/gqlgen/graphql.Int32
-  Int64:
-   model:
       - github.com/99designs/gqlgen/graphql.Int64
+
   Float:
     model:
       - github.com/lambda-platform/lambda/graphql/custom_model.Float

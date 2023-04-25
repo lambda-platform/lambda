@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	gqlNullInt     = "Int32"
-	gqlInt         = "Int32!"
+	gqlNullInt     = "Int"
+	gqlInt         = "Int!"
 	gqlNullBoolean = "Boolean"
 	gqlBoolean     = "Boolean!"
-	gqlNullBigInt  = "Int64"
-	gqlBigInt      = "Int64!"
+	gqlNullBigInt  = "Int"
+	gqlBigInt      = "Int!"
 	gqlNullFloat   = "Float"
 	gqlFloat       = "Float!"
 	gqlNullString  = "String"

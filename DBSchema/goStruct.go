@@ -10,12 +10,12 @@ import (
 const (
 	golangByteArray = "[]byte"
 	//gureguNullInt    = "null.Int"
-	golangNullInt = "*int32"
+	golangNullInt = "*int"
 
-	golangInt       = "int32"
+	golangInt       = "int"
 	golangBool      = "bool"
-	golangNullInt64 = "*int64"
-	golangInt64     = "int64"
+	golangNullInt64 = "*int"
+	golangInt64     = "int"
 	gureguNullFloat = "*float32"
 	sqlNullFloat    = "sql.NullFloat64"
 	golangFloat     = "float"
