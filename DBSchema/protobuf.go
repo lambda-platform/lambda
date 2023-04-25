@@ -8,7 +8,7 @@ import (
 
 const (
 	protoByteArray = "bytes"
-	protoInt       = "int32"
+	protoInt       = "int64"
 	protoBigInt    = "int64"
 	protoBool      = "bool"
 	protoString    = "string"
