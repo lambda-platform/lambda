@@ -14,7 +14,7 @@ func IsLoggedIn() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey:   []byte(config.Config.JWT.Secret),
 		ErrorHandler: jwtError,
-		TokenLookup:  "cookie:token,header:Authorization",
+		TokenLookup:  "header:Authorization,cookie:token",
 	})
 }
 
