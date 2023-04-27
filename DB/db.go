@@ -60,7 +60,7 @@ func init() {
 
 		} else if config.Config.Database.Connection == "postgres" {
 
-			dbConnection, err := gorm.Open(postgres.Open("host="+config.Config.Database.Host+" port="+config.Config.Database.Port+" user="+config.Config.Database.UserName+" dbname="+config.Config.Database.Database+" password="+config.Config.Database.Password+" sslmode=disable"), Config)
+			dbConnection, err := gorm.Open(postgres.Open("host="+config.Config.Database.Host+" port="+config.Config.Database.Port+" user="+config.Config.Database.UserName+" dbname="+config.Config.Database.Database+" password="+config.Config.Database.Password+" sslmode=prefer"), Config)
 
 			if err != nil {
 
