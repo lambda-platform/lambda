@@ -60,8 +60,11 @@ func RegisterRoute(app *fiber.App) {
 		accessToken, _ := BearerAuth(c)
 		token, _ := oauthServer.Manager.LoadAccessToken(c.Context(), accessToken)
 
-		foundUser := agentUtils.AuthUserObjectByLogin(token.GetUserID())
+		foundUser, err := agentUtils.AuthUser(token.GetUserID(), "id")
 
+		if err != nil {
+			return err
+		}
 		delete(foundUser, "password")
 		return c.Status(http.StatusOK).JSON(foundUser)
 	})
