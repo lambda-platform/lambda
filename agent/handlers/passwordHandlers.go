@@ -51,9 +51,9 @@ func SendForgotMail(c *fiber.Ctx) error {
 		})
 	}
 
-	foundUser := agentUtils.AuthUserObjectByEmail(data.Email)
+	user, err := agentUtils.AuthUser(data.Email, "email")
 
-	if len(foundUser) == 0 {
+	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 			"error":  StaticWords["userNotFound"],
 			"msg":    StaticWords["userNotFound"],
@@ -87,12 +87,12 @@ func SendForgotMail(c *fiber.Ctx) error {
 
 	if mailSent {
 
-		delete(foundUser, "password")
+		delete(user, "password")
 
 		return c.JSON(map[string]interface{}{
 			"msg":    StaticWords["passwordResetCodeSent"],
 			"status": true,
-			"data":   foundUser,
+			"data":   user,
 		})
 	} else {
 		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{

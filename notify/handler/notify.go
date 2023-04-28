@@ -116,12 +116,19 @@ func SetSeen(c *fiber.Ctx) error {
 		}
 
 	} else {
-		authUser := agentUtils.AuthUser(c)
+		User, err := agentUtils.AuthUserObject(c)
+
+		if err != nil {
+			c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":  err.Error(),
+				"status": false,
+			})
+		}
 
 		if config.Config.Database.Connection == "oracle" {
 			var status models.NotificationStatusOracle
 
-			DB.DB.Where("NOTIF_ID = ? AND RECEIVER_ID = ?", id, authUser.ID).First(&status)
+			DB.DB.Where("NOTIF_ID = ? AND RECEIVER_ID = ?", id, User["id"]).First(&status)
 
 			if status.ID >= 1 {
 				status.Seen = 1
@@ -138,7 +145,7 @@ func SetSeen(c *fiber.Ctx) error {
 		} else {
 			var status models.NotificationStatus
 
-			DB.DB.Where("notif_id = ? AND receiver_id = ?", id, authUser.ID).First(&status)
+			DB.DB.Where("notif_id = ? AND receiver_id = ?", id, User["id"]).First(&status)
 
 			if status.ID >= 1 {
 				status.Seen = 1

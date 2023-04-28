@@ -18,37 +18,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
-	"strconv"
 	"time"
 )
 
-type User struct {
+type LoginRequest struct {
 	Login    string `json:"login" xml:"login" form:"login" query:"login"`
 	Password string `json:"password" xml:"password" form:"password" query:"password"`
 }
-type UserData struct {
-	Id    int64
-	Login string
-	Role  int64
-}
-type UserUUIDData struct {
-	Id    string
-	Login string
-	Role  int64
-}
-type jwtClaims struct {
-	Id    int64  `json:"id"`
-	Login string `json:"login"`
-	Role  int64  `json:"role"`
-	jwt.StandardClaims
-}
-type jwtUUIDClaims struct {
-	Id    string `json:"id"`
-	Login string `json:"login"`
-	Role  int64  `json:"role"`
-	jwt.StandardClaims
-}
+
 type Permissions struct {
 	DefaultMenu string      `json:"default_menu"`
 	Extra       interface{} `json:"extra"`
@@ -58,139 +35,55 @@ type Permissions struct {
 
 func Login(c *fiber.Ctx) error {
 
-	u := new(User)
-	if err := c.BodyParser(u); err != nil {
+	request := LoginRequest{}
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
 			Error:  "Username & password required",
 			Status: false,
 		})
 	}
 
-	foundUser := agentUtils.AuthUserObjectByLogin(u.Login)
-
-	if len(foundUser) == 0 {
+	user, err := agentUtils.AuthUser(request.Login, "login")
+	var roleID int64 = 0
+	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
-			Error:  "User not found",
+			Error:  err.Error(),
 			Status: false,
 		})
 	}
-	//password, err := Hash(u.Password)
-	//password_check1 := IsSame(password, foundUser.Password)
 
-	passwordColumnName := "password"
-	loginColumnName := "login"
+	if agentUtils.IsSame(request.Password, user["password"].(string)) {
 
-	if agentUtils.IsSame(u.Password, foundUser[passwordColumnName].(string)) {
-
-		var roleID int64 = 0
-		var userID int64 = 0
-		var userUUID = ""
-
-		if config.Config.Database.Connection == "oracle" {
-
-			userByModel := models.USERSOracle{}
-			DB.DB.Where("\"LOGIN\" = ?", u.Login).Find(&userByModel)
-
-			userID = userByModel.ID
-			roleID = userByModel.Role
-
-			foundUser["id"] = userByModel.ID
-			foundUser["role"] = userByModel.Role
-
-		} else {
-			if reflect.TypeOf(foundUser["id"]).String() == "string" {
-				if config.Config.SysAdmin.UUID {
-					userUUID = foundUser["id"].(string)
-				} else {
-					i, err := strconv.ParseInt(foundUser["id"].(string), 10, 64)
-					if err != nil {
-						panic(err)
-					}
-					userID = i
-				}
-
-			} else {
-				userID = foundUser["id"].(int64)
-			}
-
-			if reflect.TypeOf(foundUser["role"]).String() == "string" {
-				i, err := strconv.ParseInt(foundUser["role"].(string), 10, 64)
-				if err != nil {
-					panic(err)
-				}
-				roleID = i
-			} else {
-				roleID = foundUser["role"].(int64)
-			}
-		}
-		if config.Config.SysAdmin.UUID {
-			// create jwt token
-			token, err := createUUIDJwtToken(UserUUIDData{Id: userUUID, Login: foundUser[loginColumnName].(string), Role: roleID})
-			if err != nil {
-				//log.Println("Error Creating JWT token", err)
-				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
-					Error:  "Unauthorized",
-					Status: false,
-				})
-			}
-
-			cookie := new(fiber.Cookie)
-			cookie.Name = "token"
-			cookie.Path = "/"
-			cookie.Value = token
-			cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
-			//cookie.HttpOnly = true
-			//cookie.Secure = true
-
-			delete(foundUser, passwordColumnName)
-
-			foundUser["jwt"] = token
-
-			c.Cookie(cookie)
-
-			OAuth := withOAuth(u.Login, c)
-
-			return c.Status(fiber.StatusOK).JSON(models.LoginData{
-				Token:  token,
-				Path:   checkRole(roleID),
-				Status: true,
-				Data:   foundUser,
-				OAuth:  OAuth,
-			})
-		} else {
-
-			// create jwt token
-			token, err := createJwtToken(UserData{Id: userID, Login: foundUser[loginColumnName].(string), Role: roleID})
-			if err != nil {
-				//log.Println("Error Creating JWT token", err)
-				return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
-					Error:  "Unauthorized",
-					Status: false,
-				})
-			}
-
-			cookie := new(fiber.Cookie)
-			cookie.Name = "token"
-			cookie.Path = "/"
-			cookie.Value = token
-			cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
-
-			delete(foundUser, "password")
-
-			foundUser["jwt"] = token
-
-			c.Cookie(cookie)
-
-			OAuth := withOAuth(u.Login, c)
-
-			return c.Status(fiber.StatusOK).JSON(models.LoginData{
-				Token:  token,
-				Path:   checkRole(roleID),
-				Status: true,
-				Data:   foundUser,
-				OAuth:  OAuth,
+		roleID = agentUtils.GetRole(user["role"])
+		// create jwt token
+		token, err := createJwtToken(user, roleID)
+		if err != nil {
+			//log.Println("Error Creating JWT token", err)
+			return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+				Error:  "Unauthorized",
+				Status: false,
 			})
 		}
+
+		cookie := new(fiber.Cookie)
+		cookie.Name = "token"
+		cookie.Path = "/"
+		cookie.Value = token
+		cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
+
+		delete(user, "password")
+
+		c.Cookie(cookie)
+
+		OAuth := withOAuth(request.Login, c)
+
+		return c.Status(fiber.StatusOK).JSON(models.LoginData{
+			Token:  token,
+			Path:   checkRole(roleID),
+			Status: true,
+			Data:   user,
+			OAuth:  OAuth,
+		})
 
 	}
 
@@ -221,19 +114,16 @@ func withOAuth(username string, c *fiber.Ctx) bool {
 }
 func GetPermissions(c *fiber.Ctx) error {
 
-	user := agentUtils.AuthUserObject(c)
+	user, err := agentUtils.AuthUserObject(c)
 
-	var roleID int64 = 0
-
-	if reflect.TypeOf(user["role"]).String() == "string" {
-		i, err := strconv.ParseInt(user["role"].(string), 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		roleID = i
-	} else {
-		roleID = user["role"].(int64)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+			Error:  err.Error(),
+			Status: false,
+		})
 	}
+
+	roleID := agentUtils.GetRole(user["role"])
 
 	permissionData := PermissionData(roleID)
 	return c.Status(fiber.StatusOK).JSON(map[string]interface{}{
@@ -341,30 +231,25 @@ func LambdaConfig(c *fiber.Ctx) error {
 	return c.JSON(config.LambdaConfig)
 }
 
-func createJwtToken(user UserData) (string, error) {
+func createJwtToken(user map[string]interface{}, role int64) (string, error) {
 	// Set custom claims
 	claims := jwt.MapClaims{
-		"id":    user.Id,
-		"login": user.Login,
-		"role":  user.Role,
-		"exp":   time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl)).Unix(),
+		"role": role,
+		"exp":  time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl)).Unix(),
 	}
-	// Create token with claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(config.Config.JWT.Secret))
-	if err != nil {
-		return "", err
+
+	for k, v := range user {
+		if k != "role" && k != "password" {
+			claims[k] = v
+		}
 	}
-	return t, nil
-}
-func createUUIDJwtToken(user UserUUIDData) (string, error) {
-	// Set custom claims
-	claims := jwt.MapClaims{
-		"id":    user.Id,
-		"login": user.Login,
-		"role":  user.Role,
-		"exp":   time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl)).Unix(),
-	}
+	//for i := 0; i < len(config.LambdaConfig.UserDataFields); i++ {
+	//	userField := config.LambdaConfig.UserDataFields[i]
+	//
+	//	if userField != "id" && userField != "login" && userField != "role" {
+	//		claims[userField] = user[userField]
+	//	}
+	//}
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(config.Config.JWT.Secret))

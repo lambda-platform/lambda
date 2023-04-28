@@ -21,7 +21,14 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 	if action == "store" || action == "update" || action == "delete" || action == "edit" {
 
 		schemaId, _ := strconv.ParseInt(c.Params("schemaId"), 10, 64)
-		user := agentUtils.AuthUserObject(c)
+		user, err := agentUtils.AuthUserObject(c)
+
+		if err != nil {
+			c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":  err.Error(),
+				"status": false,
+			})
+		}
 
 		var response crudResponse
 

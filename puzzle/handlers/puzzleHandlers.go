@@ -54,7 +54,14 @@ func Index(c *fiber.Ctx) error {
 	//gridList, err := models.VBSchemas(qm.Where("type = ?", "grid")).All(context.Background(), DB)
 	//dieIF(err)
 
-	User := agentUtils.AuthUserObject(c)
+	User, err := agentUtils.AuthUserObject(c)
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  err.Error(),
+			"status": false,
+		})
+	}
 	csrfToken := ""
 	return c.Render("puzzle", map[string]interface{}{
 		"lambda_config":             config.LambdaConfig,

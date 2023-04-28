@@ -70,7 +70,14 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 
 	if len(FilterWithUser) >= 1 {
 
-		User := agentUtils.AuthUserObject(c)
+		User, err := agentUtils.AuthUserObject(c)
+
+		if err != nil {
+			c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":  err.Error(),
+				"status": false,
+			})
+		}
 		for _, userCon := range FilterWithUser {
 
 			tableField := userCon["tableField"]

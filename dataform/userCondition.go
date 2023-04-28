@@ -23,7 +23,14 @@ func SetCondition(condition string, c *fiber.Ctx, VBSchema lbModel.VBSchema) err
 		var conditionData []map[string]string
 		json.Unmarshal([]byte(uString), &conditionData)
 
-		User := agentUtils.AuthUserObject(c)
+		User, err := agentUtils.AuthUserObject(c)
+
+		if err != nil {
+			c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":  err.Error(),
+				"status": false,
+			})
+		}
 		for _, userCondition := range conditionData {
 
 			for i := range schema.Schema {
@@ -60,7 +67,14 @@ func SetConditionOracle(condition string, c *fiber.Ctx, VBSchema lbModel.VBSchem
 		var conditionData []map[string]string
 		json.Unmarshal([]byte(uString), &conditionData)
 
-		User := agentUtils.AuthUserObject(c)
+		User, err := agentUtils.AuthUserObject(c)
+
+		if err != nil {
+			c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":  err.Error(),
+				"status": false,
+			})
+		}
 		for _, userCondition := range conditionData {
 
 			for i := range schema.Schema {

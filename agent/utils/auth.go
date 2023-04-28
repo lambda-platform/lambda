@@ -5,11 +5,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lambda-platform/lambda/DB"
-	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/agent/models"
 	"github.com/lambda-platform/lambda/config"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -27,19 +28,7 @@ func AuthUserOracle(c *fiber.Ctx) *models.USERSOracle {
 	//User.Password = ""
 	return &User
 }
-func AuthUser(c *fiber.Ctx) *models.User {
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
 
-	Id := claims["id"]
-
-	User := models.User{}
-
-	DB.DB.Where("id = ?", Id).First(&User)
-
-	//User.Password = ""
-	return &User
-}
 func AuthUserUUID(c *fiber.Ctx) *models.UserUUID {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
@@ -53,245 +42,48 @@ func AuthUserUUID(c *fiber.Ctx) *models.UserUUID {
 	//User.Password = ""
 	return &User
 }
-func AuthUserObject(c *fiber.Ctx) map[string]interface{} {
+func AuthUserObject(c *fiber.Ctx) (map[string]interface{}, error) {
 
 	if c.Locals("user") == nil {
-		return map[string]interface{}{}
+		return map[string]interface{}{}, gorm.ErrRecordNotFound
 	} else {
 		user := c.Locals("user").(*jwt.Token)
 		claims := user.Claims.(jwt.MapClaims)
+		return claims, nil
+	}
+}
 
-		Id := claims["id"]
+func AuthUser(value interface{}, uniqField string) (map[string]interface{}, error) {
+	var userData map[string]interface{}
 
-		query := ""
-		if config.Config.SysAdmin.UUID {
-			query = fmt.Sprintf("SELECT * FROM users WHERE id = '%s'", Id.(string))
+	table := "users"
 
-		} else {
-			userQuery := "SELECT * FROM users  WHERE id = '%d'"
+	whereString := fmt.Sprintf("deleted_at IS NULL AND %s = ?", uniqField)
 
-			if config.Config.Database.Connection == "oracle" {
-				userQuery = "SELECT * FROM \"USERS\" WHERE \"ID\" = '%d'"
-			}
+	if config.Config.Database.Connection == "oracle" {
+		table = "USERS"
+		uniqField = strings.ToUpper(uniqField)
+		whereString = fmt.Sprintf("DELETED_AT IS NULL AND %s = ?", uniqField)
+	}
 
-			query = fmt.Sprintf(userQuery, int(Id.(float64)))
+	err := DB.DB.Table(table).Where(whereString, value).Find(&userData).Error
 
+	if len(userData) >= 1 && err == nil {
+		if config.Config.Database.Connection == "oracle" {
+			userData = toLowerKeys(userData)
 		}
-
-		rows, _ := DB.DB.Raw(query).Rows()
-
-		columns, _ := rows.Columns()
-		count := len(columns)
-		values := make([]interface{}, count)
-		valuePtrs := make([]interface{}, count)
-
-		userData := map[string]interface{}{}
-		result_id := 0
-		for rows.Next() {
-			for i, _ := range columns {
-				valuePtrs[i] = &values[i]
-			}
-			rows.Scan(valuePtrs...)
-
-			for i, col := range columns {
-
-				val := values[i]
-
-				if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
-					//if col == "id"{
-					//	if config.Config.SysAdmin.UUID {
-					//		b, ok := val.([]byte)
-					//		if ok {
-					//			stringValue := string(b)
-					//			userData[col] = stringValue
-					//		} else {
-					//			userData[col] = val
-					//		}
-					//	} else {
-					//		userData[col] = val
-					//	}
-					//} else {
-					//	userData[col] = val
-					//}
-
-					b, ok := val.([]byte)
-					if ok {
-						v, err := strconv.ParseInt(string(b), 10, 64)
-						if err != nil {
-							stringValue := string(b)
-							//	fmt.Println(stringValue)
-
-							userData[col] = stringValue
-						} else {
-							userData[col] = v
-						}
-
-					} else {
-						userData[col] = val
-					}
-				} else {
-					if config.Config.Database.Connection == "oracle" {
-						col = strings.ToLower(col)
-					}
-					b, ok := val.([]byte)
-					if ok {
-						v, err := strconv.ParseInt(string(b), 10, 64)
-						if err != nil {
-							stringValue := string(b)
-							//	fmt.Println(stringValue)
-
-							userData[col] = stringValue
-						} else {
-							userData[col] = v
-						}
-
-					} else {
-						userData[col] = val
-					}
-				}
-
-			}
-
-			result_id++
-		}
-
-		delete(userData, "password")
-
-		userData["role"] = agentMW.GetUserRole(claims)
-		return userData
+		return userData, err
+	} else {
+		return userData, gorm.ErrRecordNotFound
 	}
 
 }
-
-func AuthUserObjectByLogin(login string) map[string]interface{} {
-	userData := map[string]interface{}{}
-
-	userQuery := "SELECT * FROM users WHERE login = '%s'"
-
-	if config.Config.Database.Connection == "oracle" {
-		userQuery = "SELECT * FROM \"USERS\" WHERE \"LOGIN\" = '%s'"
+func toLowerKeys(m map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	for k, v := range m {
+		result[strings.ToLower(k)] = v
 	}
-	rows, errorDB := DB.DB.Raw(fmt.Sprintf(userQuery, login)).Rows()
-
-	//fmt.Println(login)
-	fmt.Println(errorDB)
-
-	columns, _ := rows.Columns()
-	count := len(columns)
-	values := make([]interface{}, count)
-	valuePtrs := make([]interface{}, count)
-
-	result_id := 0
-	for rows.Next() {
-		for i, _ := range columns {
-			valuePtrs[i] = &values[i]
-		}
-		rows.Scan(valuePtrs...)
-
-		for i, col := range columns {
-
-			val := values[i]
-
-			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
-
-				if col == "id" {
-					if config.Config.SysAdmin.UUID {
-						b, ok := val.([]byte)
-						if ok {
-							stringValue := string(b)
-							userData[col] = stringValue
-						} else {
-							userData[col] = val
-						}
-					} else {
-						userData[col] = val
-					}
-
-				} else {
-					userData[col] = val
-				}
-
-			} else {
-				if config.Config.Database.Connection == "oracle" {
-					col = strings.ToLower(col)
-				}
-				b, ok := val.([]byte)
-				if ok {
-					v, err := strconv.ParseInt(string(b), 10, 64)
-					if err != nil {
-						stringValue := string(b)
-						//	fmt.Println(stringValue)
-
-						userData[col] = stringValue
-					} else {
-						userData[col] = v
-					}
-
-				} else {
-					userData[col] = val
-				}
-			}
-
-		}
-
-		result_id++
-	}
-
-	return userData
-}
-func AuthUserObjectByEmail(login string) map[string]interface{} {
-	userQuery := "SELECT * FROM users WHERE email = '%s'"
-
-	if config.Config.Database.Connection == "oracle" {
-		userQuery = "SELECT * FROM \"USERS\" WHERE \"EMAIL\" = '%s'"
-
-	}
-	rows, _ := DB.DB.Raw(fmt.Sprintf(userQuery, login)).Rows()
-
-	columns, _ := rows.Columns()
-	count := len(columns)
-	values := make([]interface{}, count)
-	valuePtrs := make([]interface{}, count)
-
-	userData := map[string]interface{}{}
-	result_id := 0
-	for rows.Next() {
-		for i, _ := range columns {
-			valuePtrs[i] = &values[i]
-		}
-		rows.Scan(valuePtrs...)
-
-		for i, col := range columns {
-
-			val := values[i]
-
-			if config.Config.Database.Connection == "mssql" || config.Config.Database.Connection == "postgres" {
-				userData[col] = val
-
-			} else {
-				b, ok := val.([]byte)
-				if ok {
-					v, err := strconv.ParseInt(string(b), 10, 64)
-					if err != nil {
-						stringValue := string(b)
-						//	fmt.Println(stringValue)
-
-						userData[col] = stringValue
-					} else {
-						userData[col] = v
-					}
-
-				} else {
-					userData[col] = val
-				}
-			}
-
-		}
-
-		result_id++
-	}
-
-	return userData
+	return result
 }
 func Hash(str string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(str), bcrypt.DefaultCost)
@@ -305,6 +97,19 @@ type passwordPost struct {
 	Password string `json:"password"`
 }
 
+func AuthUserFromContext(c *fiber.Ctx) *models.User {
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+
+	Id := claims["id"]
+
+	User := models.User{}
+
+	DB.DB.Where("id = ?", Id).First(&User)
+
+	//User.Password = ""
+	return &User
+}
 func CheckCurrentPassword(c *fiber.Ctx) error {
 
 	post := new(passwordPost)
@@ -345,7 +150,7 @@ func CheckCurrentPassword(c *fiber.Ctx) error {
 
 			}
 		} else {
-			user := AuthUser(c)
+			user := AuthUserFromContext(c)
 
 			if IsSame(post.Password, user.Password) {
 				return c.JSON(map[string]interface{}{
@@ -362,4 +167,26 @@ func CheckCurrentPassword(c *fiber.Ctx) error {
 
 	}
 
+}
+
+func GetRole(role interface{}) int64 {
+	roleDataType := reflect.TypeOf(role).String()
+	var roleValue int64
+	if roleDataType == "float64" {
+		roleValue = int64(role.(float64))
+	} else if roleDataType == "float32" {
+		roleValue = int64(role.(float32))
+	} else if roleDataType == "int" {
+		roleValue = int64(role.(int))
+	} else if roleDataType == "int32" {
+		roleValue = int64(role.(int32))
+	} else if roleDataType == "int64" {
+		roleValue = role.(int64)
+	} else if roleDataType == "string" {
+		roleValue, _ = strconv.ParseInt(role.(string), 10, 64)
+	} else {
+		roleValue = int64(role.(int))
+	}
+
+	return roleValue
 }

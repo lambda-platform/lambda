@@ -30,7 +30,14 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 
 				for _, userCondition := range v.([]interface{}) {
 					codintion := reflect.ValueOf(userCondition).Interface().(map[string]interface{})
-					User := agentUtils.AuthUserObject(c)
+					User, err := agentUtils.AuthUserObject(c)
+
+					if err != nil {
+						c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+							"error":  err.Error(),
+							"status": false,
+						})
+					}
 
 					query = query.Where(codintion["grid_field"].(string)+" = ?", User[codintion["user_field"].(string)])
 				}

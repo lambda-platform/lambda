@@ -9,6 +9,7 @@ import (
 	"github.com/tealeg/xlsx"
 	"net/http"
 	"reflect"
+	"regexp"
 	"sort"
 	"unicode/utf8"
 )
@@ -16,7 +17,6 @@ import (
 func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 
 	name := trim(datagrid.Name, 21)
-
 	query := DB.DB.Table(datagrid.DataTable)
 	customHeader := ""
 	query, customHeader = Filter(c, datagrid, query)
@@ -154,7 +154,7 @@ func getCellValue(rawValue interface{}) string {
 
 		} else if reflect.TypeOf(rawValue).String() == "string" {
 
-			value = reflect.ValueOf(rawValue).Interface().(string)
+			value = StripTags(reflect.ValueOf(rawValue).Interface().(string))
 
 		} else if reflect.TypeOf(rawValue).String() == "int" {
 
@@ -204,4 +204,9 @@ func trim(s string, length int) string {
 	}
 
 	return s[:x]
+}
+
+func StripTags(html string) string {
+	re := regexp.MustCompile(`<[^>]*>`)
+	return re.ReplaceAllString(html, "")
 }

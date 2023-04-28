@@ -5,9 +5,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/golang-jwt/jwt/v4"
+	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"net/http"
-	"reflect"
 )
 
 func IsLoggedIn() fiber.Handler {
@@ -72,23 +72,7 @@ func IsCloudUser(c *fiber.Ctx) error {
 }
 
 func GetUserRole(claims jwt.MapClaims) int64 {
-	var role int64
 
-	roleDataType := reflect.TypeOf(claims["role"]).String()
+	return agentUtils.GetRole(claims["role"])
 
-	if roleDataType == "float64" {
-		role = int64(claims["role"].(float64))
-	} else if roleDataType == "float32" {
-		role = int64(claims["role"].(float32))
-	} else if roleDataType == "int" {
-		role = int64(claims["role"].(int))
-	} else if roleDataType == "int32" {
-		role = int64(claims["role"].(int32))
-	} else if roleDataType == "int64" {
-		role = claims["role"].(int64)
-	} else {
-		role = int64(claims["role"].(int))
-	}
-
-	return role
 }
