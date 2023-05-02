@@ -32,7 +32,7 @@ func UploadDBSCHEMA() (*pb.Response, error) {
 	defer conn.Close()
 	c := pb.NewConsoleClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	lambdaConfig, err := os.ReadFile("lambda.json")
