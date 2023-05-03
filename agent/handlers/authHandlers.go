@@ -56,7 +56,7 @@ func Login(c *fiber.Ctx) error {
 
 		roleID = agentUtils.GetRole(user["role"])
 		// create jwt token
-		token, err := createJwtToken(user, roleID)
+		token, err := CreateJwtToken(user, roleID)
 		if err != nil {
 			//log.Println("Error Creating JWT token", err)
 			return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
@@ -231,7 +231,7 @@ func LambdaConfig(c *fiber.Ctx) error {
 	return c.JSON(config.LambdaConfig)
 }
 
-func createJwtToken(user map[string]interface{}, role int64) (string, error) {
+func CreateJwtToken(user map[string]interface{}, role int64) (string, error) {
 	// Set custom claims
 	claims := jwt.MapClaims{
 		"role": role,
