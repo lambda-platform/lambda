@@ -82,13 +82,14 @@ var %sDatagrid datagrid.Datagrid = datagrid.Datagrid{
     TriggerNameSpace: "%s",
 	FillVirtualColumns: fillVirtualColumns%s,
 	IsExcelUpload:              %s,
+	ExcelUploadCustomNamespace:              "%s",
 	%s
 }
 
 func fillVirtualColumns%s(rowsPre interface{}) interface{}{
     %s
 }
-`, models, modelAliasWithID, vb.Name, schema.Identity, schema.Model, schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggergations, triggers, schema.Triggers.Namespace, modelAliasWithID, IsExcelUpload, excelImporter, modelAliasWithID, MicroserviceCaller)
+`, models, modelAliasWithID, vb.Name, schema.Identity, schema.Model, schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggergations, triggers, schema.Triggers.Namespace, modelAliasWithID, IsExcelUpload, schema.ExcelUploadCustomNamespace, excelImporter, modelAliasWithID, MicroserviceCaller)
 
 		Werror := utils.WriteFileFormat(content, "lambda/models/grid/"+modelAlias+strconv.FormatInt(int64(vb.ID), 10)+".go")
 		if Werror == nil {

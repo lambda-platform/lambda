@@ -19,7 +19,7 @@ func Exec(c *fiber.Ctx, schemaId string, action string, id string, GetGridMODEL 
 	case "excel":
 		return ExportExcel(c, datagrid)
 	case "import-excel":
-		return ExportExcel(c, datagrid)
+		return ImportExcel(c, datagrid)
 	case "print":
 		return Print(c, datagrid)
 	case "update-row":
