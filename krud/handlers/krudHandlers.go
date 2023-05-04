@@ -65,6 +65,12 @@ func ExportExcel(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Ha
 		return datagrid.Exec(c, schemaId, "excel", "", GetGridMODEL)
 	}
 }
+func ImportExcel(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		schemaId := c.Params("schemaId")
+		return datagrid.Exec(c, schemaId, "import-excel", "", GetGridMODEL)
+	}
+}
 func Print(GetGridMODEL func(schema_id string) datagrid.Datagrid) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		schemaId := c.Params("schemaId")

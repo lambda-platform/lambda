@@ -142,10 +142,11 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 				} else {
 					Clear(subForm.Model)
 					if tableTypeColumn != "" && tableTypeValue != "" {
-						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ? AND "+subIdentity, parentId, tableTypeValue).Unscoped().Delete(subForm.Model)
+						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ?", parentId, tableTypeValue).Unscoped().Delete(subForm.Model)
 					} else {
 
-						DB.DB.Table(subForm.Table).Where(connectionField+" = ? AND "+subIdentity, parentId).Unscoped().Delete(subForm.Model)
+						DB.DB.Table(subForm.Table).Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
+
 					}
 				}
 

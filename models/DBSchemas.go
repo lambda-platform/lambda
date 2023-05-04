@@ -221,23 +221,26 @@ type SCHEMAGRID struct {
 		AfterDelete  string `json:"afterDelete"`
 		BeforePrint  string `json:"beforePrint"`
 	} `json:"triggers"`
-	Theme                string         `json:"theme"`
-	FullText             bool           `json:"fullText"`
-	EditableAction       interface{}    `json:"editableAction"`
-	EditFullRow          bool           `json:"editFullRow"`
-	EditableShouldSubmit bool           `json:"editableShouldSubmit"`
-	SingleClickEdit      bool           `json:"singleClickEdit"`
-	FlashChanges         bool           `json:"flashChanges"`
-	ColMenu              bool           `json:"colMenu"`
-	ColFilterButton      bool           `json:"colFilterButton"`
-	ShowGrid             bool           `json:"showGrid"`
-	SordOrder            string         `json:"sordOrder"`
-	MainTable            string         `json:"mainTable"`
-	IsPivot              bool           `json:"isPivot"`
-	IsPrint              bool           `json:"isPrint"`
-	PrintSize            string         `json:"printSize"`
-	IsExcel              bool           `json:"isExcel"`
-	IsRefresh            bool           `json:"isRefresh"`
-	IsNumbered           bool           `json:"isNumbered"`
-	Microservices        []Microservice `json:"microservices"`
+	Theme                      string         `json:"theme"`
+	FullText                   bool           `json:"fullText"`
+	EditableAction             interface{}    `json:"editableAction"`
+	EditFullRow                bool           `json:"editFullRow"`
+	EditableShouldSubmit       bool           `json:"editableShouldSubmit"`
+	SingleClickEdit            bool           `json:"singleClickEdit"`
+	FlashChanges               bool           `json:"flashChanges"`
+	ColMenu                    bool           `json:"colMenu"`
+	ColFilterButton            bool           `json:"colFilterButton"`
+	ShowGrid                   bool           `json:"showGrid"`
+	SordOrder                  string         `json:"sordOrder"`
+	MainTable                  string         `json:"mainTable"`
+	IsPivot                    bool           `json:"isPivot"`
+	IsPrint                    bool           `json:"isPrint"`
+	PrintSize                  string         `json:"printSize"`
+	IsExcel                    bool           `json:"isExcel"`
+	IsExcelUpload              bool           `json:"isExcelUpload"`
+	ExcelUploadCustomNamespace string         `json:"excelUploadCustomNamespace"`
+	ExcelUploadCustomTrigger   string         `json:"excelUploadCustomTrigger"`
+	IsRefresh                  bool           `json:"isRefresh"`
+	IsNumbered                 bool           `json:"isNumbered"`
+	Microservices              []Microservice `json:"microservices"`
 }

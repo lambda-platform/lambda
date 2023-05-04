@@ -53,6 +53,15 @@ func WriteGridModel(dbSchema lambdaModels.DBSCHEMA, grids []genertarModels.Proje
 		/*Grid Trigger*/
 		triggers := createTrigger(schema, modelAliasWithID, modelAlias, vb.ID)
 
+		/*Grid Excel importer*/
+		excelImporter := createExcelImporter(schema, modelAliasWithID, modelAlias, vb.ID)
+
+		IsExcelUpload := "false"
+
+		if schema.IsExcelUpload {
+			IsExcelUpload = "true"
+		}
+
 		content := fmt.Sprintf(`%s
 
 var %sDatagrid datagrid.Datagrid = datagrid.Datagrid{
@@ -72,12 +81,14 @@ var %sDatagrid datagrid.Datagrid = datagrid.Datagrid{
    	%s
     TriggerNameSpace: "%s",
 	FillVirtualColumns: fillVirtualColumns%s,
+	IsExcelUpload:              %s,
+	%s
 }
 
 func fillVirtualColumns%s(rowsPre interface{}) interface{}{
     %s
 }
-`, models, modelAliasWithID, vb.Name, schema.Identity, schema.Model, schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggergations, triggers, schema.Triggers.Namespace, modelAliasWithID, modelAliasWithID, MicroserviceCaller)
+`, models, modelAliasWithID, vb.Name, schema.Identity, schema.Model, schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggergations, triggers, schema.Triggers.Namespace, modelAliasWithID, IsExcelUpload, excelImporter, modelAliasWithID, MicroserviceCaller)
 
 		Werror := utils.WriteFileFormat(content, "lambda/models/grid/"+modelAlias+strconv.FormatInt(int64(vb.ID), 10)+".go")
 		if Werror == nil {
@@ -153,6 +164,12 @@ func createModel(schema lambdaModels.SCHEMAGRID, dbSchema lambdaModels.DBSCHEMA,
 	if schema.Triggers.Namespace != "" {
 
 		importPackages = "\n import \"" + schema.Triggers.Namespace + "\" \n"
+
+	}
+
+	if schema.IsExcelUpload && schema.ExcelUploadCustomNamespace != "" && schema.ExcelUploadCustomNamespace != schema.Triggers.Namespace {
+
+		importPackages = "\n import \"" + schema.ExcelUploadCustomNamespace + "\" \n"
 
 	}
 	if microRelationFound {
@@ -272,6 +289,17 @@ func createTrigger(schema lambdaModels.SCHEMAGRID, modelAliasWithID string, mode
 				AfterDelete:` + afterDeleteMethod + `,
 				
 				BeforePrint:` + beforePrintMethod + `,`
+}
+func createExcelImporter(schema lambdaModels.SCHEMAGRID, modelAliasWithID string, modelAlias string, vbID int) string {
+
+	ExcelUploadCustomTrigger := ``
+
+	if schema.ExcelUploadCustomTrigger != "" && schema.ExcelUploadCustomNamespace != "" {
+		ExcelUploadCustomTrigger = fmt.Sprintf("ExcelUploadCustomTrigger: %s,", schema.ExcelUploadCustomTrigger)
+
+	}
+
+	return ExcelUploadCustomTrigger
 }
 func createAggergation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) string {
 	gridAggergation := ``

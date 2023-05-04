@@ -7,27 +7,30 @@ import (
 )
 
 type Datagrid struct {
-	Name               string
-	Identity           string
-	DataTable          string
-	MainTable          string
-	DataModel          interface{}
-	Data               interface{}
-	MainModel          interface{}
-	Columns            []Column
-	ColumnList         []string
-	Filters            map[string]string
-	Relations          []models.GridRelation
-	Condition          string
-	Aggergation        string
-	Triggers           map[string]interface{}
-	BeforeFetch        func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
-	AfterFetch         func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
-	BeforeDelete       func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
-	AfterDelete        func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
-	BeforePrint        func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
-	TriggerNameSpace   string
-	FillVirtualColumns func(interface{}) interface{}
+	Name                       string
+	Identity                   string
+	DataTable                  string
+	MainTable                  string
+	DataModel                  interface{}
+	Data                       interface{}
+	MainModel                  interface{}
+	Columns                    []Column
+	ColumnList                 []string
+	Filters                    map[string]string
+	Relations                  []models.GridRelation
+	Condition                  string
+	Aggergation                string
+	Triggers                   map[string]interface{}
+	BeforeFetch                func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	AfterFetch                 func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	BeforeDelete               func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	AfterDelete                func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	BeforePrint                func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
+	TriggerNameSpace           string
+	IsExcelUpload              bool
+	ExcelUploadCustomNamespace string
+	ExcelUploadCustomTrigger   func(Datagrid, *fiber.Ctx) error
+	FillVirtualColumns         func(interface{}) interface{}
 }
 
 type Column struct {
