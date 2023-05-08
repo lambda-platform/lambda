@@ -84,6 +84,7 @@ type database struct {
 	Database   string
 	UserName   string
 	Password   string
+	Extra      string
 	Debug      bool
 }
 
