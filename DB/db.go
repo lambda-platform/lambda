@@ -64,8 +64,6 @@ func init() {
 			if config.Config.Database.Extra != "" {
 				extra = config.Config.Database.Extra
 			}
-			fmt.Println("host=" + config.Config.Database.Host + " port=" + config.Config.Database.Port + " user=" + config.Config.Database.UserName + " dbname=" + config.Config.Database.Database + " password=" + config.Config.Database.Password + extra)
-			fmt.Println("host=" + config.Config.Database.Host + " port=" + config.Config.Database.Port + " user=" + config.Config.Database.UserName + " dbname=" + config.Config.Database.Database + " password=" + config.Config.Database.Password + extra)
 			dbConnection, err := gorm.Open(postgres.Open("host="+config.Config.Database.Host+" port="+config.Config.Database.Port+" user="+config.Config.Database.UserName+" dbname="+config.Config.Database.Database+" password="+config.Config.Database.Password+extra), Config)
 
 			if err != nil {
