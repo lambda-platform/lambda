@@ -304,6 +304,7 @@ func createExcelImporter(schema lambdaModels.SCHEMAGRID, modelAliasWithID string
 }
 func createAggergation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) string {
 	gridAggergation := ``
+
 	for i, aggergation := range schema.ColumnAggregations {
 
 		if i <= 0 {
@@ -330,7 +331,8 @@ func createRelation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (st
 			indexOfMicro := lambdaUtils.IndexOfMicro(column.Relation.MicroserviceID, schema.Microservices)
 			filedAlias := GetModelAlias(column.Relation.Fields)
 			connectionAlies := DBSchema.FmtFieldName(column.Relation.ConnectionField)
-			if indexOfMicro >= 1 {
+
+			if indexOfMicro >= 0 {
 
 				IDvariables = IDvariables + fmt.Sprintf(`
 %sIDs := []string{}

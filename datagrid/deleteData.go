@@ -14,16 +14,17 @@ func DeleteData(c *fiber.Ctx, datagrid Datagrid, id string) error {
 
 	if err != nil {
 
-		return c.Status(http.StatusBadRequest).JSON(map[string]string{
-			"status": "false",
+		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+			"status": false,
+			"error":  err.Error(),
 		})
 
 	} else {
 
 		ExecTrigger("afterDelete", []interface{}{}, datagrid, qr, c)
 
-		return c.JSON(map[string]string{
-			"status": "true",
+		return c.JSON(map[string]interface{}{
+			"status": true,
 		})
 	}
 }
