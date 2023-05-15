@@ -3,33 +3,11 @@ package datagrid
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/config"
 	"strconv"
 )
 
 func Aggregation(c *fiber.Ctx, datagrid Datagrid) error {
-
-	//GetAggregations := reflect.ValueOf(GridModel).MethodByName("GetAggregations")
-	//aggregationsRes := GetAggregations.Call([]reflect.Value{})
-	//aggregations := aggregationsRes[0].Interface().([]map[string]string)
-	//
-	//
-	//func (v *DSIrtsiinBurtgel524) GetAggregations() []map[string]string {
-	//	//[{"column":"tetgeleg_dun","aggregation":"SUM","symbol":"₮"},{"column":"id","aggregation":"COUNT","symbol":"Нийт "}]
-	//
-	//	aggregations := []map[string]string{
-	//	map[string]string{
-	//	"column": "tetgeleg_dun",
-	//	"aggregation": "SUM",
-	//	"symbol": "₮",
-	//},
-	//	map[string]string{
-	//	"column": "id",
-	//	"aggregation": "COUNT",
-	//	"symbol": "Нийт ",
-	//},
-	//}
-	//	return aggregations
-	//}
 
 	query := DB.DB.Table(datagrid.DataTable)
 
@@ -41,8 +19,16 @@ func Aggregation(c *fiber.Ctx, datagrid Datagrid) error {
 
 	query = Search(c, datagrid.DataModel, query)
 
+	// Check if the "DeletedAt" column exists
+	exists := DB.DB.Migrator().HasColumn(datagrid.DataModel, "DeletedAt")
+	if exists {
+		if config.Config.Database.Connection == "oracle" {
+			query = query.Where("DELETED_AT IS NULL")
+		} else {
+			query = query.Where("deleted_at IS NULL")
+		}
+	}
 	query = query.Select(datagrid.Aggergation)
-
 	rows, _ := query.Rows()
 
 	data := []interface{}{}
