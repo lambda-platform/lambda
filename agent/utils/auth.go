@@ -58,15 +58,15 @@ func AuthUser(value interface{}, uniqField string) (map[string]interface{}, erro
 
 	table := "users"
 
-	whereString := fmt.Sprintf("deleted_at IS NULL AND %s = ?", uniqField)
+	whereString := fmt.Sprintf("deleted_at IS NULL AND LOWER(%s) = ?", uniqField)
 
 	if config.Config.Database.Connection == "oracle" {
 		table = "USERS"
 		uniqField = strings.ToUpper(uniqField)
-		whereString = fmt.Sprintf("DELETED_AT IS NULL AND %s = ?", uniqField)
+		whereString = fmt.Sprintf("DELETED_AT IS NULL AND LOWER(%s) = ?", uniqField)
 	}
 
-	err := DB.DB.Table(table).Where(whereString, value).Find(&userData).Error
+	err := DB.DB.Table(table).Where(whereString, toLowerCase(value)).Find(&userData).Error
 
 	if len(userData) >= 1 && err == nil {
 		if config.Config.Database.Connection == "oracle" {
@@ -78,6 +78,25 @@ func AuthUser(value interface{}, uniqField string) (map[string]interface{}, erro
 	}
 
 }
+func toLowerCase(value interface{}) string {
+	switch v := value.(type) {
+	case string:
+		return strings.ToLower(v)
+	case float32:
+		return strings.ToLower(strconv.FormatFloat(float64(v), 'f', -1, 32))
+	case float64:
+		return strings.ToLower(strconv.FormatFloat(v, 'f', -1, 64))
+	case int:
+		return strings.ToLower(strconv.Itoa(v))
+	case int32:
+		return strings.ToLower(strconv.Itoa(int(v)))
+	case int64:
+		return strings.ToLower(strconv.FormatInt(v, 10))
+	default:
+		return ""
+	}
+}
+
 func toLowerKeys(m map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range m {
