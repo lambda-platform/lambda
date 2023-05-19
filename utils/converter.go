@@ -10,10 +10,19 @@ func GetString(value interface{}) string {
 
 	if reflect.TypeOf(value).String() == "*string" {
 		valPre := value.(*string)
-		stringValue = *valPre
+		if valPre != nil {
+			stringValue = *valPre
+		} else {
+			return ""
+		}
+
 	} else if reflect.TypeOf(value).String() == "*int" {
 		valPre := value.(*int)
-		stringValue = fmt.Sprintf("%d", *valPre)
+		if valPre != nil {
+			stringValue = fmt.Sprintf("%d", *valPre)
+		} else {
+			return ""
+		}
 	} else if reflect.TypeOf(value).String() == "int" {
 		valPre := value.(int)
 		stringValue = fmt.Sprintf("%d", valPre)
