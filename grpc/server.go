@@ -30,7 +30,7 @@ func GetSchemaData(ctx context.Context, in *pb.SchemaParams) (*pb.Response, erro
 
 	var res *pb.Response = &pb.Response{}
 
-	if in.Type == "form" || in.Type == "grid" {
+	if in.Type == "form" || in.Type == "grid" || in.Type == "chart" {
 
 		_ = os.WriteFile("lambda/schemas/"+in.Type+"/"+fmt.Sprintf("%d", in.Id)+".json", []byte(in.Schema), 0700)
 	}
