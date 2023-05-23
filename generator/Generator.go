@@ -24,6 +24,7 @@ func ModelInit(dbSchema lambdaModels.DBSCHEMA, formSchemas []genertarModels.Proj
 		"lambda/microservices",
 		"lambda/schemas/form",
 		"lambda/schemas/menu",
+		"lambda/schemas/chart",
 		"lambda/schemas/grid",
 		formPatch,
 		"lambda/models/form/formModels/",

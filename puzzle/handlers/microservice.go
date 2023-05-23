@@ -122,6 +122,10 @@ func GetLambdaSCHEMA() {
 		_ = os.WriteFile("lambda/schemas/menu/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0700)
 	}
 
+	for _, vb := range data.ChartSchemas {
+		_ = os.WriteFile("lambda/schemas/chart/"+fmt.Sprintf("%d", vb.ID)+".json", []byte(vb.Schema), 0700)
+	}
+
 	microservicesList := `
 package microservices
 
