@@ -154,8 +154,11 @@ func PasswordReset(c *fiber.Ctx) error {
 		now := time.Now()
 		diff := now.Sub(pReset.CreatedAt)
 
-		mins := int(diff.Minutes() * 15)
+		mins := int(diff.Minutes() * 1)
 
+		if PasswordResetTimeOut <= 1 {
+			PasswordResetTimeOut = 3
+		}
 		if PasswordResetTimeOut >= mins && pReset.Wrong <= 2 {
 
 			if agentUtils.IsSame(data.Code, pReset.Token) {
