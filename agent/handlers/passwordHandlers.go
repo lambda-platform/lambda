@@ -234,6 +234,9 @@ func PasswordReset(c *fiber.Ctx) error {
 			now := time.Now()
 			diff := now.Sub(pReset.CreatedAt)
 
+			if PasswordResetTimeOut <= 1 {
+				PasswordResetTimeOut = 3
+			}
 			mins := int(diff.Minutes())
 
 			if PasswordResetTimeOut >= mins && pReset.Wrong <= 21 {
@@ -310,6 +313,9 @@ func PasswordReset(c *fiber.Ctx) error {
 			now := time.Now()
 			diff := now.Sub(pReset.CreatedAt)
 
+			if PasswordResetTimeOut <= 1 {
+				PasswordResetTimeOut = 3
+			}
 			mins := int(diff.Minutes())
 
 			if PasswordResetTimeOut >= mins && pReset.Wrong <= 2 {
