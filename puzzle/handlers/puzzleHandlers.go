@@ -153,7 +153,7 @@ func GetVB(c *fiber.Ctx) error {
 				})
 			} else {
 				VBSchema := models.VBSchema{}
-				if (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "form") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "grid") {
+				if (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "form") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "grid") || (config.LambdaConfig.LambdaMainServicePath != "" && config.LambdaConfig.ProjectKey != "" && type_ == "chart") {
 
 					schemaFile, err := os.Open("lambda/schemas/" + type_ + "/" + id + ".json")
 
