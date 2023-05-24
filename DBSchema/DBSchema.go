@@ -10,10 +10,16 @@ import (
 	"strings"
 )
 
+var Enums []models.PostgresEnum
+
 func GetDBSchema() models.DBSCHEMA {
 	tables := Tables()
 
 	tableMetas := make(map[string][]models.TableMeta, 0)
+
+	if config.Config.Database.Connection == "postgres" {
+		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
+	}
 
 	for _, table := range tables["tables"] {
 		tableMetas[table] = TableMetas(table)
@@ -166,10 +172,6 @@ func TableMetas(tableName string) []models.TableMeta {
 		var currentTableMetas []models.PostgresTableMata
 
 		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default, numeric_scale FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
-
-		Enums := []models.PostgresEnum{}
-		//
-		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
 
 		for _, column := range currentTableMetas {
 

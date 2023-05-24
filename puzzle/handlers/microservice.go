@@ -66,7 +66,7 @@ func GetDBCHEMA() []byte {
 }
 func GetLambdaSCHEMA() {
 
-	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(2*time.Second))
+	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(10*time.Second))
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -157,7 +157,7 @@ var %s models.Microservice = models.Microservice{
 
 func GetRoleData() error {
 
-	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(2*time.Second))
+	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(10*time.Second))
 
 	if err != nil {
 		fmt.Println(err.Error())
