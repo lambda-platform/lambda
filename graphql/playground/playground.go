@@ -26,13 +26,18 @@ var page = template.Must(template.New("graphiql").Parse(`<!DOCTYPE html>
 </style>
 <div id="root"/>
 <script type="text/javascript">
+function removeLastPathSegment(url) {
+    var pathArray = url.split('/');
+    pathArray.pop();  // Remove the last segment
+    return pathArray.join('/');
+}
 	window.addEventListener('load', function (event) {
 		const root = document.getElementById('root');
 		root.classList.add('playgroundIn');
 		const wsProto = location.protocol == 'https:' ? 'wss:' : 'ws:'
 		GraphQLPlayground.init(root, {
-			endpoint: location.protocol + '//' + location.host + '{{.endpoint}}',
-			subscriptionsEndpoint: wsProto + '//' + location.host + '{{.endpoint }}',
+			endpoint: removeLastPathSegment(window.location.href) + '{{.endpoint}}',
+			subscriptionsEndpoint: removeLastPathSegment(window.location.href) + '{{.endpoint }}',
            shareEnabled: true,
 			settings: {
 				'request.credentials': 'same-origin'
