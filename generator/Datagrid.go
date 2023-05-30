@@ -338,8 +338,11 @@ func createRelation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (st
 %sIDs := []string{}
 `, column.Relation.Fields)
 				AppendIDvariables = AppendIDvariables + fmt.Sprintf(`
-%sIDs = append(%sIDs, utils.GetString(row.%s))
-`, column.Relation.Fields, column.Relation.Fields, connectionAlies)
+value := utils.GetString(row.%s)
+ if value != "" {
+%sIDs = append(%sIDs, value)
+}
+`, connectionAlies, column.Relation.Fields, column.Relation.Fields)
 
 				microserviceClients = microserviceClients + fmt.Sprintf(`
 %sRows, %sError := grpc.CallStringData("%s", "%s", "%s", "%s", %sIDs)
