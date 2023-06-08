@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	agentModels "github.com/lambda-platform/lambda/agent/models"
@@ -9,6 +10,7 @@ import (
 	krudModels "github.com/lambda-platform/lambda/krud/models"
 	"github.com/lambda-platform/lambda/models"
 	"net/http"
+	"os"
 )
 
 func GetRolesMenus(c *fiber.Ctx) error {
@@ -247,6 +249,19 @@ func GetKrudFieldsConsole(c *fiber.Ctx) error {
 	DB.DB.Where("id = ?", krud.Form).Find(&form)
 	DB.DB.Where("id = ?", krud.Grid).Find(&grid)
 
+	project := models.Projects{}
+	DB.DB.Where("id = ?", krud.ProjectsID).Find(&project)
+
+	lambdaConfig := config.LambdaConfigFile{}
+	configFilePath := "schemas/" + project.ProjectKey + "_config.json"
+	configFile, err := os.Open(configFilePath)
+	defer configFile.Close()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	jsonParser := json.NewDecoder(configFile)
+	jsonParser.Decode(&lambdaConfig)
+
 	var schema models.SCHEMA
 	var gridSchema models.SCHEMAGRID
 
@@ -265,7 +280,7 @@ func GetKrudFieldsConsole(c *fiber.Ctx) error {
 
 	return c.JSON(map[string]interface{}{
 		"status":           "true",
-		"user_fields":      config.LambdaConfig.UserDataFields,
+		"user_fields":      lambdaConfig.UserDataFields,
 		"form_fields":      formFields,
 		"grid_fields":      gridFields,
 		"grid_fields_full": gridSchema.Schema,
