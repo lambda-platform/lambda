@@ -37,7 +37,7 @@ func GetRolesMenus(c *fiber.Ctx) error {
 			menus := []models.VBSchemaOracle{}
 			kruds := []krudModels.KrudOracle{}
 
-			DB.DB.Where("ID != 1").Find(&roles)
+			DB.DB.Where("ID != 1").Order("DISPLAY_NAME ASC").Find(&roles)
 			DB.DB.Find(&kruds)
 			DB.DB.Where("TYPE = 'menu'").Find(&menus)
 
@@ -52,7 +52,7 @@ func GetRolesMenus(c *fiber.Ctx) error {
 			menus := []models.VBSchema{}
 			kruds := []krudModels.Krud{}
 
-			DB.DB.Where("id != 1").Find(&roles)
+			DB.DB.Where("id != 1").Order("display_name ASC").Find(&roles)
 			DB.DB.Find(&kruds)
 			DB.DB.Where("type = 'menu'").Find(&menus)
 
