@@ -187,6 +187,10 @@ func TableMetas(tableName string) []models.TableMeta {
 					key = "PRI"
 					extra = "auto_increment"
 				}
+				if strings.Contains(*column.ColumnDefault, "SYS_GUID") {
+					key = "PRI"
+					extra = "auto_increment"
+				}
 				if strings.Contains(*column.ColumnDefault, "gen_random_uuid") {
 					key = "PRI"
 					extra = "auto_increment"
@@ -236,6 +240,10 @@ func TableMetas(tableName string) []models.TableMeta {
 				extra = "auto_increment"
 			} else if column.DataDefault != nil {
 				if strings.Contains(*column.DataDefault, "nextval") {
+					key = "PRI"
+					extra = "auto_increment"
+				}
+				if strings.Contains(*column.DataDefault, "SYS_GUID") {
 					key = "PRI"
 					extra = "auto_increment"
 				}
