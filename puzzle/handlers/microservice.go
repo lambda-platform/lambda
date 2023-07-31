@@ -66,7 +66,7 @@ func GetDBCHEMA() []byte {
 }
 func GetLambdaSCHEMA() {
 
-	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(10*time.Second))
+	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(60*time.Second))
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -75,7 +75,7 @@ func GetLambdaSCHEMA() {
 	defer conn.Close()
 	c := pb.NewConsoleClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	r, err := c.LambdaSCHEMA(ctx, &pb.LambdaSchemaParams{

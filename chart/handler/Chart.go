@@ -198,6 +198,14 @@ func LineData(c *fiber.Ctx) (err error) {
 			} else {
 				columns = columns + ", " + getColumn(col)
 			}
+
+			if col.GroupBy {
+				if groups == "" {
+					groups = col.Name
+				} else {
+					groups = groups + ", " + col.Name
+				}
+			}
 		}
 
 		conditions := ""
