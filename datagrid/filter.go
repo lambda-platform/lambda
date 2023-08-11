@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"reflect"
 	"strings"
+	"time"
 )
 
 func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) {
@@ -73,7 +74,48 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 						if config.Config.Database.Connection == "oracle" {
 							query = query.Where(k+" BETWEEN TO_DATE(?,'YYYY-MM-DD') AND TO_DATE(?,'YYYY-MM-DD')", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
 						} else {
-							query = query.Where(k+" BETWEEN ? AND ?", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
+
+							if reflect.TypeOf(v).String() == "map[string]interface {}" {
+
+								interfaceMap := reflect.ValueOf(v).Interface().(map[string]interface{})
+
+								if interfaceMap["type"].(string) == "equals" {
+
+									query = query.Where(k+" BETWEEN ? AND ?", ConvertDate(interfaceMap["dateFrom"].(string))+" 00:00:00", ConvertDate(interfaceMap["dateFrom"].(string))+" 23:59:59")
+
+								} else if interfaceMap["type"].(string) == "greaterThan" {
+
+									query = query.Where(k+" > ?", interfaceMap["dateFrom"])
+
+								} else if interfaceMap["type"].(string) == "lessThan" {
+
+									query = query.Where(k+" < ?", ConvertDate(interfaceMap["dateFrom"].(string))+" 23:59:59")
+
+								} else if interfaceMap["type"].(string) == "notEqual" {
+
+									query = query.Where(k+" != ?", interfaceMap["dateFrom"])
+
+								} else if interfaceMap["type"].(string) == "blank" {
+
+									query = query.Where(k + " IS NULL")
+
+								} else if interfaceMap["type"].(string) == "notBlank" {
+
+									query = query.Where(k + " IS NOT NULL")
+
+								} else if interfaceMap["type"].(string) == "inRange" {
+									if interfaceMap["dateFrom"] != nil && interfaceMap["dateTo"] != nil {
+
+										query = query.Where(k+" BETWEEN ? AND ?", ConvertDate(interfaceMap["dateFrom"].(string))+" 00:00:00", ConvertDate(interfaceMap["dateTo"].(string))+" 23:59:59")
+
+									}
+								}
+
+							} else {
+								query = query.Where(k+" BETWEEN ? AND ?", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
+
+							}
+
 						}
 					case "DateRangeDouble":
 						start := reflect.ValueOf(v).Index(0).Interface().(string)
@@ -155,4 +197,18 @@ func Search(c *fiber.Ctx, GridModel interface{}, query *gorm.DB) *gorm.DB {
 	}
 
 	return query
+}
+
+func ConvertDate(input string) string {
+
+	layout := "2006-01-02 15:04:05"
+	outputLayout := "2006-01-02"
+
+	parsedTime, err := time.Parse(layout, input)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+		return ""
+	}
+
+	return parsedTime.Format(outputLayout)
 }
