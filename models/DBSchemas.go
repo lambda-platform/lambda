@@ -91,7 +91,7 @@ type FormItem struct {
 	CheckEmpty                     bool                   `json:"checkEmpty"`
 	AddFromGrid                    bool                   `json:"addFromGrid"`
 	NoFormat                       bool                   `json:"no_format"`
-	Precision                      int                    `json:"precision"`
+	Precision                      interface{}            `json:"precision"`
 	TableTypeColumn                string                 `json:"tableTypeColumn"`
 	TableTypeValue                 string                 `json:"tableTypeValue"`
 	EmptyErrorMsg                  string                 `json:"EmptyErrorMsg"`
