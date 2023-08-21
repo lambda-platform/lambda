@@ -67,6 +67,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			return c.JSON(map[string]interface{}{
 				"status": true,
 				"data":   dataform.Model,
+				"id":     id,
 			})
 		}
 	} else {
