@@ -18,12 +18,6 @@ func Crud(GetMODEL func(schema_id string) dataform.Dataform) fiber.Handler {
 	}
 }
 
-func Today(c *fiber.Ctx) error {
-	currentTime := time.Now()
-	return c.JSON(map[string]string{
-		"today": currentTime.Format("2006-01-02"),
-	})
-}
 func Now(c *fiber.Ctx) error {
 	currentTime := time.Now()
 	return c.JSON(map[string]interface{}{
