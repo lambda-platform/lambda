@@ -79,6 +79,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"status": false,
 				"error":  err.Error(),
+				"from":   "query",
 			})
 		} else {
 
@@ -95,6 +96,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"status": false,
 					"error":  errIDValue.Error(),
+					"from":   "get ID",
 				})
 			}
 

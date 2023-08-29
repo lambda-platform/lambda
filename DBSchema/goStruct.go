@@ -174,6 +174,9 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 		return golangFloat32
 	case TypeContains(columnType, TypeBinaries):
 		return golangByteArray
+
+	case TypeContains(columnType, TypeGeo):
+		return "string"
 	}
 	return ""
 }

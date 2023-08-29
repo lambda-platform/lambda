@@ -31,7 +31,6 @@ var TypeStrings = []string{
 	"text",
 	"ntext",
 	"tinytext",
-	"geometry",
 	"uuid",
 	"bpchar",
 	"CHARACTER",
@@ -86,6 +85,10 @@ var TypeBinaries = []string{
 	"varbinary",
 	"BFILE",
 	"BLOB",
+}
+
+var TypeGeo = []string{
+	"geometry",
 }
 
 func TypeContains(v string, a []string) bool {
