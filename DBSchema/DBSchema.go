@@ -196,10 +196,11 @@ func TableMetas(tableName string) []models.TableMeta {
 					extra = "auto_increment"
 				}
 			}
-			//if column.DataType == "geometry" {
-			//	extra = column.Type
-			//	//scale = ";geotype:"+column.Type
-			//}
+			if column.DataType == "geometry" {
+				//extra = "Point"
+
+				//scale = ";geotype:"+column.Type
+			}
 			for _, enum := range Enums {
 				if enum.Typname == column.DataType {
 					column.DataType = "varchar"

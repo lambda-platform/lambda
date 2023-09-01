@@ -73,7 +73,6 @@ type PostgresTableMata struct {
 	ISNullAble    string  `gorm:"column:is_nullable" json:"is_nullable"`
 	ColumnDefault *string `gorm:"column:column_default" json:"column_default"`
 	NumericScale  *int    `gorm:"column:numeric_scale" json:"numeric_scale"`
-	//Type          string  `gorm:"column:type" json:"type"`
 }
 
 type MySQLTableMata struct {

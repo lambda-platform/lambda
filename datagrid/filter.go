@@ -112,7 +112,8 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 								}
 
 							} else {
-								query = query.Where(k+" BETWEEN ? AND ?", reflect.ValueOf(v).Index(0).Interface().(string), reflect.ValueOf(v).Index(1).Interface().(string))
+
+								query = query.Where(k+" BETWEEN ? AND ?", reflect.ValueOf(v).Index(0).Interface().(string)+" 00:00:00", reflect.ValueOf(v).Index(1).Interface().(string)+" 23:59:59")
 
 							}
 
