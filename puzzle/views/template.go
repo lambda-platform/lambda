@@ -29,6 +29,7 @@ var PuzzleTemplate = `<html>
 <script src="{{index .mix "/assets/lambda/js/vendor.js"}}"></script>
 <script src="{{index .mix "/assets/lambda/js/datagrid-vendor.js"}}"></script>
 <script src="{{index .mix "/assets/lambda/js/paper.js"}}"></script>
+<script type="text/javascript" src="/assets/lambda/vendor/echart/echarts-en.js"></script>
 <script>
     window.app_logo = null
 </script>
