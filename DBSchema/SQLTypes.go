@@ -46,6 +46,7 @@ var TypeStrings = []string{
 	"UROWID",
 	"jsonb",
 	"time",
+	"geometry",
 }
 var TypeTimes = []string{
 	"datetimeoffset",
@@ -87,9 +88,7 @@ var TypeBinaries = []string{
 	"BLOB",
 }
 
-var TypeGeo = []string{
-	"geometry",
-}
+var TypeGeo = []string{}
 
 func TypeContains(v string, a []string) bool {
 	for _, i := range a {
