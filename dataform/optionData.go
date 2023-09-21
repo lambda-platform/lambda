@@ -7,7 +7,6 @@ import (
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -85,7 +84,7 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 
 			//if userField
 			if userField != nil {
-				userFieldValue := strconv.FormatInt(reflect.ValueOf(userField).Int(), 10)
+				userFieldValue := strconv.FormatInt(agentUtils.GetRole(userField), 10)
 
 				userDataFilter := tableField + " = '" + userFieldValue + "'"
 
