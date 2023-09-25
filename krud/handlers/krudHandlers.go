@@ -22,9 +22,9 @@ func Now(c *fiber.Ctx) error {
 	currentTime := time.Now()
 	//formattedTime := currentTime.Format(time.RFC3339)
 
-	isoTime := currentTime.Format("2006-01-02T15:04:05Z")
+	//isoTime := currentTime.Format("2006-01-02T15:04:05Z")
 	return c.JSON(map[string]interface{}{
-		"today": isoTime,
+		"today": currentTime,
 	})
 }
 func CheckUnique(c *fiber.Ctx) error {
