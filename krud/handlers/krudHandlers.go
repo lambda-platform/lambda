@@ -19,10 +19,12 @@ func Crud(GetMODEL func(schema_id string) dataform.Dataform) fiber.Handler {
 }
 
 func Now(c *fiber.Ctx) error {
-	currentTime := time.Now().Format("2006-01-02T15:04:05Z07:00")
+	currentTime := time.Now()
+
+	layout := "2006-01-02 15:04:05"
 
 	return c.JSON(map[string]interface{}{
-		"today": currentTime,
+		"today": currentTime.Format(layout),
 	})
 }
 func CheckUnique(c *fiber.Ctx) error {
