@@ -272,7 +272,7 @@ func createValidation(schema lambdaModels.SCHEMA, columnTypes []genertarModels.C
 
 				} else {
 					//if rule.Type != "unique" && rule.Type != "englishAlphabet" && rule.Type != "lambda-account" {
-					if rule.Type != "unique" && rule.Type != "mongolianCyrillic" && rule.Type != "mongolianMobileNumber" && rule.Type != "englishAlphabet" && rule.Type != "lambda-account" {
+					if rule.Type != "unique" && rule.Type != "mongolianCyrillic" && rule.Type != "mongolianMobileNumber" && rule.Type != "englishAlphabet" && rule.Type != "lambda-account" && rule.Type != "register" {
 						if rule.Type == "number" {
 							fieldRules = fieldRules + "\"" + "numeric" + "\","
 						} else {
