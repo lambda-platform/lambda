@@ -26,19 +26,20 @@ func UploadDBSCHEMA() (*pb.Response, error) {
 	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(21*time.Second))
 
 	if err != nil {
+
 		return nil, err
 	}
-
 	defer conn.Close()
 	c := pb.NewConsoleClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 21*time.Second)
 	defer cancel()
 
 	lambdaConfig, err := os.ReadFile("lambda.json")
 	if err != nil {
 		return nil, err
 	}
+
 	r, err := c.UploadDBSCHEMA(ctx, &pb.SchemaParams{
 		ProjectKey:   config.LambdaConfig.ProjectKey,
 		DBSchema:     GetDBCHEMA(),
@@ -46,6 +47,8 @@ func UploadDBSCHEMA() (*pb.Response, error) {
 	})
 
 	if err != nil {
+
+		fmt.Println(err.Error())
 		return nil, err
 	}
 	fmt.Println("DB SCHEMA SENT")
@@ -166,7 +169,7 @@ func GetRoleData() error {
 	defer conn.Close()
 	c := pb.NewConsoleClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 21*time.Second)
 	defer cancel()
 
 	r, err := c.RoleData(ctx, &pb.LambdaSchemaParams{
