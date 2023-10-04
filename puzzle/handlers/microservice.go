@@ -23,7 +23,7 @@ import (
 
 func UploadDBSCHEMA() (*pb.Response, error) {
 
-	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(2*time.Second))
+	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(21*time.Second))
 
 	if err != nil {
 		return nil, err
