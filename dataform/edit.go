@@ -2,9 +2,9 @@ package dataform
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/utils"
 )
 
 func Edit(c *fiber.Ctx, dataform Dataform, id string) error {
@@ -39,7 +39,7 @@ func Edit(c *fiber.Ctx, dataform Dataform, id string) error {
 
 				subIdentity := Sub["subIdentity"].(string)
 
-				parentId := fmt.Sprintf("%g", dataS[subIdentity])
+				parentId := utils.GetString(dataS[subIdentity])
 
 				for _, Sub2 := range subForm.SubForms {
 
