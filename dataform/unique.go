@@ -1,10 +1,10 @@
 package dataform
 
 import (
-	"github.com/gofiber/fiber/v2"
-
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
+	"strings"
 )
 
 type UniquePost struct {
@@ -52,7 +52,15 @@ func CheckUnique(c *fiber.Ctx) error {
 
 	if post.IdentityColumn != "" && IdentityValue != "" {
 
-		err := DB.DB.Table(post.Table).Where(post.IdentityColumn+" != ? AND "+post.Field+" = ?", IdentityValue, value).Count(&count).Error
+		var err error
+		if (post.Table == "users" || post.Table == "USERS") && (post.Field == "login" || post.Field == "LOGIN") {
+			err = DB.DB.Table(post.Table).
+				Where(post.IdentityColumn+" != ? AND LOWER("+post.Field+") = ?", IdentityValue, strings.ToLower(value)).
+				Count(&count).Error
+
+		} else {
+			err = DB.DB.Table(post.Table).Where(post.IdentityColumn+" != ? AND "+post.Field+" = ?", IdentityValue, value).Count(&count).Error
+		}
 
 		if err != nil {
 			return c.JSON(map[string]interface{}{
@@ -75,7 +83,14 @@ func CheckUnique(c *fiber.Ctx) error {
 		}
 	} else {
 
-		err := DB.DB.Table(post.Table).Where(post.Field+" = ?", value).Count(&count).Error
+		var err error
+		if (post.Table == "users" || post.Table == "USERS") && (post.Field == "login" || post.Field == "LOGIN") {
+			err = DB.DB.Table(post.Table).
+				Where("LOWER("+post.Field+") = ?", strings.ToLower(value)).
+				Count(&count).Error
+		} else {
+			err = DB.DB.Table(post.Table).Where(post.Field+" = ?", value).Count(&count).Error
+		}
 
 		if err != nil {
 			return c.JSON(map[string]interface{}{
