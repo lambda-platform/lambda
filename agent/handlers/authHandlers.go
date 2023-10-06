@@ -239,7 +239,7 @@ func CreateJwtToken(user map[string]interface{}, role int64) (string, error) {
 	}
 
 	for k, v := range user {
-		if k != "role" && k != "password" {
+		if k != "role" && k != "password" && k != "bio" && k != "deleted_at" && k != "status" && k != "created_at" && k != "updated_at" && k != "avatar" && k != "gender" {
 			claims[k] = v
 		}
 	}
