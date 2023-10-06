@@ -240,7 +240,14 @@ func CreateJwtToken(user map[string]interface{}, role int64) (string, error) {
 
 	for k, v := range user {
 		if k != "role" && k != "password" {
-			claims[k] = v
+			if (!config.Config.SysAdmin.UUID && k == "id") || (!config.Config.SysAdmin.UUID && k == "ID") {
+
+				claims[k] = agentUtils.GetRole(v)
+
+			} else {
+				claims[k] = v
+			}
+
 		}
 	}
 	//for i := 0; i < len(config.LambdaConfig.UserDataFields); i++ {
