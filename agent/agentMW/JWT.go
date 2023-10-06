@@ -2,17 +2,18 @@ package agentMW
 
 import (
 	"fmt"
+	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v3"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"net/http"
 )
 
 func IsLoggedIn() fiber.Handler {
+
 	return jwtware.New(jwtware.Config{
-		SigningKey:   []byte(config.Config.JWT.Secret),
+		SigningKey:   jwtware.SigningKey{Key: []byte(config.Config.JWT.Secret)},
 		ErrorHandler: jwtError,
 		TokenLookup:  "header:Authorization,cookie:token",
 	})

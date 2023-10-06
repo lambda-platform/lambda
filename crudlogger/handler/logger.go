@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/crudlogger/models"
