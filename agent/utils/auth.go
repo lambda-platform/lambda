@@ -49,6 +49,17 @@ func AuthUserObject(c *fiber.Ctx) (map[string]interface{}, error) {
 	} else {
 		user := c.Locals("user").(*jwt.Token)
 		claims := user.Claims.(jwt.MapClaims)
+
+		if !config.Config.SysAdmin.UUID {
+
+			if config.Config.Database.Connection == "oracle" {
+				claims["ID"] = GetRole(claims["ID"])
+			} else {
+				claims["id"] = GetRole(claims["id"])
+			}
+
+		}
+
 		return claims, nil
 	}
 }
