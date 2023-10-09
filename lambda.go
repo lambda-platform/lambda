@@ -4,7 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
+	"github.com/gofiber/template/html/v2"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/generator"
 	"github.com/lambda-platform/lambda/puzzle/views"
