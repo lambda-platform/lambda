@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/dataform"
 	"github.com/lambda-platform/lambda/datagrid"
