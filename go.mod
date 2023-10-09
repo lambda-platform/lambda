@@ -9,6 +9,7 @@ require (
 	github.com/go-session/session v3.1.2+incompatible
 	github.com/gofiber/contrib/jwt v1.0.7
 	github.com/gofiber/fiber/v2 v2.49.2
+	github.com/gofiber/template/html/v2 v2.0.5
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/joho/godotenv v1.3.0
@@ -37,7 +38,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gofiber/template v1.8.2 // indirect
-	github.com/gofiber/template/html/v2 v2.0.5 // indirect
 	github.com/gofiber/utils v1.1.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/dataform"
 	"github.com/lambda-platform/lambda/datagrid"
@@ -20,10 +19,10 @@ func Crud(GetMODEL func(schema_id string) dataform.Dataform) fiber.Handler {
 
 func Now(c *fiber.Ctx) error {
 	currentTime := time.Now()
-	formattedTime := currentTime.Format("2006-01-02T15:04:05.00Z")
+	//formattedTime := currentTime.Format("2006-01-02T15:04:05.00Z")
 
 	return c.JSON(map[string]interface{}{
-		"today": formattedTime,
+		"today": currentTime,
 	})
 }
 func CheckUnique(c *fiber.Ctx) error {
