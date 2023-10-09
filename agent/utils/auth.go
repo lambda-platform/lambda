@@ -52,11 +52,7 @@ func AuthUserObject(c *fiber.Ctx) (map[string]interface{}, error) {
 
 		if !config.Config.SysAdmin.UUID {
 
-			if config.Config.Database.Connection == "oracle" {
-				claims["ID"] = GetRole(claims["ID"])
-			} else {
-				claims["id"] = GetRole(claims["id"])
-			}
+			claims["id"] = GetRole(claims["id"])
 
 		}
 
@@ -200,6 +196,7 @@ func CheckCurrentPassword(c *fiber.Ctx) error {
 }
 
 func GetRole(role interface{}) int64 {
+	fmt.Println(role)
 	roleDataType := reflect.TypeOf(role).String()
 	var roleValue int64
 	if roleDataType == "float64" {
