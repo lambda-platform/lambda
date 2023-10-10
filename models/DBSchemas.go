@@ -85,6 +85,7 @@ type FormItem struct {
 	FormType                       string                 `json:"formType"`
 	MinHeight                      string                 `json:"min_height"`
 	DisableDelete                  bool                   `json:"disableDelete"`
+	DisableEdit                    bool                   `json:"disableEdit"`
 	DisableCreate                  bool                   `json:"disableCreate"`
 	ShowRowNumber                  bool                   `json:"showRowNumber"`
 	UseTableType                   bool                   `json:"useTableType"`
