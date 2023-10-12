@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -55,4 +56,32 @@ func GetString(value interface{}) string {
 		valueStr = ""
 	}
 	return valueStr
+}
+
+func ConvertToInterfaceSlice(specificSliceInterface interface{}) ([]interface{}, error) {
+	var specificSlice reflect.Value
+
+	// Check if it's a pointer and get the underlying element if true
+	if reflect.TypeOf(specificSliceInterface).Kind() == reflect.Ptr {
+		specificSlice = reflect.ValueOf(specificSliceInterface).Elem()
+	} else {
+		specificSlice = reflect.ValueOf(specificSliceInterface)
+	}
+
+	// Ensure that we're working with a slice
+	if specificSlice.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("input is not a slice, it's a %v", specificSlice.Kind())
+	}
+
+	interfaceSlice := make([]interface{}, specificSlice.Len())
+
+	for i := 0; i < specificSlice.Len(); i++ {
+		if specificSlice.Index(i).Kind() == reflect.Ptr {
+			interfaceSlice[i] = specificSlice.Index(i).Elem().Interface()
+		} else {
+			interfaceSlice[i] = specificSlice.Index(i).Interface()
+		}
+	}
+
+	return interfaceSlice, nil
 }

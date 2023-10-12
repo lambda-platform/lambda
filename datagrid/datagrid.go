@@ -34,8 +34,10 @@ type Datagrid struct {
 }
 
 type Column struct {
-	Model string `json:"model"`
-	Label string `json:"label"`
+	Model       string `json:"model"`
+	Label       string `json:"label"`
+	GridType    string `json:"grid_type"`
+	StructField string `json:"struct_field"`
 }
 
 type RowUpdateData struct {

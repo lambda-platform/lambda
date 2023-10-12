@@ -214,7 +214,7 @@ func createColumns(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (str
 
 	for i := range schema.Schema {
 		if schema.Schema[i].Hide == false && schema.Schema[i].Model != schema.Identity {
-			gridColumns = gridColumns + `datagrid.Column{Model: "` + schema.Schema[i].Model + `",Label: "` + schema.Schema[i].Label + `"},
+			gridColumns = gridColumns + `datagrid.Column{Model: "` + schema.Schema[i].Model + `",Label: "` + schema.Schema[i].Label + `",GridType: "` + schema.Schema[i].GridType + `",StructField: "` + GetModelAlias(schema.Schema[i].Model) + `"},
 `
 
 			if schema.Schema[i].VirtualColumn {

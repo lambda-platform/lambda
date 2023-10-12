@@ -8,16 +8,24 @@ import (
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/tealeg/xlsx"
 	"net/http"
-	"reflect"
 	"regexp"
 	"sort"
+	"time"
 	"unicode/utf8"
 )
 
 func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
-
+	sortColumn := c.Query("sort")
+	order := c.Query("order")
 	name := trim(datagrid.Name, 21)
 	query := DB.DB.Table(datagrid.DataTable)
+
+	if sortColumn != "null" && sortColumn != "undefined" {
+		if order == "asc" || order == "desc" || order == "ASC" || order == "DESC" {
+			query = query.Order(sortColumn + " " + order)
+		}
+	}
+
 	customHeader := ""
 	query, customHeader = Filter(c, datagrid, query)
 
@@ -60,22 +68,20 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 		}
 
 		rows_json, _ := json.Marshal(datagrid.Data)
-
 		var rows []map[string]interface{}
 		json.Unmarshal(rows_json, &rows)
 
 		data = headerRow
-		for i := range rows {
 
-			row_ := rows[i]
+		for i := range rows {
 
 			rowColumns := ""
 
 			for _, column := range datagrid.Columns {
 
-				value := getCellValue(row_[column.Model])
-
+				value := getCellValue(rows[i][column.Model], column.GridType)
 				rowColumns = rowColumns + fmt.Sprintf(colTemplate, value)
+
 			}
 			data = data + fmt.Sprintf(rowTemplate, rowColumns)
 
@@ -85,6 +91,7 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 			"name":      name,
 			"tableRows": data,
 		})
+
 	} else {
 
 		var file *xlsx.File
@@ -107,13 +114,13 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 		/*HEADER*/
 
 		rows_json, _ := json.Marshal(datagrid.Data)
-
 		var rows []map[string]interface{}
 		json.Unmarshal(rows_json, &rows)
 
-		for i := range rows {
+		// Getting max widths for each column
+		maxWidths := getWidths(rows, datagrid.Columns)
 
-			row_ := rows[i]
+		for i := range rows {
 
 			dataRow := sheet.AddRow()
 
@@ -121,9 +128,16 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 
 				dataCell := dataRow.AddCell()
 
-				dataCell.Value = getCellValue(row_[column.Model])
+				setCellValue(rows[i][column.Model], column.GridType, dataCell)
+
 			}
 
+		}
+
+		// Apply the widths
+		for idx, width := range maxWidths {
+
+			sheet.Col(idx).Width = width
 		}
 
 		var b bytes.Buffer
@@ -140,51 +154,117 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 	}
 
 }
-func getCellValue(rawValue interface{}) string {
+
+func setCellValue(rawValue interface{}, GridType string, cell *xlsx.Cell) {
+
+	if rawValue != nil {
+
+		switch v := rawValue.(type) {
+		case time.Time:
+			if GridType == "Datetime" {
+				cell.SetDateTime(v)
+			} else {
+				cell.SetDate(v)
+			}
+		case float32:
+			vFloat := rawValue.(float32)
+			if vFloat == float32(int(vFloat)) {
+
+				cell.SetInt(int(vFloat))
+
+			} else {
+				cell.SetFloat(float64(vFloat))
+			}
+		case float64:
+			vFloat := rawValue.(float64)
+			if vFloat == float64(int(vFloat)) {
+
+				cell.SetInt(int(vFloat))
+			} else {
+
+				cell.SetFloat(vFloat)
+			}
+
+		case string:
+			if t, err3 := time.Parse(time.RFC3339, v); err3 == nil {
+				if GridType == "Datetime" {
+					cell.SetDateTime(t)
+				} else {
+					cell.SetDate(t)
+				}
+			} else {
+				cell.SetString(StripTags(rawValue.(string)))
+			}
+		case int:
+			cell.SetInt(v)
+
+		case int8:
+			cell.SetInt(int(v))
+
+		case int16:
+			cell.SetInt(int(v))
+
+		case int32:
+			cell.SetInt(int(v))
+
+		case int64:
+			cell.SetInt(int(v))
+
+		default:
+
+			cell.SetString(fmt.Sprintf("%v", rawValue))
+		}
+
+	}
+
+}
+func getCellValue(rawValue interface{}, GridType string) string {
+
 	value := ""
 	if rawValue != nil {
 
-		if reflect.TypeOf(rawValue).String() == "float64" {
+		switch v := rawValue.(type) {
+		case time.Time:
+			if GridType == "Datetime" {
+				value = v.Format("2006-01-02 15:04:05")
+			} else {
+				value = v.Format("2006-01-02")
+			}
+		case float32:
+			vFloat := rawValue.(float32)
+			if vFloat == float32(int(vFloat)) {
 
-			value = fmt.Sprintf("%.3f", rawValue)
+				value = fmt.Sprintf("%d", int(vFloat))
+			} else {
 
-		} else if reflect.TypeOf(rawValue).String() == "float32" {
+				value = fmt.Sprintf("%f", vFloat)
+			}
+		case float64:
+			vFloat := rawValue.(float64)
+			if vFloat == float64(int(vFloat)) {
 
-			value = fmt.Sprintf("%.3f", rawValue)
+				value = fmt.Sprintf("%d", int(vFloat))
+			} else {
 
-		} else if reflect.TypeOf(rawValue).String() == "string" {
+				value = fmt.Sprintf("%f", vFloat)
+			}
 
-			value = StripTags(reflect.ValueOf(rawValue).Interface().(string))
-
-		} else if reflect.TypeOf(rawValue).String() == "int" {
-
-			value = reflect.ValueOf(rawValue).Interface().(string)
-
-		} else if reflect.TypeOf(rawValue).String() == "Int" {
+		case string:
+			if t, err3 := time.Parse(time.RFC3339, v); err3 == nil {
+				if GridType == "Datetime" {
+					value = t.Format("2006-01-02 15:04:05")
+				} else {
+					value = t.Format("2006-01-02")
+				}
+			} else {
+				value = StripTags(rawValue.(string))
+			}
+		case int, int8, int16, int32, int64:
 
 			value = fmt.Sprintf("%d", rawValue)
 
-		} else if reflect.TypeOf(rawValue).String() == "Int" {
+		default:
 
-			value = fmt.Sprintf("%d", rawValue)
-
-		} else if reflect.TypeOf(rawValue).String() == "Int8" {
-
-			value = fmt.Sprintf("%d", rawValue)
-
-		} else if reflect.TypeOf(rawValue).String() == "Int16" {
-
-			value = fmt.Sprintf("%d", rawValue)
-
-		} else if reflect.TypeOf(rawValue).String() == "Int32" {
-
-			value = fmt.Sprintf("%d", rawValue)
-
-		} else if reflect.TypeOf(rawValue).String() == "Int64" {
-
-			value = fmt.Sprintf("%d", rawValue)
-
-		} else {
 			value = fmt.Sprintf("%v", rawValue)
 		}
 
@@ -195,6 +275,28 @@ func getCellValue(rawValue interface{}) string {
 
 	return value
 }
+
+func getWidths(data []map[string]interface{}, columns []Column) []float64 {
+	maxWidths := make([]float64, len(columns))
+	for _, row := range data {
+		for idx, col := range columns {
+			cellValue := getCellValue(row[col.Model], col.GridType)
+
+			LabelLength := float64(utf8.RuneCountInString(col.Label))
+			cellLength := float64(utf8.RuneCountInString(cellValue))
+
+			if cellLength > maxWidths[idx] {
+				maxWidths[idx] = cellLength
+			}
+
+			if LabelLength > maxWidths[idx] {
+				maxWidths[idx] = LabelLength
+			}
+		}
+	}
+	return maxWidths
+}
+
 func trim(s string, length int) string {
 	var size, x int
 

@@ -12,16 +12,16 @@ func FetchData(c *fiber.Ctx, datagrid Datagrid) error {
 
 	pageLimit := c.Query("paginate")
 	page := c.Query("page")
-	sort := c.Query("sort")
+	sortColumn := c.Query("sort")
 	order := c.Query("order")
 
 	query := DB.DB.Table(datagrid.DataTable)
 
 	query = query.Select(datagrid.ColumnList)
 
-	if sort != "null" && sort != "undefined" {
+	if sortColumn != "null" && sortColumn != "undefined" {
 		if order == "asc" || order == "desc" || order == "ASC" || order == "DESC" {
-			query = query.Order(sort + " " + order)
+			query = query.Order(sortColumn + " " + order)
 		}
 	}
 
