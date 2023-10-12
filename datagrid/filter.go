@@ -62,12 +62,17 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 						case []float64:
 
 							query = query.Where(kc+" IN (?)", vc.([]float64))
+
 						case []float32:
 
 							query = query.Where(kc+" IN (?)", vc.([]float32))
+
+						case []interface{}:
+							query = query.Where(kc+" IN (?)", vc)
+
 						default:
 							fmt.Println(vcType)
-							fmt.Println(reflect.ValueOf(vc).Type())
+
 							query = query.Where(kc+" = ?", fmt.Sprintf("%v", vc))
 						}
 					}
