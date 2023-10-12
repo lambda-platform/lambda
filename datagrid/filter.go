@@ -47,10 +47,26 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 
 				if reflect.TypeOf(v).String() == "map[string]interface {}" {
 					for kc, vc := range v.(map[string]interface{}) {
-						switch customConditionValue := vc.(type) {
-						case []string, []int, []int64, []int32, []float64, []float32:
-							query = query.Where(kc+" IN (?)", customConditionValue)
+						switch vcType := vc.(type) {
+						case []string:
+							query = query.Where(kc+" IN (?)", vc.([]string))
+						case []int:
+
+							query = query.Where(kc+" IN (?)", vc.([]int))
+						case []int64:
+
+							query = query.Where(kc+" IN (?)", vc.([]int64))
+						case []int32:
+
+							query = query.Where(kc+" IN (?)", vc.([]int32))
+						case []float64:
+
+							query = query.Where(kc+" IN (?)", vc.([]float64))
+						case []float32:
+
+							query = query.Where(kc+" IN (?)", vc.([]float32))
 						default:
+							fmt.Println(vcType)
 							query = query.Where(kc+" = ?", fmt.Sprintf("%v", vc))
 						}
 					}
