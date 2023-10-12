@@ -45,8 +45,8 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 
 			} else if k == "custom_condition" {
 
-				if reflect.TypeOf(v).String() == "map[string]interface {}" {
-					for kc, vc := range v.(map[string]interface{}) {
+				if mapValue, ok := v.(map[string]interface{}); ok {
+					for kc, vc := range mapValue {
 						switch vcType := vc.(type) {
 						case []string:
 							query = query.Where(kc+" IN (?)", vc.([]string))
