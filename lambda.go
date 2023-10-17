@@ -21,6 +21,8 @@ type Lambda struct {
 func (lambda *Lambda) Start() {
 	if len(os.Args) < 2 {
 
+		lambda.App.Static("/", "public")
+
 		lambda.App.Listen(":" + config.Config.App.Port)
 
 	} else {
@@ -84,7 +86,6 @@ func New(lambdaSettings ...*Settings) *Lambda {
 		}),
 		ModuleName: lambdaSettings[0].ModuleName,
 	}
-	lambda.App.Static("/", "public")
 
 	return lambda
 }

@@ -23,7 +23,6 @@ func Set(c *fiber.App) {
 	g.Get("/all/:user_id", agentMW.IsLoggedIn(), handler.GetAllNotifications)
 	g.Get("/seen/:id", agentMW.IsLoggedIn(), handler.SetSeen)
 	g.Get("/token/:user_id/:token", agentMW.IsLoggedIn(), handler.SetToken)
-
 	g.Get("/fcm", handler.Fcm)
 
 }
