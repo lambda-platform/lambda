@@ -24,6 +24,7 @@ var JWTconfig = JWTConfig{
 
 func IsLoggedIn(c *fiber.Ctx) (jwt.Claims, error) {
 	JWTconfig.SigningKey = []byte(config.Config.JWT.Secret)
+
 	JWTconfig.keyFunc = func(t *jwt.Token) (interface{}, error) {
 		// Check the signing method
 		if t.Method.Alg() != JWTconfig.SigningMethod {
@@ -40,9 +41,12 @@ func IsLoggedIn(c *fiber.Ctx) (jwt.Claims, error) {
 
 		return JWTconfig.SigningKey, nil
 	}
+
 	auth, err := JWTFromCookie("token", c)
+
 	if err != nil {
 		authHeader, headerErr := JWTFromHeader("Authorization", "Bearer", c)
+
 		if headerErr != nil {
 			return nil, errors.New("invalid or expired jwt")
 		} else {
@@ -78,7 +82,7 @@ func ParseToken(auth string, c *fiber.Ctx) (jwt.Claims, error) {
 func JWTFromCookie(name string, c *fiber.Ctx) (string, error) {
 	cookie := c.Cookies(name)
 	if cookie == "" {
-		return "", nil
+		return "", fmt.Errorf("cookie %s not found", name)
 	}
 	return cookie, nil
 }
@@ -86,6 +90,7 @@ func JWTFromHeader(header string, authScheme string, c *fiber.Ctx) (string, erro
 	auth := c.Get(header)
 	l := len(authScheme)
 	if len(auth) > l+1 && auth[:l] == authScheme {
+
 		return auth[l+1:], nil
 	}
 	return "", nil

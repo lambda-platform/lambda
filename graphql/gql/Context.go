@@ -21,7 +21,7 @@ func Auth(c *fiber.Ctx) (jwt.Claims, error) {
 }
 func CheckAuth(ctx context.Context, roles []int) (jwt.MapClaims, error) {
 	fiberContext := ctx.Value(FiberContextKey)
-	fmt.Println(fiberContext)
+
 	if fiberContext == nil {
 		err := fmt.Errorf("could not retrieve fiber.Ctx")
 		return nil, err
@@ -32,6 +32,7 @@ func CheckAuth(ctx context.Context, roles []int) (jwt.MapClaims, error) {
 		err := fmt.Errorf("stored context value is not of type *fiber.Ctx")
 		return nil, err
 	}
+
 	userClaims, authError := IsLoggedIn(ec)
 	if authError != nil {
 		return nil, authError
