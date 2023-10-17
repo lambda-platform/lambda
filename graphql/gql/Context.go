@@ -34,15 +34,15 @@ func Auth(c *fiber.Ctx) (jwt.Claims, error) {
 	return nil, nil
 }
 func CheckAuth(ctx context.Context, roles []int) (jwt.MapClaims, error) {
-	echoContext := ctx.Value("EchoContextKey")
+	echoContext := ctx.Value("FiberContextKey")
 	if echoContext == nil {
-		err := fmt.Errorf("could not retrieve echo.Context")
+		err := fmt.Errorf("could not retrieve fiber.Ctx")
 		return nil, err
 	}
 
 	ec, ok := echoContext.(*fiber.Ctx)
 	if !ok {
-		err := fmt.Errorf("echo.Context has wrong type")
+		err := fmt.Errorf("stored context value is not of type *fiber.Ctx")
 		return nil, err
 	}
 	userClaims, authError := IsLoggedIn(ec)

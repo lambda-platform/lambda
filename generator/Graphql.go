@@ -854,9 +854,6 @@ func GQLInit(dbSchema lambdaModels.DBSCHEMA, graphqlchemas []models.ProjectSchem
 		//gqlgenFileContent = strings.ReplaceAll(gqlgenFileContent, "PROJECTAPTH", dir)
 		utils.WriteFile(string(gqlgenFile), "lambda/graph/gqlgen.yml")
 
-		//graphqlFile, _ := os.ReadFile(AbsolutePath + "/graph/graphql.go.exmaple")
-		//graphqlFileContent := strings.ReplaceAll(string(graphqlFile), "PROJECTNAME", projectName)
-		//WriteFile(graphqlFileContent, dir+"/graph/graphql.go")
 		GenerateSchema(graphqlchemas, dbSchema)
 		Generate()
 		fmt.Println("GRAPHQL INIT DONE")
