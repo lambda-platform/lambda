@@ -8,20 +8,6 @@ import (
 import "github.com/gofiber/fiber/v2"
 import "context"
 
-func EchoContextFromContext(ctx context.Context) (*fiber.Ctx, error) {
-	echoContext := ctx.Value("EchoContextKey")
-	if echoContext == nil {
-		err := fmt.Errorf("could not retrieve echo.Context")
-		return nil, err
-	}
-
-	ec, ok := echoContext.(*fiber.Ctx)
-	if !ok {
-		err := fmt.Errorf("echo.Context has wrong type")
-		return nil, err
-	}
-	return ec, nil
-}
 func Auth(c *fiber.Ctx) (jwt.Claims, error) {
 
 	token, err := JWTFromCookie("token", c)
@@ -34,13 +20,13 @@ func Auth(c *fiber.Ctx) (jwt.Claims, error) {
 	return nil, nil
 }
 func CheckAuth(ctx context.Context, roles []int) (jwt.MapClaims, error) {
-	echoContext := ctx.Value("FiberContextKey")
-	if echoContext == nil {
+	fiberContext := ctx.Value("FiberContextKey")
+	if fiberContext == nil {
 		err := fmt.Errorf("could not retrieve fiber.Ctx")
 		return nil, err
 	}
 
-	ec, ok := echoContext.(*fiber.Ctx)
+	ec, ok := fiberContext.(*fiber.Ctx)
 	if !ok {
 		err := fmt.Errorf("stored context value is not of type *fiber.Ctx")
 		return nil, err

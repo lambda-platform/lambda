@@ -272,7 +272,7 @@ type CustomContext struct {
 
 func Process() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx := context.WithValue(c.Context(), "EchoContextKey", c)
+		ctx := context.WithValue(c.Context(), "FiberContextKey", c)
 		c.SetUserContext(ctx)
 
 		cc := &CustomContext{c, ctx}
