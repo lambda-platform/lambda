@@ -42,7 +42,7 @@ func IsLoggedIn(c *fiber.Ctx) (jwt.Claims, error) {
 	}
 	auth, err := JWTFromCookie("token", c)
 	if err != nil {
-		authHeader, headerErr := JWTFromHeader("Authorization", JWTconfig.AuthScheme, c)
+		authHeader, headerErr := JWTFromHeader("Authorization", "Bearer", c)
 		if headerErr != nil {
 			return nil, errors.New("invalid or expired jwt")
 		} else {
