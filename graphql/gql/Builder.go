@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"gorm.io/gorm"
@@ -270,13 +271,18 @@ type CustomContext struct {
 	ctx context.Context
 }
 
+const FiberContextKey = "FiberContextKey"
+
 func Process() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx := context.WithValue(c.Context(), "FiberContextKey", c)
+		ctx := context.WithValue(c.Context(), FiberContextKey, c)
+		if ctx.Value(FiberContextKey) == nil {
+			fmt.Println("Error: Context value not set!")
+		} else {
+			fmt.Println("Context value set successfully!")
+		}
 		c.SetUserContext(ctx)
-
-		cc := &CustomContext{c, ctx}
-
-		return cc.Ctx.Next()
+		// ... rest of your middleware ...
+		return c.Next()
 	}
 }

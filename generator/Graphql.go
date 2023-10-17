@@ -597,7 +597,10 @@ func Set(e *fiber.App) {
 	})
 
 	e.Post("/query", func(c *fiber.Ctx) error {
+		ctx := context.WithValue(c.Context(), "FiberContextKey", c)
+		c.SetUserContext(ctx)
 		fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			request = request.WithContext(ctx)
 			graphqlHandler.ServeHTTP(writer, request)
 		})(c.Context())
 		return nil

@@ -20,7 +20,8 @@ func Auth(c *fiber.Ctx) (jwt.Claims, error) {
 	return nil, nil
 }
 func CheckAuth(ctx context.Context, roles []int) (jwt.MapClaims, error) {
-	fiberContext := ctx.Value("FiberContextKey")
+	fiberContext := ctx.Value(FiberContextKey)
+	fmt.Println(fiberContext)
 	if fiberContext == nil {
 		err := fmt.Errorf("could not retrieve fiber.Ctx")
 		return nil, err
