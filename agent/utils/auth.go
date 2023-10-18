@@ -196,7 +196,7 @@ func CheckCurrentPassword(c *fiber.Ctx) error {
 }
 
 func GetRole(role interface{}) int64 {
-	fmt.Println(role)
+
 	roleDataType := reflect.TypeOf(role).String()
 	var roleValue int64
 	if roleDataType == "float64" {
