@@ -14,8 +14,9 @@ import (
 var viewsfs embed.FS
 
 type Lambda struct {
-	App        *fiber.App
-	ModuleName string
+	App          *fiber.App
+	ModuleName   string
+	IgnoreStatic bool
 }
 
 func (lambda *Lambda) Start() {
@@ -52,7 +53,8 @@ func (lambda *Lambda) Start() {
 }
 
 type Settings struct {
-	ModuleName string
+	ModuleName   string
+	IgnoreStatic bool
 }
 
 func New(lambdaSettings ...*Settings) *Lambda {
@@ -82,7 +84,12 @@ func New(lambdaSettings ...*Settings) *Lambda {
 			//JSONEncoder: json.Marshal,
 			//JSONDecoder: json.Unmarshal,
 		}),
-		ModuleName: lambdaSettings[0].ModuleName,
+		ModuleName:   lambdaSettings[0].ModuleName,
+		IgnoreStatic: lambdaSettings[0].IgnoreStatic,
+	}
+
+	if !lambdaSettings[0].IgnoreStatic {
+		lambda.App.Static("/", "public")
 	}
 
 	return lambda
