@@ -42,6 +42,8 @@ var TypeStrings = []string{
 	"NCHAR",
 	"NCLOB",
 	"JSON",
+	"JSONB",
+	"json",
 	"ROWID",
 	"UROWID",
 	"jsonb",
