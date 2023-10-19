@@ -32,30 +32,38 @@ import (
 //		}
 //		return stringValue
 //	}
+
 func GetString(value interface{}) string {
 	if value == nil {
 		return ""
 	}
 
-	var valueStr string
+	// Handle pointers by getting their element
+	pv := reflect.ValueOf(value)
+	if pv.Kind() == reflect.Ptr {
+		if pv.IsNil() {
+			return ""
+		}
+		value = pv.Elem().Interface()
+	}
+
 	switch v := value.(type) {
 	case float64:
-		valueStr = fmt.Sprintf("%g", v)
+		return fmt.Sprintf("%g", v)
 	case float32:
-		valueStr = fmt.Sprintf("%g", float64(v))
+		return fmt.Sprintf("%g", v)
 	case int:
-		valueStr = strconv.Itoa(v)
+		return strconv.Itoa(v)
 	case int32:
-		valueStr = strconv.FormatInt(int64(v), 10)
+		return strconv.Itoa(int(v))
 	case int64:
-		valueStr = strconv.FormatInt(v, 10)
+		return strconv.FormatInt(v, 10)
 	case string:
-		valueStr = v
+		return v
 	default:
-		// handle other types as you see fit, or return an error
-		valueStr = ""
+		fmt.Println(fmt.Errorf("unsupported type: %T", v))
+		return ""
 	}
-	return valueStr
 }
 
 func ConvertToInterfaceSlice(specificSliceInterface interface{}) ([]interface{}, error) {

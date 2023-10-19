@@ -3,7 +3,7 @@ module github.com/lambda-platform/lambda
 go 1.20
 
 require (
-	github.com/99designs/gqlgen v0.17.21
+	github.com/99designs/gqlgen v0.17.39
 	github.com/PaesslerAG/gval v1.1.2
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/go-session/session v3.1.2+incompatible
@@ -16,15 +16,15 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/otiai10/copy v1.7.0
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/tealeg/xlsx v1.0.5
 	github.com/thedevsaddam/govalidator v1.9.10
 	github.com/valyala/fasthttp v1.49.0
-	github.com/vektah/gqlparser/v2 v2.5.1
+	github.com/vektah/gqlparser/v2 v2.5.10
 	golang.org/x/crypto v0.9.0
-	golang.org/x/tools v0.6.0
+	golang.org/x/tools v0.9.3
 	google.golang.org/grpc v1.45.0
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.30.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlserver v1.5.1
@@ -68,7 +68,7 @@ require (
 	github.com/tidwall/tinyqueue v0.0.0-20180302190814-1e39f5511563 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/mod v0.9.0 // indirect
+	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
