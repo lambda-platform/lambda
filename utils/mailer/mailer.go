@@ -20,9 +20,11 @@ const (
 	MIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 )
 
-func NewRequest(to []string, subject string) *Request {
+func NewRequest(to []string, subject string, from string) *Request {
+
 	return &Request{
 		to:      to,
+		from:    from,
 		subject: subject,
 	}
 }
@@ -41,7 +43,10 @@ func (r *Request) parseTemplate(fileName string, data interface{}) error {
 }
 
 func (r *Request) sendMail() bool {
-	body := "To: " + r.to[0] + "\r\nSubject: " + r.subject + "\r\n" + MIME + "\r\n" + r.body
+	body := "From: " + r.from + "\r\n" +
+		"To: " + r.to[0] + "\r\n" +
+		"Subject: " + r.subject + "\r\n" +
+		MIME + "\r\n" + r.body
 	SMTP := fmt.Sprintf("%s:%d", config.Config.Mail.Host, config.Config.Mail.Port)
 	if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.Config.Mail.Username, config.Config.Mail.Password, config.Config.Mail.Host), config.Config.Mail.Username, r.to, []byte(body)); err != nil {
 		fmt.Println(err.Error())

@@ -75,7 +75,7 @@ func SendForgotMail(c *fiber.Ctx) error {
 
 	DB.DB.Create(&pReset)
 
-	mail := mailer.NewRequest([]string{data.Email}, StaticWords["passwordResetCode"].(string))
+	mail := mailer.NewRequest([]string{data.Email}, StaticWords["passwordResetCode"].(string), config.Config.Mail.FromAddress)
 	mailSent := mail.Send("views/forgot.html", map[string]string{
 		"keyword":           tokenPre,
 		"passwordReset":     StaticWords["passwordReset"].(string),

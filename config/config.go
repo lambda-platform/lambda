@@ -111,12 +111,14 @@ type SysAdmin struct {
 }
 
 type Mail struct {
-	Driver     string
-	Host       string
-	Port       int
-	Username   string
-	Password   string
-	Encryption string
+	Driver      string
+	Host        string
+	Port        int
+	Username    string
+	Password    string
+	Encryption  string
+	FromAddress string `envconfig:"MAIL_ADDRESS"`
+	FromName    string `envconfig:"MAIL_NAME"`
 }
 
 type Graphql struct {
