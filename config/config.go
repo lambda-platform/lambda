@@ -117,8 +117,8 @@ type Mail struct {
 	Username    string
 	Password    string
 	Encryption  string
-	FromAddress string `envconfig:"MAIL_ADDRESS"`
-	FromName    string `envconfig:"MAIL_NAME"`
+	FromAddress string `envconfig:"MAIL_FROM_ADDRESS"`
+	FromName    string `envconfig:"MAIL_FROM_NAME"`
 }
 
 type Graphql struct {
