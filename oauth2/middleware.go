@@ -60,15 +60,26 @@ func TokenHandlerWithConfig(cfg *MiddlewareConfig) fiber.Handler {
 }
 
 func BearerAuth(c *fiber.Ctx) (string, bool) {
-	auth := c.GetReqHeaders()["Authorization"]
-	prefix := "Bearer "
-	token := ""
+	authHeaders, ok := c.GetReqHeaders()["Authorization"]
 
-	if auth != "" && strings.HasPrefix(auth, prefix) {
-		token = auth[len(prefix):]
-	} else {
-		token = c.Query("access_token")
+	// No authorization header found, look for access_token in query params.
+	if !ok || len(authHeaders) == 0 {
+		token := c.Query("access_token")
+		return token, token != ""
 	}
 
-	return token, token != ""
+	// If there's more than one Authorization header, consider it an error (or pick a strategy).
+	if len(authHeaders) > 1 {
+		// Handle this case as per your requirements. Here, we're returning an empty string.
+		return "", false
+	}
+
+	prefix := "Bearer "
+	auth := authHeaders[0] // We're taking the first (and presumably only) Authorization header.
+
+	if auth != "" && strings.HasPrefix(auth, prefix) {
+		return auth[len(prefix):], true
+	}
+
+	return "", false
 }
