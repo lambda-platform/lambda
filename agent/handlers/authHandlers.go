@@ -11,7 +11,6 @@ import (
 	"github.com/lambda-platform/lambda/config"
 	krudModels "github.com/lambda-platform/lambda/krud/models"
 	puzzleModels "github.com/lambda-platform/lambda/models"
-	"github.com/lambda-platform/lambda/session"
 	"github.com/lambda-platform/lambda/utils"
 	"io"
 	"io/ioutil"
@@ -74,9 +73,6 @@ func Login(c *fiber.Ctx) error {
 		c.Cookie(cookie)
 
 		OAuth := withOAuth(request.Login, c)
-		fmt.Println(OAuth)
-		fmt.Println(OAuth)
-		fmt.Println(OAuth)
 
 		return c.Status(fiber.StatusOK).JSON(models.LoginData{
 			Token:  token,
@@ -94,33 +90,26 @@ func Login(c *fiber.Ctx) error {
 	})
 
 }
+
 func withOAuth(username string, c *fiber.Ctx) bool {
+	OAuth := false
 
-	sessionStore, err := session.Store.Get(c)
-	if err != nil {
-		fmt.Println("err 1")
-		fmt.Println(err.Error())
-		return false
+	// Get value from ReturnUri cookie
+	value := c.Cookies("ReturnUri")
+
+	// Check if value exists and is not empty
+	if value != "" {
+		// Set the LoggedInUserID cookie
+		c.Cookie(&fiber.Cookie{
+			Name:     "LoggedInUserID",
+			Value:    username,
+			Expires:  time.Now().Add(2 * time.Minute),
+			HTTPOnly: true,
+		})
+		OAuth = true
 	}
 
-	value := sessionStore.Get("ReturnUri")
-	fmt.Println(value)
-	fmt.Println(value)
-	fmt.Println(value)
-	fmt.Println(value)
-	if value != nil {
-		sessionStore.Set("LoggedInUserID", username)
-		err := sessionStore.Save()
-		if err != nil {
-			fmt.Println("err 2")
-			fmt.Println(err.Error())
-
-			return false
-		}
-		return true
-	}
-
-	return false
+	return OAuth
 }
 func GetPermissions(c *fiber.Ctx) error {
 

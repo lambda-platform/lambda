@@ -1,14 +1,14 @@
 package oauth2
 
 import (
-	"context"
-	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
-	"github.com/lambda-platform/lambda/session"
+	"github.com/lambda-platform/lambda/storage"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -20,63 +20,42 @@ import (
 func RegisterRoute(app *fiber.App) {
 
 	auth := app.Group("/oauth2")
-	gob.Register(url.Values{})
+
 	auth.All("/authorize", func(c *fiber.Ctx) error {
 
-		ctx := context.WithValue(c.Context(), "FiberContextKey", c)
-		c.SetUserContext(ctx)
-
 		fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-
-			request = request.WithContext(ctx)
-
-			fiberContext := request.Context().Value("FiberContextKey")
-
-			if fiberContext == nil {
-				fmt.Println("could not retrieve fiber.Ctx")
-			}
-			fContext, ok := fiberContext.(*fiber.Ctx)
-			if !ok {
-				fmt.Println("stored context value is not of type *fiber.Ctx")
-
-			}
-
-			sessionStore, err := session.Store.Get(fContext)
-			if err != nil {
-
-			}
-
+			storeReturnUri := storage.NewCookieStore("ReturnUri")
 			var form url.Values
-			v := sessionStore.Get("ReturnUri")
-
-			if v != nil {
-				form = v.(url.Values)
+			if v, ok := storeReturnUri.Get(request); ok {
+				decodedValue, err := url.QueryUnescape(v)
+				if err != nil {
+					// Handle error. For example:
+					log.Printf("Error decoding cookie value: %v", err)
+				} else {
+					err := json.Unmarshal([]byte(decodedValue), &form)
+					if err != nil {
+						// Handle unmarshal error. For example:
+						log.Printf("Error unmarshalling cookie value: %v", err)
+					} else {
+						request.Form = form
+					}
+				}
 			}
 			request.Form = form
 
-			sessionStore.Delete("ReturnUri")
+			err := oauthServer.HandleAuthorizeRequest(writer, request)
 
-			err3 := sessionStore.Save()
-			if err3 != nil {
-
-				c.Status(fiber.StatusUnauthorized).SendString(err3.Error())
-			}
-
-			err = oauthServer.HandleAuthorizeRequest(writer, request)
 			if err != nil {
-				fmt.Println("444")
+				fmt.Println(err.Error())
 				c.Status(fiber.StatusUnauthorized).SendString(err.Error())
 			}
-
 		})(c.Context())
 		return nil
 	})
 
 	auth.All("/token", func(c *fiber.Ctx) error {
-		ctx := context.WithValue(c.Context(), "FiberContextKey", c)
-		c.SetUserContext(ctx)
+
 		fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			request = request.WithContext(ctx)
 			err := oauthServer.HandleTokenRequest(writer, request)
 			if err != nil {
 				c.Status(fiber.StatusUnauthorized).SendString(err.Error())
@@ -86,7 +65,6 @@ func RegisterRoute(app *fiber.App) {
 	})
 
 	auth.All("/me", TokenHandler(), func(c *fiber.Ctx) error {
-
 		accessToken, _ := BearerAuth(c)
 		token, _ := oauthServer.Manager.LoadAccessToken(c.Context(), accessToken)
 
@@ -115,52 +93,31 @@ func RegisterRoute(app *fiber.App) {
 }
 
 func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
+
 	if dumpvar {
 		_ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
 	}
-
-	fiberContext := r.Context().Value("FiberContextKey")
-
-	if fiberContext == nil {
-		err := fmt.Errorf("could not retrieve fiber.Ctx")
-
-		return "", err
-	}
-
-	fContext, ok := fiberContext.(*fiber.Ctx)
+	store := storage.NewCookieStore("LoggedInUserID")
+	uid, ok := store.Get(r)
 	if !ok {
-		err := fmt.Errorf("stored context value is not of type *fiber.Ctx")
-		return "", err
-	}
-
-	sessionStore, err := session.Store.Get(fContext)
-	if err != nil {
-		return "", err
-	}
-
-	uid := sessionStore.Get("LoggedInUserID")
-
-	if uid == nil {
 		if r.Form == nil {
 			r.ParseForm()
 		}
 
-		sessionStore.Set("ReturnUri", r.Form)
-		sessionStore.SetExpiry(time.Second * 120)
+		serializedData, _ := json.Marshal(r.Form)
+		encodedData := url.QueryEscape(string(serializedData))
 
-		if saveErr := sessionStore.Save(); saveErr != nil {
-			fmt.Println(saveErr.Error())
-		}
+		storeReturnUri := storage.NewCookieStore("ReturnUri")
+		storeReturnUri.Set(w, encodedData, time.Minute*10)
 
 		w.Header().Set("Location", "/auth/login")
 		w.WriteHeader(http.StatusFound)
 		return
 	}
 
-	userID = uid.(string)
-	sessionStore.Delete("LoggedInUserID")
-	sessionStore.Save()
-	return
+	userID = uid
+	store.Delete(w)
+	return userID, nil
 }
 
 func dumpRequest(writer io.Writer, header string, r *http.Request) error {
