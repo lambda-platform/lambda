@@ -56,7 +56,7 @@ func (v *USERSOracle) TableName() string {
 }
 
 type UserUUID struct {
-	ID             string     `gorm:"column:id;primaryKey;autoIncrement;type:varchar;default:gen_random_uuid()" json:"id"`
+	ID             string     `gorm:"column:id;primaryKey;type:varchar;default:gen_random_uuid()" json:"id"`
 	CreatedAt      *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time `gorm:"column:updated_at" json:"updated_at"`
 	DeletedAt      *time.Time `gorm:"column:deleted_at" json:"-"`

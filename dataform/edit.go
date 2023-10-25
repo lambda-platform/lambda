@@ -9,6 +9,7 @@ import (
 
 func Edit(c *fiber.Ctx, dataform Dataform, id string) error {
 	DB.DB.Where(dataform.Identity+" = ?", id).Find(dataform.Model)
+
 	if len(dataform.SubForms) >= 1 {
 
 		data := make(map[string]interface{})

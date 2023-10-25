@@ -1,9 +1,12 @@
 package oauth2
 
 import (
-	"github.com/go-session/session"
+	"context"
+	"encoding/gob"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
+	"github.com/lambda-platform/lambda/session"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
 	"net/http"
@@ -17,37 +20,63 @@ import (
 func RegisterRoute(app *fiber.App) {
 
 	auth := app.Group("/oauth2")
-
+	gob.Register(url.Values{})
 	auth.All("/authorize", func(c *fiber.Ctx) error {
+
+		ctx := context.WithValue(c.Context(), "FiberContextKey", c)
+		c.SetUserContext(ctx)
+
 		fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 
-			sessionStore, err := session.Start(c.Context(), writer, request)
-			if err != nil {
+			request = request.WithContext(ctx)
 
-				c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			fiberContext := request.Context().Value("FiberContextKey")
+
+			if fiberContext == nil {
+				fmt.Println("could not retrieve fiber.Ctx")
+			}
+			fContext, ok := fiberContext.(*fiber.Ctx)
+			if !ok {
+				fmt.Println("stored context value is not of type *fiber.Ctx")
+
+			}
+
+			sessionStore, err := session.Store.Get(fContext)
+			if err != nil {
 
 			}
 
 			var form url.Values
-			if v, ok := sessionStore.Get("ReturnUri"); ok {
+			v := sessionStore.Get("ReturnUri")
+
+			if v != nil {
 				form = v.(url.Values)
 			}
 			request.Form = form
 
 			sessionStore.Delete("ReturnUri")
-			sessionStore.Save()
+
+			err3 := sessionStore.Save()
+			if err3 != nil {
+
+				c.Status(fiber.StatusUnauthorized).SendString(err3.Error())
+			}
 
 			err = oauthServer.HandleAuthorizeRequest(writer, request)
 			if err != nil {
+				fmt.Println("444")
 				c.Status(fiber.StatusUnauthorized).SendString(err.Error())
 			}
+
 		})(c.Context())
 		return nil
 	})
 
 	auth.All("/token", func(c *fiber.Ctx) error {
-
+		ctx := context.WithValue(c.Context(), "FiberContextKey", c)
+		c.SetUserContext(ctx)
 		fasthttpadaptor.NewFastHTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			request = request.WithContext(ctx)
 			err := oauthServer.HandleTokenRequest(writer, request)
 			if err != nil {
 				c.Status(fiber.StatusUnauthorized).SendString(err.Error())
@@ -57,6 +86,7 @@ func RegisterRoute(app *fiber.App) {
 	})
 
 	auth.All("/me", TokenHandler(), func(c *fiber.Ctx) error {
+
 		accessToken, _ := BearerAuth(c)
 		token, _ := oauthServer.Manager.LoadAccessToken(c.Context(), accessToken)
 
@@ -88,19 +118,39 @@ func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string
 	if dumpvar {
 		_ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
 	}
-	sessionStore, err := session.Start(r.Context(), w, r)
-	if err != nil {
-		return
+
+	fiberContext := r.Context().Value("FiberContextKey")
+
+	if fiberContext == nil {
+		err := fmt.Errorf("could not retrieve fiber.Ctx")
+
+		return "", err
 	}
 
-	uid, ok := sessionStore.Get("LoggedInUserID")
+	fContext, ok := fiberContext.(*fiber.Ctx)
 	if !ok {
+		err := fmt.Errorf("stored context value is not of type *fiber.Ctx")
+		return "", err
+	}
+
+	sessionStore, err := session.Store.Get(fContext)
+	if err != nil {
+		return "", err
+	}
+
+	uid := sessionStore.Get("LoggedInUserID")
+
+	if uid == nil {
 		if r.Form == nil {
 			r.ParseForm()
 		}
 
 		sessionStore.Set("ReturnUri", r.Form)
-		sessionStore.Save()
+		sessionStore.SetExpiry(time.Second * 120)
+
+		if saveErr := sessionStore.Save(); saveErr != nil {
+			fmt.Println(saveErr.Error())
+		}
 
 		w.Header().Set("Location", "/auth/login")
 		w.WriteHeader(http.StatusFound)

@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.39
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/go-oauth2/oauth2/v4 v4.5.2
-	github.com/go-session/session v3.1.2+incompatible
+	github.com/go-session/session/v3 v3.2.1
 	github.com/gofiber/contrib/jwt v1.0.7
 	github.com/gofiber/fiber/v2 v2.50.0
 	github.com/gofiber/template/html/v2 v2.0.5
@@ -35,6 +35,7 @@ require (
 	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/bytedance/gopkg v0.0.0-20221122125632-68358b8ecec6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gofiber/template v1.8.2 // indirect

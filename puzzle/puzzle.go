@@ -73,12 +73,13 @@ func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) da
 	g.Get("/puzzle/get-krud-fields/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetKrudFields)
 	g.Get("/puzzle/get-krud-fields-micro/:id", agentMW.IsLoggedIn(), handlers.GetKrudFieldsConsole)
 	if isMicroservice {
+		g.Post("/puzzle/roles/create", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.CreateRole)
 		g.Post("/puzzle/save-role", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.SaveRole)
 	} else {
+		g.Post("/puzzle/roles/create", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.CreateRole)
 		g.Post("/puzzle/save-role", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.SaveRole)
 	}
 
-	g.Post("/puzzle/roles/create", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.CreateRole)
 	g.Post("/puzzle/roles/store/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.UpdateRole)
 	g.Delete("/puzzle/roles/destroy/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.DeleteRole)
 

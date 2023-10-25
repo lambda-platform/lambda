@@ -73,7 +73,7 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 			user := c.Locals("user").(*jwt.Token)
 			claims := user.Claims.(jwt.MapClaims)
 
-			Id := claims["id"].(float64)
+			Id := claims["id"].(int64)
 			schemaId, _ := strconv.ParseInt(c.Params("schemaId"), 10, 64)
 			rowID := c.Params("id")
 
@@ -83,7 +83,7 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 				IP = ip[0]
 			}
 
-			CrudLogger(string(c.Context().UserAgent()), IP, action, c.Response().Body(), int64(Id), schemaId, rowID)
+			CrudLogger(string(c.Context().UserAgent()), IP, action, c.Response().Body(), Id, schemaId, rowID)
 		}
 
 	}

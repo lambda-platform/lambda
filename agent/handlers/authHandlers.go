@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-session/session"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lambda-platform/lambda/DB"
@@ -12,11 +11,10 @@ import (
 	"github.com/lambda-platform/lambda/config"
 	krudModels "github.com/lambda-platform/lambda/krud/models"
 	puzzleModels "github.com/lambda-platform/lambda/models"
+	"github.com/lambda-platform/lambda/session"
 	"github.com/lambda-platform/lambda/utils"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"time"
 )
@@ -76,6 +74,9 @@ func Login(c *fiber.Ctx) error {
 		c.Cookie(cookie)
 
 		OAuth := withOAuth(request.Login, c)
+		fmt.Println(OAuth)
+		fmt.Println(OAuth)
+		fmt.Println(OAuth)
 
 		return c.Status(fiber.StatusOK).JSON(models.LoginData{
 			Token:  token,
@@ -94,23 +95,32 @@ func Login(c *fiber.Ctx) error {
 
 }
 func withOAuth(username string, c *fiber.Ctx) bool {
-	OAuth := false
 
-	fasthttpadaptor.NewFastHTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	sessionStore, err := session.Store.Get(c)
+	if err != nil {
+		fmt.Println("err 1")
+		fmt.Println(err.Error())
+		return false
+	}
 
-		sessionStore, err := session.Start(nil, w, r)
-		if err == nil {
-			_, ok := sessionStore.Get("ReturnUri")
-			if ok {
-				sessionStore.Set("LoggedInUserID", username)
-				sessionStore.Save()
-				OAuth = true
-			}
+	value := sessionStore.Get("ReturnUri")
+	fmt.Println(value)
+	fmt.Println(value)
+	fmt.Println(value)
+	fmt.Println(value)
+	if value != nil {
+		sessionStore.Set("LoggedInUserID", username)
+		err := sessionStore.Save()
+		if err != nil {
+			fmt.Println("err 2")
+			fmt.Println(err.Error())
+
+			return false
 		}
+		return true
+	}
 
-	})(c.Context())
-
-	return OAuth
+	return false
 }
 func GetPermissions(c *fiber.Ctx) error {
 
