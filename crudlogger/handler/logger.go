@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lambda-platform/lambda/DB"
+	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/crudlogger/models"
 	"github.com/lambda-platform/lambda/dataform"
@@ -73,7 +74,7 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 			user := c.Locals("user").(*jwt.Token)
 			claims := user.Claims.(jwt.MapClaims)
 
-			Id := claims["id"].(int64)
+			Id := agentUtils.GetRole(claims["id"])
 			schemaId, _ := strconv.ParseInt(c.Params("schemaId"), 10, 64)
 			rowID := c.Params("id")
 
