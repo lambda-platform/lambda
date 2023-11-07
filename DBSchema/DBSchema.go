@@ -230,6 +230,7 @@ func TableMetas(tableName string) []models.TableMeta {
 	} else if config.Config.Database.Connection == "oracle" {
 
 		var currentTableMetas []models.OracleTableMata
+		//fmt.Println(fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, NULLABLE, IDENTITY_COLUMN, DATA_DEFAULT FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, tableName))
 		DB.DB.Raw(fmt.Sprintf("SELECT  COLUMN_NAME, DATA_TYPE, NULLABLE, IDENTITY_COLUMN, DATA_DEFAULT FROM ALL_TAB_COLUMNS WHERE  OWNER = '%s' AND TABLE_NAME = '%s' ORDER  BY COLUMN_ID ASC", config.Config.Database.UserName, tableName)).Scan(&currentTableMetas)
 
 		for _, column := range currentTableMetas {
@@ -263,8 +264,6 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "varchar"
 			} else if column.DataType == "LONG" {
 				dataType = "text"
-			} else if column.DataType == "NUMBER" {
-				dataType = "int"
 			}
 
 			//if column.DataType == "BLOB" {

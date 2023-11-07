@@ -14,7 +14,6 @@ var TypeIntegers = []string{
 }
 var TypeBigIntegers = []string{
 	"bigint",
-	"NUMBER",
 	"int8",
 	"LONG",
 }
@@ -79,6 +78,7 @@ var TypeFloat32 = []string{
 	"float4",
 	"real",
 	"FLOAT",
+	"NUMBER",
 }
 var TypeBinaries = []string{
 	"binary",
