@@ -264,6 +264,12 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "varchar"
 			} else if column.DataType == "LONG" {
 				dataType = "text"
+			} else if column.DataType == "NUMBER" {
+
+				if column.ColumnName == "ID" || strings.HasPrefix(column.ColumnName, "ID") || strings.HasSuffix(column.ColumnName, "ID") {
+					dataType = "int"
+				}
+
 			}
 
 			//if column.DataType == "BLOB" {
