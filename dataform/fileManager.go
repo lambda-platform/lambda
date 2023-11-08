@@ -82,12 +82,10 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 
 	if config.Config.Image.MaxSize > 0 {
 		targetSizeBytes := int64(config.Config.Image.MaxSize * 1e6)
-		go func() {
-			errO := optimizeImage(publicPath+uploadPath+newFileName, targetSizeBytes)
-			if errO != nil {
-				fmt.Print(errO.Error())
-			}
-		}()
+		errO := optimizeImage(publicPath+uploadPath+newFileName, targetSizeBytes)
+		if errO != nil {
+			fmt.Print(errO.Error())
+		}
 	}
 
 	return map[string]string{
