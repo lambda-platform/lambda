@@ -126,7 +126,7 @@ type Mail struct {
 	FromName    string `envconfig:"MAIL_FROM_NAME"`
 }
 type Image struct {
-	MaxSize int
+	MaxSize int `envconfig:"IMAGE_MAX_SIZE"`
 }
 type Graphql struct {
 	Debug string
