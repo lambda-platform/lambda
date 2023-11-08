@@ -50,6 +50,10 @@ func init() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
+		err = envconfig.Process("image", &Config.Image)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 
 		configFiel := "lambda.json"
 		configFile, err := os.Open(configFiel)
@@ -74,6 +78,7 @@ type config struct {
 	JWT      JWT
 	Mail     Mail
 	Graphql  Graphql
+	Image    Image
 }
 
 type database struct {
@@ -120,7 +125,9 @@ type Mail struct {
 	FromAddress string `envconfig:"MAIL_FROM_ADDRESS"`
 	FromName    string `envconfig:"MAIL_FROM_NAME"`
 }
-
+type Image struct {
+	MaxSize int
+}
 type Graphql struct {
 	Debug string
 }

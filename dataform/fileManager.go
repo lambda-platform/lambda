@@ -1,10 +1,15 @@
 package dataform
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/lambda-platform/lambda/config"
 	"github.com/thedevsaddam/govalidator"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"net/http"
 	"os"
@@ -74,12 +79,59 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 		}
 	}
 
+	if config.Config.Image.MaxSize > 0 {
+		targetSizeBytes := int64(config.Config.Image.MaxSize * 1e6)
+		go func() {
+			errO := optimizeImage(publicPath+uploadPath+newFileName, targetSizeBytes)
+			if errO != nil {
+				fmt.Print(errO.Error())
+			}
+		}()
+	}
+
 	return map[string]string{
 		"httpPath": uploadPath + newFileName,
 		"basePath": fullPath,
 		"fileName": newFileName,
 	}
 
+}
+func optimizeImage(filePath string, targetSize int64) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	img, format, err := image.Decode(file)
+	if err != nil {
+		return err
+	}
+
+	// Resize the image to reduce size
+	img = resize.Thumbnail(1024, 1024, img, resize.Lanczos3)
+
+	var buf bytes.Buffer
+
+	switch format {
+	case "jpeg", "jpg":
+		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 75})
+	case "png":
+		err = png.Encode(&buf, img)
+	default:
+		return nil // Unsupported format
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if int64(buf.Len()) > targetSize {
+		return nil // Cannot reduce size further without quality loss
+	}
+
+	// Write the optimized image back to disk
+	return os.WriteFile(filePath, buf.Bytes(), 0644)
 }
 
 func Upload(c *fiber.Ctx) error {
