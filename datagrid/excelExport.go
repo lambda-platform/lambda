@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 	"unicode/utf8"
 )
@@ -17,7 +18,7 @@ import (
 func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 	sortColumn := c.Query("sort")
 	order := c.Query("order")
-	name := trim(datagrid.Name, 21)
+	name := cleanSheetName(trim(datagrid.Name, 21))
 	query := DB.DB.Table(datagrid.DataTable)
 
 	if sortColumn != "null" && sortColumn != "undefined" {
@@ -311,4 +312,13 @@ func trim(s string, length int) string {
 func StripTags(html string) string {
 	re := regexp.MustCompile(`<[^>]*>`)
 	return re.ReplaceAllString(html, "")
+}
+func cleanSheetName(name string) string {
+	name = strings.ReplaceAll(name, "\\", " ")
+	name = strings.ReplaceAll(name, "/", " ")
+	name = strings.ReplaceAll(name, "?", " ")
+	name = strings.ReplaceAll(name, "*", " ")
+	name = strings.ReplaceAll(name, "[", " ")
+	name = strings.ReplaceAll(name, "]", " ")
+	return name
 }
