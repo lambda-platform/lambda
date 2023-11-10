@@ -96,6 +96,17 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 
 }
 func optimizeImage(filePath string, targetSize int64) error {
+	// Check the file size first
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	// If the file is already smaller than the target size, return
+	if fileInfo.Size() <= targetSize {
+		return nil
+	}
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -118,7 +129,7 @@ func optimizeImage(filePath string, targetSize int64) error {
 	case "png":
 		err = png.Encode(&buf, img)
 	default:
-		return nil // Unsupported format
+		return nil
 	}
 
 	if err != nil {
@@ -126,7 +137,7 @@ func optimizeImage(filePath string, targetSize int64) error {
 	}
 
 	if int64(buf.Len()) > targetSize {
-		return nil // Cannot reduce size further without quality loss
+		return nil
 	}
 
 	// Write the optimized image back to disk
