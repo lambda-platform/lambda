@@ -3,110 +3,86 @@ package DB
 import (
 	"database/sql"
 	"fmt"
-	//"github.com/dzwvip/oracle"
+	"log"
+	"sync"
+
 	"github.com/lambda-platform/lambda/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
-	//"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-
 	"gorm.io/gorm/logger"
-	"sync"
 )
 
 var DB *gorm.DB
 var onceDb sync.Once
 
+func initializeDB() {
+	Config := &gorm.Config{}
+
+	if config.Config.Database.Debug {
+		Config.Logger = logger.Default.LogMode(logger.Info)
+	} else {
+		Config.Logger = logger.Default.LogMode(logger.Error)
+	}
+
+	var err error
+	switch config.Config.Database.Connection {
+	case "oracle":
+		// Oracle DB initialization code here.
+	case "mssql":
+		DB, err = gorm.Open(sqlserver.Open(buildMSSQLConnectionString()), Config)
+	case "postgres":
+		DB, err = gorm.Open(postgres.Open(buildPostgresConnectionString()), Config)
+	default: // Assuming MySQL as default.
+		DB, err = gorm.Open(mysql.Open(buildMySQLConnectionString()), Config)
+	}
+
+	if err != nil {
+		log.Fatalf("failed to initialize database: %v", err)
+	}
+}
+
 func init() {
-	onceDb.Do(func() {
+	onceDb.Do(initializeDB)
+}
 
-		Config := &gorm.Config{
-			//DisableNestedTransaction: true,
-		}
-		if config.Config.Database.Debug {
-			Config.Logger = logger.Default.LogMode(logger.Info)
+func buildMSSQLConnectionString() string {
+	return fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s",
+		config.Config.Database.UserName,
+		config.Config.Database.Password,
+		config.Config.Database.Host,
+		config.Config.Database.Port,
+		config.Config.Database.Database)
+}
 
-		} else {
-			Config.Logger = logger.Default.LogMode(logger.Error)
-		}
+func buildPostgresConnectionString() string {
+	extra := "sslmode=prefer"
+	if config.Config.Database.Extra != "" {
+		extra = config.Config.Database.Extra
+	}
+	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s %s",
+		config.Config.Database.Host,
+		config.Config.Database.Port,
+		config.Config.Database.UserName,
+		config.Config.Database.Database,
+		config.Config.Database.Password,
+		extra)
+}
 
-		if config.Config.Database.Connection == "oracle" {
-
-			//connectString := fmt.Sprintf("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=%s)(PORT=%s)))(CONNECT_DATA=(SID=%s)))", config.Config.Database.Host, config.Config.Database.Port, config.Config.Database.SID)
-			//dsn := fmt.Sprintf(`user="%s" password="%s" TimeZone="Asia/Makassar" connectString="%s"`, config.Config.Database.UserName, config.Config.Database.Password, connectString)
-			//dbConnection, err := gorm.Open(oracle.Open(dsn), Config)
-			//
-			//if err != nil {
-			//	fmt.Println(err)
-			//	panic("failed to connect database")
-			//}
-			//
-			//DB = dbConnection
-
-			//gorm.DefaultCallback.Create().Remove("mssql:set_identity_insert")
-
-		} else if config.Config.Database.Connection == "mssql" {
-			dbConnection, err := gorm.Open(sqlserver.Open("sqlserver://"+config.Config.Database.UserName+":"+config.Config.Database.Password+"@"+config.Config.Database.Host+":"+config.Config.Database.Port+"?database="+config.Config.Database.Database), Config)
-
-			if err != nil {
-				fmt.Println(err)
-				panic("failed to connect database")
-			}
-
-			DB = dbConnection
-
-			//gorm.DefaultCallback.Create().Remove("mssql:set_identity_insert")
-
-		} else if config.Config.Database.Connection == "postgres" {
-
-			extra := " sslmode=prefer"
-			if config.Config.Database.Extra != "" {
-				extra = config.Config.Database.Extra
-			}
-			dbConnection, err := gorm.Open(postgres.Open("host="+config.Config.Database.Host+" port="+config.Config.Database.Port+" user="+config.Config.Database.UserName+" dbname="+config.Config.Database.Database+" password="+config.Config.Database.Password+extra), Config)
-
-			if err != nil {
-
-				panic("failed to connect database")
-			}
-
-			DB = dbConnection
-
-		} else {
-			dbConfig := config.Config.Database.UserName + ":" + config.Config.Database.Password + "@tcp(" + config.Config.Database.Host + ":" + config.Config.Database.Port + ")/" + config.Config.Database.Database
-
-			dbConnection, err := gorm.Open(mysql.Open(dbConfig+"?charset=utf8&parseTime=True&loc=Local"), Config)
-
-			if err != nil {
-
-				panic("failed to connect database")
-			}
-
-			DB = dbConnection
-		}
-
-	})
+func buildMySQLConnectionString() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		config.Config.Database.UserName,
+		config.Config.Database.Password,
+		config.Config.Database.Host,
+		config.Config.Database.Port,
+		config.Config.Database.Database)
 }
 
 func DBConnection() *sql.DB {
-	var DB_ *sql.DB
-	DB_, _ = DB.DB()
-	return DB_
-}
-
-// Serialize serializes the input string into a BLOB value using utl_raw.cast_to_raw and utl_raw.CAST_TO_VARCHAR2
-func SerializeBLOBString(value string) ([]byte, error) {
-
-	var blobValue []byte
-	_, err := DBConnection().Exec(
-		"BEGIN ? := utl_raw.cast_to_raw(utl_raw.CAST_TO_VARCHAR2(?)); END;",
-		sql.Out{Dest: &blobValue},
-		value,
-	)
+	db, err := DB.DB()
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed to retrieve database/sql DB from GORM: %v", err)
 	}
-
-	return blobValue, nil
+	return db
 }
