@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"database/sql/driver"
 	"encoding/base64"
-	"fmt"
 	"github.com/lambda-platform/lambda/config"
 	"golang.org/x/crypto/pbkdf2"
 	"io"
@@ -29,12 +28,6 @@ func (s *SecureString) Scan(value interface{}) error {
 	}
 
 	decryptedString := Decrypt(value.(string), config.Config.JWT.Secret)
-
-	fmt.Println("decryptedString")
-	fmt.Println("decryptedString")
-	fmt.Println("decryptedString")
-	fmt.Println("decryptedString")
-	fmt.Println("decryptedString")
 
 	*s = SecureString(decryptedString)
 	return nil
