@@ -71,6 +71,9 @@ models:
   GormDeletedAt:
     model:
       - github.com/lambda-platform/lambda/graphql/custom_model.GormDeletedAt
+  DBSecureString:
+    model:
+      - github.com/lambda-platform/lambda/graphql/custom_model.DBSecureString
   Byte:
     model:
       - github.com/lambda-platform/lambda/graphql/custom_model.Byte

@@ -68,7 +68,11 @@ type lambdaConfig struct {
 		Sound     string `json:"sound"`
 		Icon      string `json:"icon"`
 	} `json:"notify"`
-	CustomIcons []interface{} `json:"custom_icons"`
+	CustomIcons  []interface{} `json:"custom_icons"`
+	SecureFields []struct {
+		Table  string `json:"table"`
+		Column string `json:"column"`
+	} `json:"secure_fields"`
 }
 type LambdaConfigFile struct {
 	SchemaLoadMode string `json:"schema_load_mode"`
@@ -131,5 +135,9 @@ type LambdaConfigFile struct {
 		Sound     string `json:"sound"`
 		Icon      string `json:"icon"`
 	} `json:"notify"`
-	CustomIcons []interface{} `json:"custom_icons"`
+	CustomIcons  []interface{} `json:"custom_icons"`
+	SecureFields []struct {
+		Table  string `json:"table"`
+		Column string `json:"column"`
+	} `json:"secure_fields"`
 }

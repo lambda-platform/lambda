@@ -10,8 +10,7 @@ import (
 const (
 	golangByteArray = "[]byte"
 	//gureguNullInt    = "null.Int"
-	golangNullInt = "*int"
-
+	golangNullInt   = "*int"
 	golangInt       = "int"
 	golangBool      = "bool"
 	golangNullInt64 = "*int"
@@ -29,6 +28,7 @@ const (
 	golangTime     = "time.Time"
 	date           = "DB.Date"
 	dateNull       = "DB.Date"
+	secureString   = "DB.SecureString"
 )
 
 func GenerateOnlyStruct(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
@@ -177,6 +177,9 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 
 	case TypeContains(columnType, TypeGeo):
 		return "string"
+
+	case TypeContains(columnType, TypeSecure):
+		return secureString
 	}
 	return ""
 }

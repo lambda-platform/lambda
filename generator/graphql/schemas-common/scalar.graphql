@@ -3,5 +3,6 @@ scalar Date
 scalar Int32
 scalar Int64
 scalar GormDeletedAt
+scalar DBSecureString
 scalar Byte
 

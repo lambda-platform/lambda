@@ -157,6 +157,8 @@ func TableMetas(tableName string) []models.TableMeta {
 				dataType = "text"
 			}
 
+			dataType = IsSecureField(tableName, column.ColumnName, dataType)
+
 			tableMetas = append(tableMetas, models.TableMeta{
 				Model:  column.ColumnName,
 				Title:  column.ColumnName,
@@ -214,6 +216,7 @@ func TableMetas(tableName string) []models.TableMeta {
 				}
 
 			}
+			column.DataType = IsSecureField(tableName, column.ColumnName, column.DataType)
 
 			tableMetas = append(tableMetas, models.TableMeta{
 				Model:    column.ColumnName,
@@ -275,7 +278,7 @@ func TableMetas(tableName string) []models.TableMeta {
 			//if column.DataType == "BLOB" {
 			//	//scale = ";serializer:gob"
 			//}
-
+			dataType = IsSecureField(tableName, column.ColumnName, dataType)
 			tableMetas = append(tableMetas, models.TableMeta{
 				Model:    column.ColumnName,
 				Title:    column.ColumnName,
@@ -302,6 +305,8 @@ func TableMetas(tableName string) []models.TableMeta {
 				key = "PRI"
 				extra = "auto_increment"
 			}
+
+			column.DataType = IsSecureField(tableName, column.ColumnName, column.DataType)
 			tableMetas = append(tableMetas, models.TableMeta{
 				Model:    column.ColumnName,
 				Title:    column.ColumnName,
@@ -317,6 +322,17 @@ func TableMetas(tableName string) []models.TableMeta {
 
 	return tableMetas
 
+}
+func IsSecureField(table, column, dataType string) string {
+	if len(config.LambdaConfig.SecureFields) >= 1 {
+		for _, field := range config.LambdaConfig.SecureFields {
+			if field.Table == table && field.Column == column {
+				return "secure"
+			}
+		}
+	}
+
+	return dataType
 }
 func GenerateSchemaForCloud() models.DBSCHEMA {
 	tables := TablesForCloud()

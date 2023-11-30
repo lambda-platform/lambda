@@ -23,11 +23,12 @@ const (
 	dbNullDate     = "Date!"
 	dbDate         = "Date!"
 	gqlBinary      = "Byte!"
+	gqlSecure      = "Secure!"
 )
 
 func GenerateGrapql(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, Subs []string, isInpute bool) ([]byte, error) {
 
-	dbTypes := generateQraphqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
+	dbTypes := generateQraphqlTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes, tableName)
 	//if tableName == "aa_sudalsan_sain_turshilga" {
 	//	fmt.Println(columnTypes)
 	//	fmt.Println(dbTypes)
@@ -63,7 +64,7 @@ func GenerateGrapqlOrder(columnTypes []generatorModels.ColumnData, tableName str
 	return []byte(src), nil
 }
 
-func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
+func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, tableName string) string {
 
 	structure := " {"
 
@@ -103,6 +104,13 @@ func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, j
 		if fieldName == "DeletedAt" || fieldName == "deleted_at" || fieldName == "DELETED_AT" {
 			valueType = "GormDeletedAt"
 		}
+
+		valueType = IsSecureField(tableName, fieldName, valueType)
+
+		if valueType == "secure" {
+			valueType = "DBSecureString"
+		}
+
 		if len(annotations) > 0 {
 			structure += fmt.Sprintf("\n%s    %s: `%s`",
 				fieldName,
@@ -214,6 +222,9 @@ func sqlTypeToGraphyType(columnType string, nullable bool, gureguTypes bool) str
 		return gqlFloat
 	case TypeContains(columnType, TypeBinaries):
 		return gqlBinary
+
+	case TypeContains(columnType, TypeSecure):
+		return gqlSecure
 	}
 	return ""
 }

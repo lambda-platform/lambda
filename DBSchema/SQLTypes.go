@@ -89,6 +89,9 @@ var TypeBinaries = []string{
 	"BFILE",
 	"BLOB",
 }
+var TypeSecure = []string{
+	"secure",
+}
 
 var TypeGeo = []string{}
 
