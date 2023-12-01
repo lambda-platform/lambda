@@ -38,6 +38,10 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 
 	query.Find(datagrid.Data)
 
+	if len(datagrid.Relations) >= 1 {
+		datagrid.Data = datagrid.FillVirtualColumns(datagrid.Data)
+	}
+
 	keys := make([]int, 0, len(datagrid.Columns))
 
 	for k := range datagrid.Columns {
