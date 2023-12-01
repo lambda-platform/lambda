@@ -30,48 +30,51 @@ func GetPreloadString(prefix, name string) string {
 }
 
 func GetColumns(ctx context.Context, prefix string) ([]string, []Sub) {
-	fields:=graphql.CollectFieldsCtx(ctx,nil)
+	fields := graphql.CollectFieldsCtx(ctx, nil)
 
 	columns := []string{}
 	Subs := []Sub{}
 
 	for _, column := range fields {
-		if(column.Selections == nil){
-			columns = append(columns, column.Name)
-		} else {
-			SubsNested := GetSubTables(ctx, column, column.Name)
+		if column.Name != "__typename" {
+			if column.Selections == nil {
+				columns = append(columns, column.Name)
+			} else {
+				SubsNested := GetSubTables(ctx, column, column.Name)
 
+				Subs = append(Subs, SubsNested...)
 
-			Subs = append(Subs, SubsNested...)
-
+			}
 		}
 	}
 
 	for _, Sub := range Subs {
-		if(Sub.Table == prefix){
+		if Sub.Table == prefix {
 			return Sub.Columns, Subs
 		}
 	}
 
-	return  columns, Subs
+	return columns, Subs
 }
-func GetSubTables(ctx context.Context, Field graphql.CollectedField, subTable string)[]Sub{
+func GetSubTables(ctx context.Context, Field graphql.CollectedField, subTable string) []Sub {
 	fields := graphql.CollectFields(graphql.GetOperationContext(ctx), Field.Selections, nil)
 
 	columns := []string{}
 	Subs := []Sub{}
 
 	for _, column := range fields {
-		if(column.Selections == nil){
-			columns = append(columns, column.Name)
-		} else {
-			SubsNested := GetSubTables(ctx, column, column.Name)
-			Subs = append(Subs, SubsNested...)
+		if column.Name != "__typename" {
+			if column.Selections == nil {
+				columns = append(columns, column.Name)
+			} else {
+				SubsNested := GetSubTables(ctx, column, column.Name)
+				Subs = append(Subs, SubsNested...)
 
+			}
 		}
 	}
 	subTableNew := Sub{
-		Table: subTable,
+		Table:   subTable,
 		Columns: columns,
 	}
 	Subs = append(Subs, subTableNew)
@@ -79,7 +82,7 @@ func GetSubTables(ctx context.Context, Field graphql.CollectedField, subTable st
 }
 
 type Sub struct {
-	Table string
+	Table   string
 	Columns []string
 }
 

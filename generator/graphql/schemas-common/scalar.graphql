@@ -6,3 +6,4 @@ scalar GormDeletedAt
 scalar DBSecureString
 scalar Byte
 
+

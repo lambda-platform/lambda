@@ -3,7 +3,7 @@ module github.com/lambda-platform/lambda
 go 1.20
 
 require (
-	github.com/99designs/gqlgen v0.17.39
+	github.com/99designs/gqlgen v0.17.40
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/gofiber/contrib/jwt v1.0.7
@@ -35,6 +35,7 @@ require (
 	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gofiber/template v1.8.2 // indirect
@@ -58,6 +59,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/smartystreets/assertions v1.1.0 // indirect
 	github.com/sosodev/duration v1.1.0 // indirect
@@ -69,8 +71,10 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/rtree v0.0.0-20180113144539-6cd427091e0e // indirect
 	github.com/tidwall/tinyqueue v0.0.0-20180302190814-1e39f5511563 // indirect
+	github.com/urfave/cli/v2 v2.25.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/net v0.16.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
