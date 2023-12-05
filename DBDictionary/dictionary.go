@@ -49,6 +49,8 @@ func Dictionary(c *fiber.Ctx) error {
 
 	return c.JSON(map[string]interface{}{
 		"tableMetas":  dbSchema.TableMeta,
+		"tableList":   dbSchema.TableList,
+		"viewList":    dbSchema.ViewList,
 		"formSchemas": FormSchemas,
 		"gridSchemas": GridSchemas,
 	})
