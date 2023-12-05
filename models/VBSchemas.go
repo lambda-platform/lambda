@@ -54,8 +54,9 @@ type PKColumn struct {
 }
 
 type MSTableMata struct {
-	ColumnName string `gorm:"column:COLUMN_NAME" json:"COLUMN_NAME"`
-	DataType   string `gorm:"column:DATA_TYPE" json:"DATA_TYPE"`
+	ColumnName   string  `gorm:"column:COLUMN_NAME" json:"COLUMN_NAME"`
+	DataType     string  `gorm:"column:DATA_TYPE" json:"DATA_TYPE"`
+	DefaultValue *string `gorm:"column:DEFAULT_VALUE" json:"DEFAULT_VALUE"`
 }
 
 type OracleTableMata struct {
@@ -76,21 +77,23 @@ type PostgresTableMata struct {
 }
 
 type MySQLTableMata struct {
-	ColumnName string `gorm:"column:column_name" json:"column_name"`
-	DataType   string `gorm:"column:data_type" json:"data_type"`
-	ColumnKey  string `gorm:"column:column_key" json:"column_key"`
-	ISNullAble string `gorm:"column:is_nullable" json:"is_nullable"`
+	ColumnName   string  `gorm:"column:column_name" json:"column_name"`
+	DataType     string  `gorm:"column:data_type" json:"data_type"`
+	ColumnKey    string  `gorm:"column:column_key" json:"column_key"`
+	ISNullAble   string  `gorm:"column:is_nullable" json:"is_nullable"`
+	DefaultValue *string `gorm:"column:default_value" json:"default_value"`
 }
 
 type TableMeta struct {
-	Model    string `json:"model"`
-	Title    string `json:"title"`
-	DbType   string `json:"dbType"`
-	Table    string `json:"table"`
-	Key      string `json:"key"`
-	Extra    string `json:"extra"`
-	Nullable string `json:"nullable"`
-	Scale    string `json:"scale"`
+	Model        string  `json:"model"`
+	Title        string  `json:"title"`
+	DbType       string  `json:"dbType"`
+	Table        string  `json:"table"`
+	Key          string  `json:"key"`
+	Extra        string  `json:"extra"`
+	Nullable     string  `json:"nullable"`
+	Scale        string  `json:"scale"`
+	DefaultValue *string `json:"default_value"`
 }
 type DBSCHEMA struct {
 	TableList      []string               `json:"tableList"`

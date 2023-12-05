@@ -138,7 +138,7 @@ func TableMetas(tableName string) []models.TableMeta {
 		DB.DB.Raw("SELECT COLUMN_NAME FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME LIKE '" + tableName + "' AND CONSTRAINT_NAME LIKE '%PK%'").Scan(&pkColumn)
 
 		var currentTableMetas []models.MSTableMata
-		DB.DB.Raw("SELECT COLUMN_NAME, DATA_TYPE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'").Scan(&currentTableMetas)
+		DB.DB.Raw("SELECT COLUMN_NAME, DATA_TYPE, DC.DEFINITION AS DEFAULT_VALUE FROM " + config.Config.Database.Database + ".INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tableName + "'").Scan(&currentTableMetas)
 
 		for _, column := range currentTableMetas {
 			key := ""
@@ -160,12 +160,13 @@ func TableMetas(tableName string) []models.TableMeta {
 			dataType = IsSecureField(tableName, column.ColumnName, dataType)
 
 			tableMetas = append(tableMetas, models.TableMeta{
-				Model:  column.ColumnName,
-				Title:  column.ColumnName,
-				DbType: dataType,
-				Table:  tableName,
-				Key:    key,
-				Extra:  extra,
+				Model:        column.ColumnName,
+				Title:        column.ColumnName,
+				DbType:       dataType,
+				Table:        tableName,
+				Key:          key,
+				Extra:        extra,
+				DefaultValue: column.DefaultValue,
 			})
 		}
 
@@ -219,14 +220,15 @@ func TableMetas(tableName string) []models.TableMeta {
 			column.DataType = IsSecureField(tableName, column.ColumnName, column.DataType)
 
 			tableMetas = append(tableMetas, models.TableMeta{
-				Model:    column.ColumnName,
-				Title:    column.ColumnName,
-				DbType:   column.DataType,
-				Table:    tableName,
-				Key:      key,
-				Extra:    extra,
-				Scale:    scale,
-				Nullable: column.ISNullAble,
+				Model:        column.ColumnName,
+				Title:        column.ColumnName,
+				DbType:       column.DataType,
+				Table:        tableName,
+				Key:          key,
+				Extra:        extra,
+				Scale:        scale,
+				Nullable:     column.ISNullAble,
+				DefaultValue: column.ColumnDefault,
 			})
 		}
 
@@ -280,21 +282,22 @@ func TableMetas(tableName string) []models.TableMeta {
 			//}
 			dataType = IsSecureField(tableName, column.ColumnName, dataType)
 			tableMetas = append(tableMetas, models.TableMeta{
-				Model:    column.ColumnName,
-				Title:    column.ColumnName,
-				DbType:   dataType,
-				Table:    tableName,
-				Key:      key,
-				Extra:    extra,
-				Nullable: Nullable,
-				Scale:    scale,
+				Model:        column.ColumnName,
+				Title:        column.ColumnName,
+				DbType:       dataType,
+				Table:        tableName,
+				Key:          key,
+				Extra:        extra,
+				Nullable:     Nullable,
+				Scale:        scale,
+				DefaultValue: column.DataDefault,
 			})
 		}
 
 	} else {
 
 		currentTableMetas := []models.MySQLTableMata{}
-		DB.DB.Raw(fmt.Sprintf("SELECT column_name as column_name, column_key as column_key, data_type as data_type, is_nullable as is_nullable FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '%s' AND table_schema = '%s' ORDER BY ORDINAL_POSITION", tableName, config.Config.Database.Database)).Scan(&currentTableMetas)
+		DB.DB.Raw(fmt.Sprintf("SELECT column_name as column_name, column_key as column_key, data_type as data_type, is_nullable as is_nullable, COLUMN_DEFAULT as default_value FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '%s' AND table_schema = '%s' ORDER BY ORDINAL_POSITION", tableName, config.Config.Database.Database)).Scan(&currentTableMetas)
 
 		for _, column := range currentTableMetas {
 
@@ -308,13 +311,14 @@ func TableMetas(tableName string) []models.TableMeta {
 
 			column.DataType = IsSecureField(tableName, column.ColumnName, column.DataType)
 			tableMetas = append(tableMetas, models.TableMeta{
-				Model:    column.ColumnName,
-				Title:    column.ColumnName,
-				DbType:   column.DataType,
-				Table:    tableName,
-				Key:      key,
-				Extra:    extra,
-				Nullable: column.ISNullAble,
+				Model:        column.ColumnName,
+				Title:        column.ColumnName,
+				DbType:       column.DataType,
+				Table:        tableName,
+				Key:          key,
+				Extra:        extra,
+				Nullable:     column.ISNullAble,
+				DefaultValue: column.DefaultValue,
 			})
 		}
 
