@@ -66,6 +66,7 @@ func Login(c *fiber.Ctx) error {
 		cookie.Name = "token"
 		cookie.Path = "/"
 		cookie.Value = token
+		cookie.Secure = true
 		cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
 
 		delete(user, "password")
