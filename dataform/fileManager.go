@@ -2,6 +2,7 @@ package dataform
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/config"
@@ -37,7 +38,7 @@ func CheckFileExist(filepath string, fileName string, fileType string, ext strin
 	}
 }
 
-func makeUploadable(src io.Reader, fileType string, ext string, fileName string) map[string]string {
+func makeUploadable(src io.Reader, fileType string, ext string, fileName string) (map[string]string, error) {
 	var name = strings.TrimRight(fileName, ext)
 	currentTime := time.Now()
 	year := fmt.Sprintf("%v", currentTime.Year())
@@ -67,7 +68,7 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 			"httpPath": "",
 			"basePath": "",
 			"fileName": "",
-		}
+		}, errors.New("file create error")
 	}
 	defer dst.Close()
 
@@ -77,7 +78,7 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 			"httpPath": "",
 			"basePath": "",
 			"fileName": "",
-		}
+		}, errors.New("file create error")
 	}
 
 	if config.Config.Image.MaxSize > 0 {
@@ -85,6 +86,12 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 		errO := optimizeImage(publicPath+uploadPath+newFileName, targetSizeBytes)
 		if errO != nil {
 			fmt.Print(errO.Error())
+			return map[string]string{
+				"httpPath": "",
+				"basePath": "",
+				"fileName": "",
+			}, errO
+
 		}
 	}
 
@@ -92,7 +99,7 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 		"httpPath": uploadPath + newFileName,
 		"basePath": fullPath,
 		"fileName": newFileName,
-	}
+	}, nil
 
 }
 func optimizeImage(filePath string, targetSize int64) error {
@@ -276,6 +283,13 @@ func Upload(c *fiber.Ctx) error {
 			"message": e,
 		})
 	}
-	upload := makeUploadable(src, fileType, ext_, file.Filename)
+	upload, uerr := makeUploadable(src, fileType, ext_, file.Filename)
+
+	if uerr != nil {
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
+			"status":  "false",
+			"message": uerr.Error(),
+		})
+	}
 	return c.SendString(upload["httpPath"])
 }
