@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/lambda-platform/lambda/config"
+	"gopkg.in/gomail.v2"
 	"html/template"
 	"log"
-	"net/smtp"
 )
 
 type Request struct {
@@ -43,16 +43,31 @@ func (r *Request) parseTemplate(fileName string, data interface{}) error {
 }
 
 func (r *Request) sendMail() bool {
-	body := "From: " + r.from + "\r\n" +
-		"To: " + r.to[0] + "\r\n" +
-		"Subject: " + r.subject + "\r\n" +
-		MIME + "\r\n" + r.body
-	SMTP := fmt.Sprintf("%s:%d", config.Config.Mail.Host, config.Config.Mail.Port)
-	if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.Config.Mail.Username, config.Config.Mail.Password, config.Config.Mail.Host), config.Config.Mail.Username, r.to, []byte(body)); err != nil {
-		fmt.Println(err.Error())
+
+	fromEmail := r.from
+	toEmail := r.to[0]
+	smtpServer := config.Config.Mail.Host
+	smtpPort := config.Config.Mail.Port
+	smtpUser := config.Config.Mail.Username
+	smtpPassword := config.Config.Mail.Password
+
+	// Create a new message
+	m := gomail.NewMessage()
+	m.SetHeader("From", fromEmail)
+	m.SetHeader("To", toEmail)
+	m.SetHeader("Subject", r.subject)
+	m.SetBody("text/html", r.body)
+
+	// Send the email using an SMTP server
+	d := gomail.NewDialer(smtpServer, smtpPort, smtpUser, smtpPassword)
+
+	if err := d.DialAndSend(m); err != nil {
+		log.Println("Failed to send email:", err)
 		return false
+	} else {
+		return true
 	}
-	return true
+
 }
 
 func (r *Request) Send(templateName string, items interface{}) bool {
