@@ -23,7 +23,7 @@ import (
 
 func UploadDBSCHEMA() (*pb.Response, error) {
 
-	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(21*time.Second))
+	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(120*time.Second))
 
 	if err != nil {
 
@@ -32,7 +32,7 @@ func UploadDBSCHEMA() (*pb.Response, error) {
 	defer conn.Close()
 	c := pb.NewConsoleClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 21*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
 	lambdaConfig, err := os.ReadFile("lambda.json")
