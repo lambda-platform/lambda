@@ -44,6 +44,8 @@ func WriteGridModel(dbSchema lambdaModels.DBSCHEMA, grids []genertarModels.Proje
 		/*Create Grid Model*/
 		models := createModel(schema, dbSchema, modelAliasWithID, MainTableAliasWithID, virtualColums, microRelationFound)
 
+		tableSchema := GetTableSchemaFromColumns(dbSchema.TableMeta[schema.Model])
+
 		/*GRID DEFAULT CONDITION & Filters*/
 		filters := createFilter(schema, modelAliasWithID)
 
@@ -89,7 +91,7 @@ var %sDatagrid datagrid.Datagrid = datagrid.Datagrid{
 func fillVirtualColumns%s(rowsPre interface{}) interface{}{
     %s
 }
-`, models, modelAliasWithID, vb.Name, schema.Identity, schema.Model, schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggergations, triggers, schema.Triggers.Namespace, modelAliasWithID, IsExcelUpload, schema.ExcelUploadCustomNamespace, excelImporter, modelAliasWithID, MicroserviceCaller)
+`, models, modelAliasWithID, vb.Name, schema.Identity, tableSchema+schema.Model, tableSchema+schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggergations, triggers, schema.Triggers.Namespace, modelAliasWithID, IsExcelUpload, schema.ExcelUploadCustomNamespace, excelImporter, modelAliasWithID, MicroserviceCaller)
 
 		Werror := utils.WriteFileFormat(content, "lambda/models/grid/"+modelAlias+strconv.FormatInt(int64(vb.ID), 10)+".go")
 		if Werror == nil {

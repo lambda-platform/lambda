@@ -36,6 +36,8 @@ func GenerateOnlyStruct(columnTypes []generatorModels.ColumnData, tableName stri
 
 	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
+	tableSchema := GetTableSchema(columnTypes)
+
 	src := fmt.Sprintf("\n  \ntype %s %s %s} %s",
 		structName,
 		dbTypes,
@@ -43,7 +45,7 @@ func GenerateOnlyStruct(columnTypes []generatorModels.ColumnData, tableName stri
 	if gormAnnotation == true {
 		tableNameFunc := "" +
 			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
-			"	return \"" + tableName + "\"" +
+			"	return \"" + tableSchema + tableName + "\"" +
 			"}"
 		src = fmt.Sprintf("%s\n%s", src, tableNameFunc)
 	}
@@ -59,6 +61,8 @@ func GenerateWithImports(otherPackage string, columnTypes []generatorModels.Colu
 
 	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
+	tableSchema := GetTableSchema(columnTypes)
+
 	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\"\n\"gorm.io/gorm\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \nvar _ = gorm.DB{} \n "
 	src := fmt.Sprintf("package %s\n %s\n %s\n \ntype %s %s %s %s} %s",
 		pkgName,
@@ -70,7 +74,7 @@ func GenerateWithImports(otherPackage string, columnTypes []generatorModels.Colu
 	if gormAnnotation == true {
 		tableNameFunc := "//  TableName sets the insert table name for this struct type\n " +
 			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
-			"	return \"" + tableName + "\"" +
+			"	return \"" + tableSchema + tableName + "\"" +
 			"}"
 		src = fmt.Sprintf("%s\n%s", src, tableNameFunc)
 	}
@@ -84,7 +88,7 @@ func GenerateWithImportsNoTime(otherPackage string, columnTypes []generatorModel
 	var dbTypes string
 
 	dbTypes, timeFound := generateStructTypesNoTime(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
-
+	tableSchema := GetTableSchema(columnTypes)
 	var _ = timeFound
 	importTime := ""
 	//if time_found {
@@ -100,7 +104,7 @@ func GenerateWithImportsNoTime(otherPackage string, columnTypes []generatorModel
 	if gormAnnotation == true {
 		tableNameFunc := "//  TableName sets the insert table name for this struct type\n " +
 			"func (" + strings.ToLower(string(structName[0])) + " *" + structName + ") TableName() string {\n" +
-			"	return \"" + tableName + "\"" +
+			"	return \"" + tableSchema + tableName + "\"" +
 			"}"
 		src = fmt.Sprintf("%s\n%s", src, tableNameFunc)
 	}
@@ -312,4 +316,16 @@ func generateStructTypesNoTime(columnTypes []generatorModels.ColumnData, depth i
 	}
 
 	return structure, time_found
+}
+
+func GetTableSchema(columnTypes []generatorModels.ColumnData) string {
+	schema := ""
+
+	if len(columnTypes) >= 1 {
+		if columnTypes[0].TableSchema != "" {
+			schema = columnTypes[0].TableSchema + "."
+		}
+	}
+
+	return schema
 }

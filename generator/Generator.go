@@ -80,11 +80,12 @@ func GetColumnsFromTableMeta(columns []lambdaModels.TableMeta, hiddenColumns []s
 		if isHidden == false {
 
 			columnTypes = append(columnTypes, genertarModels.ColumnData{
-				Name:     tableColumn.Model,
-				DataType: tableColumn.DbType,
-				Nullable: tableColumn.Nullable,
-				Primary:  tableColumn.Key,
-				Scale:    tableColumn.Scale,
+				Name:        tableColumn.Model,
+				DataType:    tableColumn.DbType,
+				Nullable:    tableColumn.Nullable,
+				Primary:     tableColumn.Key,
+				Scale:       tableColumn.Scale,
+				TableSchema: tableColumn.TableSchema,
 			})
 		}
 	}
@@ -168,5 +169,18 @@ func GetColumnsWithMeta(columns []lambdaModels.TableMeta, hiddenColumns []string
 	}
 
 	return tableColumns
+
+}
+func GetTableSchemaFromColumns(columns []lambdaModels.TableMeta) string {
+
+	schema := ""
+
+	if len(columns) >= 1 {
+		if columns[0].TableSchema != "" {
+			schema = columns[0].TableSchema + "."
+		}
+	}
+
+	return schema
 
 }

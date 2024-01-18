@@ -174,7 +174,7 @@ func TableMetas(tableName string) []models.TableMeta {
 
 		var currentTableMetas []models.PostgresTableMata
 
-		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default, numeric_scale FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
+		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default, numeric_scale, table_schema FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
 
 		for _, column := range currentTableMetas {
 
@@ -229,6 +229,7 @@ func TableMetas(tableName string) []models.TableMeta {
 				Scale:        scale,
 				Nullable:     column.ISNullAble,
 				DefaultValue: column.ColumnDefault,
+				TableSchema:  column.TableSchema,
 			})
 		}
 
