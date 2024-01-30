@@ -66,7 +66,7 @@ func Login(c *fiber.Ctx) error {
 		cookie.Name = "token"
 		cookie.Path = "/"
 		cookie.Value = token
-		if config.Config.JWT.DisableCookieSecure {
+		if !config.Config.JWT.DisableCookieSecure {
 			cookie.Secure = true
 		}
 
