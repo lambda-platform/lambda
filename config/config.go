@@ -94,10 +94,11 @@ type database struct {
 }
 
 type app struct {
-	Name    string
-	Port    string
-	Migrate string
-	Seed    string
+	Name         string
+	Port         string
+	Migrate      string
+	Seed         string
+	CookieSecure bool `envconfig:"APP_COOKIE_SECURE"`
 }
 type grpc struct {
 	Port string
