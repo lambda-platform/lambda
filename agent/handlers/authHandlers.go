@@ -66,8 +66,10 @@ func Login(c *fiber.Ctx) error {
 		cookie.Name = "token"
 		cookie.Path = "/"
 		cookie.Value = token
+		cookie.HTTPOnly = true
 		if !config.Config.JWT.DisableCookieSecure {
 			cookie.Secure = true
+
 		}
 
 		cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
