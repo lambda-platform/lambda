@@ -94,19 +94,19 @@ type database struct {
 }
 
 type app struct {
-	Name         string
-	Port         string
-	Migrate      string
-	Seed         string
-	CookieSecure bool `envconfig:"APP_COOKIE_SECURE"`
+	Name    string
+	Port    string
+	Migrate string
+	Seed    string
 }
 type grpc struct {
 	Port string
 }
 
 type JWT struct {
-	Secret string
-	Ttl    int
+	Secret              string
+	Ttl                 int
+	DisableCookieSecure bool `envconfig:"JWT_DISABLE_COOKIE_SECURE"`
 }
 
 type SysAdmin struct {
