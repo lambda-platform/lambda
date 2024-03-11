@@ -11,6 +11,12 @@ import (
 
 func Dictionary(c *fiber.Ctx) error {
 
+	//tables := map[string][]string{}
+
+	//tables["tables"] = []string{""}
+	//tables["views"] = []string{""}
+
+	//dbSchema := DBSchema.GetDBSchemaWithTargets(tables)
 	dbSchema := DBSchema.GetDBSchema()
 
 	var FormSchemasPre []genertarModels.ProjectSchemas

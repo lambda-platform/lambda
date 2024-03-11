@@ -41,6 +41,34 @@ func GetDBSchema() models.DBSCHEMA {
 
 	return vbSchemas
 }
+func GetDBSchemaWithTargets(tables map[string][]string) models.DBSCHEMA {
+
+	tableMetas := make(map[string][]models.TableMeta, 0)
+
+	if config.Config.Database.Connection == "postgres" {
+		DB.DB.Raw("SELECT pg_type.typname FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid  GROUP BY  pg_type.typname").Scan(&Enums)
+	}
+
+	for _, table := range tables["tables"] {
+		tableMetas[table] = TableMetas(table)
+	}
+
+	for _, table := range tables["views"] {
+		tableMetas[table] = TableMetas(table)
+	}
+
+	vbSchemas := models.DBSCHEMA{
+		TableList: tables["tables"],
+		ViewList:  tables["views"],
+		TableMeta: tableMetas,
+	}
+
+	file, _ := json.MarshalIndent(vbSchemas, "", " ")
+
+	_ = os.WriteFile("lambda/db_schema.json", file, 0755)
+
+	return vbSchemas
+}
 
 func Tables() map[string][]string {
 	tables := make([]string, 0)

@@ -18,6 +18,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type vb_schema struct {
@@ -279,11 +280,11 @@ func SaveVB(modelName string) fiber.Handler {
 
 				DB.DB.Where("id = ?", id_).First(&vb)
 
+				BeforeSave(id_, type_, vbs)
+
 				vb.Name = vbs.Name
 				vb.Schema = vbs.Schema
 				//_, err := vb.Update(context.Background(), DB, boil.Infer())
-
-				BeforeSave(id_, type_)
 
 				err = DB.DB.Save(&vb).Error
 
@@ -313,11 +314,11 @@ func SaveVB(modelName string) fiber.Handler {
 
 				DB.DB.Where("id = ?", id_).First(&vb)
 
+				BeforeSave(id_, type_, vbs)
 				vb.Name = vbs.Name
+
 				vb.Schema = vbs.Schema
 				//_, err := vb.Update(context.Background(), DB, boil.Infer())
-
-				BeforeSave(id_, type_)
 
 				err = DB.DB.Save(&vb).Error
 
@@ -519,12 +520,12 @@ func SaveProjectVB(modelName string) fiber.Handler {
 
 			DB.DB.Where("id = ?", id_).First(&vb)
 
+			BeforeSave(id_, type_, vbs)
+
 			vb.Name = vbs.Name
 			vb.ProjectID = ProjectID
 			vb.Schema = vbs.Schema
 			//_, err := vb.Update(context.Background(), DB, boil.Infer())
-
-			BeforeSave(id_, type_)
 
 			err := DB.DB.Save(&vb).Error
 
@@ -641,20 +642,71 @@ func BeforeDelete(id uint64, type_ string) {
 
 		DB.DB.Where("id = ?", id).First(&vb)
 
-		datasource.DeleteView("ds_" + vb.Name)
+		datasource.DeleteView(vb.Name)
 	}
 
 }
-func BeforeSave(id uint64, type_ string) {
+func BeforeSave(id uint64, type_ string, vbs *vb_schema) {
 
-	if type_ == "datasource" {
-		vb := models.VBSchema{}
+	if config.Config.Database.Connection == "postgres" {
+		if type_ == "form" {
 
-		DB.DB.Where("id = ?", id).First(&vb)
+			var schema models.SCHEMA
 
-		datasource.DeleteView("ds_" + vb.Name)
+			json.Unmarshal([]byte(vbs.Schema), &schema)
+
+			for i := range schema.Schema {
+
+				if schema.Schema[i].FormType == "Select" {
+					if schema.Schema[i].Relation.Table != "" {
+						substr := "."
+
+						if strings.Contains(schema.Schema[i].Relation.Table, substr) != true {
+							getTableWithSchema(&schema.Schema[i].Relation.Table)
+						}
+					}
+				}
+
+			}
+			schemaString, _ := json.Marshal(schema)
+			vbs.Schema = string(schemaString)
+
+		} else if type_ == "grid" {
+
+			var schema models.SCHEMAGRID
+
+			json.Unmarshal([]byte(vbs.Schema), &schema)
+
+			for i := range schema.Schema {
+				fmt.Println(schema.Schema[i].Filterable)
+
+				if schema.Schema[i].Filterable {
+					if schema.Schema[i].Filter.Relation.Table != "" {
+						substr := "."
+
+						if strings.Contains(schema.Schema[i].Filter.Relation.Table, substr) != true {
+
+							getTableWithSchema(&schema.Schema[i].Filter.Relation.Table)
+						}
+					}
+				}
+
+			}
+			schemaString, _ := json.Marshal(schema)
+			vbs.Schema = string(schemaString)
+
+		}
 	}
 
+}
+func getTableWithSchema(tableName *string) *string {
+	var schemaName string
+	err := DB.DB.Raw("SELECT table_schema FROM information_schema.tables WHERE table_name = ? LIMIT 1", *tableName).Scan(&schemaName).Error
+	if err == nil {
+		*tableName = schemaName + "." + *tableName
+	}
+
+	return tableName
 }
 func AfterSave(vb models.VBSchema, type_ string) error {
 

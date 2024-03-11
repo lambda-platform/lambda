@@ -46,7 +46,7 @@ type FormItem struct {
 	IsFkey   bool   `json:"isFkey"`
 	InfoUrl  string `json:"info_url"`
 	Relation struct {
-		Table              interface{}   `json:"table"`
+		Table              string        `json:"table"`
 		Key                interface{}   `json:"key"`
 		Fields             []interface{} `json:"fields"`
 		FilterWithUser     []interface{} `json:"filterWithUser"`
@@ -188,7 +188,7 @@ type SCHEMAGRID struct {
 			ParamCompareType string      `json:"paramCompareType"`
 			Default          interface{} `json:"default"`
 			Relation         struct {
-				Table     interface{}   `json:"table"`
+				Table     string        `json:"table"`
 				Key       interface{}   `json:"key"`
 				Fields    []interface{} `json:"fields"`
 				SortField interface{}   `json:"sortField"`
