@@ -15,9 +15,9 @@ type FormItem struct {
 	Model       string      `json:"model"`
 	Title       string      `json:"title"`
 	DbType      string      `json:"dbType"`
-	Table       string      `json:"table,omitempty"`
+	Table       string      `json:"table"`
 	Key         string      `json:"key"`
-	Extra       string      `json:"extra,omitempty"`
+	Extra       string      `json:"extra"`
 	ID          string      `json:"id"`
 	Type        string      `json:"type"`
 	Identity    string      `json:"identity"`
@@ -56,7 +56,7 @@ type FormItem struct {
 		Filter             string        `json:"filter"`
 		ParentFieldOfForm  string        `json:"parentFieldOfForm"`
 		ParentFieldOfTable string        `json:"parentFieldOfTable"`
-	} `json:"relation,omitempty"`
+	} `json:"relation"`
 	Span struct {
 		Xs int `json:"xs"`
 		Sm int `json:"sm"`
@@ -70,12 +70,12 @@ type FormItem struct {
 		Count      int    `json:"count"`
 		MaxSize    int    `json:"maxSize"`
 		Type       string `json:"type"`
-	} `json:"file,omitempty"`
+	} `json:"file"`
 	Options          []interface{} `json:"options"`
 	PasswordOption   interface{}   `json:"passwordOption"`
 	GeographicOption interface{}   `json:"GeographicOption"`
 	EditorType       interface{}   `json:"editorType"`
-	SchemaID         string        `json:"schemaID,omitempty"`
+	SchemaID         string        `json:"schemaID"`
 
 	//subForm data
 	Name                           string                 `json:"name"`
@@ -107,18 +107,14 @@ type FormItem struct {
 	SourceGridID                   interface{}            `json:"sourceGridID"`
 	SourceGridTargetColumns        []interface{}          `json:"sourceGridTargetColumns"`
 	Schema                         []FormItem             `json:"schema"`
-
-	Nullable     string `json:"nullable,omitempty"`
-	Scale        string `json:"scale,omitempty"`
-	DefaultValue string `json:"default_value,omitempty"`
-	TableSchema  string `json:"table_schema,omitempty"`
-	Warn         string `json:"warn,omitempty"`
-	Subtype      string `json:"subtype,omitempty"`
-	FormID       any    `json:"formId,omitempty"`
-	Data         any    `json:"data,omitempty"`
-	Rule         any    `json:"rule,omitempty"`
-	Timestamp    bool   `json:"timestamp,omitempty"`
-	TrKey        any    `json:"trKey,omitempty"`
+	Nullable                       string                 `json:"nullable"`
+	Scale                          string                 `json:"scale"`
+	DefaultValue                   string                 `json:"default_value"`
+	TableSchema                    string                 `json:"table_schema"`
+	Warn                           string                 `json:"warn"`
+	Data                           any                    `json:"data"`
+	Rule                           any                    `json:"rule"`
+	TrKey                          any                    `json:"trKey"`
 }
 
 type SCHEMA struct {
@@ -155,24 +151,6 @@ type SCHEMA struct {
 	WarnText                 string `json:"warnText"`
 	FormValidationCustomText string `json:"formValidationCustomText"`
 	DisableReset             bool   `json:"disableReset"`
-	Type                     string `json:"type"`
-	Step                     struct {
-		HasPermission bool  `json:"hasPermission"`
-		IsCancel      bool  `json:"isCancel"`
-		SingleTable   bool  `json:"singleTable"`
-		List          []any `json:"list"`
-	} `json:"step"`
-	Email struct {
-		To                    []any `json:"to"`
-		Cc                    []any `json:"cc"`
-		Bcc                   []any `json:"bcc"`
-		Subject               any   `json:"subject"`
-		Body                  any   `json:"body"`
-		HasAttach             int   `json:"has_attach"`
-		HasCustomTrigger      int   `json:"has_custom_trigger"`
-		CustomTrigger         any   `json:"custom_trigger"`
-		CustomTriggerFunction any   `json:"custom_trigger_function"`
-	} `json:"email"`
 }
 type SCHEMAGRID struct {
 	Model          string   `json:"model"`

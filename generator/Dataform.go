@@ -135,6 +135,8 @@ func createSubForms(modelAliasWithID string, schema lambdaModels.SCHEMA) (string
 	gridSubFroms := ""
 	subForms := `[]map[string]interface{}{`
 
+	fmt.Println(modelAliasWithID)
+
 	for _, field := range schema.Schema {
 		if field.FormType == "SubForm" {
 			if field.SubType == "Grid" {
