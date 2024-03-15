@@ -107,6 +107,18 @@ type FormItem struct {
 	SourceGridID                   interface{}            `json:"sourceGridID"`
 	SourceGridTargetColumns        []interface{}          `json:"sourceGridTargetColumns"`
 	Schema                         []FormItem             `json:"schema"`
+
+	Nullable     string `json:"nullable,omitempty"`
+	Scale        string `json:"scale,omitempty"`
+	DefaultValue string `json:"default_value,omitempty"`
+	TableSchema  string `json:"table_schema,omitempty"`
+	Warn         string `json:"warn,omitempty"`
+	Subtype      string `json:"subtype,omitempty"`
+	FormID       any    `json:"formId,omitempty"`
+	Data         any    `json:"data,omitempty"`
+	Rule         any    `json:"rule,omitempty"`
+	Timestamp    bool   `json:"timestamp,omitempty"`
+	TrKey        any    `json:"trKey,omitempty"`
 }
 
 type SCHEMA struct {
@@ -143,8 +155,25 @@ type SCHEMA struct {
 	WarnText                 string `json:"warnText"`
 	FormValidationCustomText string `json:"formValidationCustomText"`
 	DisableReset             bool   `json:"disableReset"`
+	Type                     string `json:"type"`
+	Step                     struct {
+		HasPermission bool  `json:"hasPermission"`
+		IsCancel      bool  `json:"isCancel"`
+		SingleTable   bool  `json:"singleTable"`
+		List          []any `json:"list"`
+	} `json:"step"`
+	Email struct {
+		To                    []any `json:"to"`
+		Cc                    []any `json:"cc"`
+		Bcc                   []any `json:"bcc"`
+		Subject               any   `json:"subject"`
+		Body                  any   `json:"body"`
+		HasAttach             int   `json:"has_attach"`
+		HasCustomTrigger      int   `json:"has_custom_trigger"`
+		CustomTrigger         any   `json:"custom_trigger"`
+		CustomTriggerFunction any   `json:"custom_trigger_function"`
+	} `json:"email"`
 }
-
 type SCHEMAGRID struct {
 	Model          string   `json:"model"`
 	IsView         bool     `json:"isView"`
@@ -163,36 +192,45 @@ type SCHEMAGRID struct {
 	Paging         int      `json:"paging"`
 	Template       int      `json:"template"`
 	Schema         []struct {
-		VirtualColumn bool         `json:"virtualColumn"`
-		Model         string       `json:"model"`
-		Title         string       `json:"title"`
-		DbType        string       `json:"dbType"`
-		Table         string       `json:"table"`
-		Key           string       `json:"key"`
-		Extra         string       `json:"extra"`
-		Label         string       `json:"label"`
-		GridType      string       `json:"gridType"`
-		Width         int          `json:"width"`
-		Hide          bool         `json:"hide"`
-		Sortable      bool         `json:"sortable"`
-		Printable     bool         `json:"printable"`
-		Pinned        bool         `json:"pinned"`
-		PinPosition   string       `json:"pinPosition"`
-		Link          string       `json:"link"`
-		LinkTarget    string       `json:"linkTarget"`
-		Relation      GridRelation `json:"relation"`
-		Filterable    bool         `json:"filterable"`
-		Filter        struct {
-			Type             string      `json:"type"`
-			Param            interface{} `json:"param"`
-			ParamCompareType string      `json:"paramCompareType"`
-			Default          interface{} `json:"default"`
+		VirtualColumn bool   `json:"virtualColumn"`
+		Model         string `json:"model"`
+		Title         string `json:"title"`
+		DbType        string `json:"dbType"`
+		Table         string `json:"table"`
+		Key           string `json:"key"`
+		Extra         string `json:"extra"`
+		Label         string `json:"label"`
+		GridType      string `json:"gridType"`
+		Width         int    `json:"width"`
+		Hide          bool   `json:"hide"`
+		Sortable      bool   `json:"sortable"`
+		Printable     bool   `json:"printable"`
+		Pinned        bool   `json:"pinned"`
+		PinPosition   string `json:"pinPosition"`
+		Link          string `json:"link"`
+		LinkTarget    string `json:"linkTarget"`
+		Relation      struct {
+			Column          string `json:"column"`
+			ConnectionField string `json:"connection_field"`
+			MicroserviceID  int    `json:"microservice_id"`
+			Table           string `json:"table"`
+			Key             string `json:"key"`
+			Fields          string `json:"fields"`
+			Self            bool   `json:"self"`
+			Filter          string `json:"filter"`
+		} `json:"relation"`
+		Filterable bool `json:"filterable"`
+		Filter     struct {
+			Type             string `json:"type"`
+			Param            any    `json:"param"`
+			ParamCompareType string `json:"paramCompareType"`
+			Default          any    `json:"default"`
 			Relation         struct {
-				Table     string        `json:"table"`
-				Key       interface{}   `json:"key"`
-				Fields    []interface{} `json:"fields"`
-				SortField interface{}   `json:"sortField"`
-				SortOrder string        `json:"sortOrder"`
+				Table     string `json:"table"`
+				Key       any    `json:"key"`
+				Fields    []any  `json:"fields"`
+				SortField any    `json:"sortField"`
+				SortOrder string `json:"sortOrder"`
 			} `json:"relation"`
 		} `json:"filter"`
 		Editable struct {
@@ -201,9 +239,23 @@ type SCHEMAGRID struct {
 			ShouldUpdate bool   `json:"shouldUpdate"`
 			ShouldPost   bool   `json:"shouldPost"`
 		} `json:"editable"`
-		Searchable     bool          `json:"searchable"`
-		HasTranslation bool          `json:"hasTranslation"`
-		Options        []interface{} `json:"options"`
+		Searchable           bool  `json:"searchable"`
+		HasTranslation       bool  `json:"hasTranslation"`
+		Options              []any `json:"options"`
+		TrKey                any   `json:"trKey"`
+		CanExcelImport       bool  `json:"canExcelImport"`
+		ExcelImportFieldName any   `json:"excelImportFieldName"`
+		ExcelImportRelation  struct {
+			Table              any    `json:"table"`
+			Key                any    `json:"key"`
+			Fields             []any  `json:"fields"`
+			SortField          any    `json:"sortField"`
+			SortOrder          string `json:"sortOrder"`
+			Multiple           bool   `json:"multiple"`
+			Filter             string `json:"filter"`
+			ParentFieldOfForm  string `json:"parentFieldOfForm"`
+			ParentFieldOfTable string `json:"parentFieldOfTable"`
+		} `json:"excelImportRelation"`
 	} `json:"schema"`
 	Filter                    []interface{}       `json:"filter"`
 	Formula                   []interface{}       `json:"formula"`
@@ -242,7 +294,26 @@ type SCHEMAGRID struct {
 	IsExcelUpload              bool           `json:"isExcelUpload"`
 	ExcelUploadCustomNamespace string         `json:"excelUploadCustomNamespace"`
 	ExcelUploadCustomTrigger   string         `json:"excelUploadCustomTrigger"`
+	GridTheme                  string         `json:"gridTheme"`
 	IsRefresh                  bool           `json:"isRefresh"`
 	IsNumbered                 bool           `json:"isNumbered"`
 	Microservices              []Microservice `json:"microservices"`
+	ExcelUploadSample          any            `json:"excelUploadSample"`
+	ExcelImportRowtoStart      any            `json:"excelImportRowtoStart"`
+	ExcelUploadCustomURL       any            `json:"excelUploadCustomUrl"`
+	IsGlobalSearch             bool           `json:"isGlobalSearch"`
+	ExcelImportRelation        struct {
+		Table              any    `json:"table"`
+		Key                any    `json:"key"`
+		Fields             []any  `json:"fields"`
+		SortField          any    `json:"sortField"`
+		SortOrder          string `json:"sortOrder"`
+		Multiple           bool   `json:"multiple"`
+		Filter             string `json:"filter"`
+		ParentFieldOfForm  string `json:"parentFieldOfForm"`
+		ParentFieldOfTable string `json:"parentFieldOfTable"`
+	} `json:"excelImportRelation"`
+	SaveFilter      bool `json:"saveFilter"`
+	AutoSelect      bool `json:"autoSelect"`
+	AutoSelectModel any  `json:"autoSelectModel"`
 }
