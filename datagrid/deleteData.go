@@ -12,6 +12,8 @@ func DeleteData(c *fiber.Ctx, datagrid Datagrid, id string) error {
 	qr := DB.DB.Where(datagrid.Identity+" = ?", id)
 	err := qr.Delete(datagrid.MainModel).Error
 
+	ExecTrigger("beforeDelete", id, datagrid, qr, c)
+
 	if err != nil {
 
 		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
@@ -21,7 +23,7 @@ func DeleteData(c *fiber.Ctx, datagrid Datagrid, id string) error {
 
 	} else {
 
-		ExecTrigger("afterDelete", []interface{}{}, datagrid, qr, c)
+		ExecTrigger("afterDelete", id, datagrid, qr, c)
 
 		return c.JSON(map[string]interface{}{
 			"status": true,

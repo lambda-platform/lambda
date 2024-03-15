@@ -9,7 +9,6 @@ func ExecTrigger(action string, data interface{}, datagrid Datagrid, query *gorm
 
 	switch action {
 	case "afterDelete":
-
 		if datagrid.AfterDelete != nil {
 			return datagrid.AfterDelete(data, datagrid, query, c)
 		}
