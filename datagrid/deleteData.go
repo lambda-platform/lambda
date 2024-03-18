@@ -7,10 +7,10 @@ import (
 )
 
 func DeleteData(c *fiber.Ctx, datagrid Datagrid, id string) error {
-
+	qr := DB.DB.Where(datagrid.Identity+" = ?", id)
 	ExecTrigger("beforeDelete", id, datagrid, qr, c)
 	//fmt.Println(Identity, id, "Identity, id")
-	qr := DB.DB.Where(datagrid.Identity+" = ?", id)
+
 	err := qr.Delete(datagrid.MainModel).Error
 
 	if err != nil {
