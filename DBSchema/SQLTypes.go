@@ -48,6 +48,8 @@ var TypeStrings = []string{
 	"jsonb",
 	"time",
 	"geometry",
+	"INTERVAL",
+	"interval",
 }
 var TypeTimes = []string{
 	"datetimeoffset",
