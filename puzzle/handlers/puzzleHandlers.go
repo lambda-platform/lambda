@@ -665,6 +665,19 @@ func BeforeSave(id uint64, type_ string, vbs *vb_schema) {
 							getTableWithSchema(&schema.Schema[i].Relation.Table)
 						}
 					}
+				} else if schema.Schema[i].FormType == "SubForm" {
+					for si := range schema.Schema[i].Schema {
+						if schema.Schema[i].Schema[si].FormType == "Select" {
+							if schema.Schema[i].Schema[si].Relation.Table != "" {
+								substr := "."
+
+								if strings.Contains(schema.Schema[i].Schema[si].Relation.Table, substr) != true {
+									getTableWithSchema(&schema.Schema[i].Schema[si].Relation.Table)
+								}
+							}
+						}
+					}
+
 				}
 
 			}
