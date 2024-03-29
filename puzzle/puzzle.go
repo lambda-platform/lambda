@@ -70,7 +70,7 @@ func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) da
 	//Roles
 	g.Get("/puzzle/roles-menus", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRolesMenus)
 	g.Get("/puzzle/roles-menus/:microserviceID", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.GetRolesMenus)
-	g.Get("/puzzle/get-krud-fields/:id", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetKrudFields)
+	g.Get("/puzzle/get-krud-fields/:id", agentMW.IsLoggedIn(), handlers.GetKrudFields)
 	g.Get("/puzzle/get-krud-fields-micro/:id", agentMW.IsLoggedIn(), handlers.GetKrudFieldsConsole)
 	if isMicroservice {
 		g.Post("/puzzle/roles/create", agentMW.IsLoggedIn(), agentMW.IsCloudUser, handlers.CreateRole)
