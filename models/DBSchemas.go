@@ -23,6 +23,7 @@ type FormItem struct {
 	Identity    string      `json:"identity"`
 	Label       string      `json:"label"`
 	PlaceHolder string      `json:"placeHolder"`
+	Param       string      `json:"param"`
 	Hidden      bool        `json:"hidden"`
 	Disabled    bool        `json:"disabled"`
 	Default     interface{} `json:"default"`
