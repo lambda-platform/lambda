@@ -520,7 +520,7 @@ func SaveProjectVB(modelName string) fiber.Handler {
 
 			DB.DB.Where("id = ?", id_).First(&vb)
 
-			BeforeSave(id_, type_, vbs)
+			//BeforeSave(id_, type_, vbs)
 
 			vb.Name = vbs.Name
 			vb.ProjectID = ProjectID
