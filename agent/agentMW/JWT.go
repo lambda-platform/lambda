@@ -26,6 +26,7 @@ func jwtError(c *fiber.Ctx, err error) error {
 			JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
 	}
 	fmt.Println(err.Error())
+
 	return c.Status(fiber.StatusUnauthorized).
 		JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
 }

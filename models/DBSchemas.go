@@ -47,6 +47,7 @@ type FormItem struct {
 	IsFkey   bool   `json:"isFkey"`
 	InfoUrl  string `json:"info_url"`
 	Relation struct {
+		MicroserviceID     string        `json:"microservice_id"`
 		Table              string        `json:"table"`
 		Key                interface{}   `json:"key"`
 		Fields             []interface{} `json:"fields"`
