@@ -186,7 +186,7 @@ func Upload(c *fiber.Ctx) error {
 		"image/gif",
 	}
 
-	if ext == "dwg" || ext == "pdf" || ext == "zip" || ext == "swf" || ext == "doc" || ext == "docx" || ext == "csv" || ext == "xls" || ext == "xlsx" || ext == "ppt" || ext == "pptx" {
+
 		rules = govalidator.MapData{
 			"file:file": []string{"ext:xls,xlsx,doc,docx,pdf,ppt,pptx,csv,zip,dwg,XLS,XLSX,DOC,DOCX,PDF,PPT,PPTX,CSV,ZIP,DWG", "size:400000000", "required"},
 		}

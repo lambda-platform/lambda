@@ -137,7 +137,7 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ? AND "+subIdentity+" NOT IN ?", parentId, tableTypeValue, existingIDS).Unscoped().Delete(subForm.Model)
 					} else {
 
-						DB.DB.Table(subForm.Table).Where(connectionField+" = ? AND "+subIdentity+" NOT IN ?", parentId, existingIDS).Unscoped().Delete(subForm.Model)
+						DB.DB.Where(connectionField+" = ? AND "+subIdentity+" NOT IN ?", parentId, existingIDS).Unscoped().Delete(subForm.Model)
 					}
 				} else {
 					Clear(subForm.Model)
@@ -145,7 +145,7 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ?", parentId, tableTypeValue).Unscoped().Delete(subForm.Model)
 					} else {
 
-						DB.DB.Table(subForm.Table).Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
+						DB.DB.Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
 
 					}
 				}
