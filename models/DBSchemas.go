@@ -85,6 +85,7 @@ type FormItem struct {
 	Parent                         string                 `json:"parent"`
 	FormId                         uint64                 `json:"formId"`
 	MapID                          string                 `json:"mapID"`
+	SelectedType                   string                 `json:"selectedType"`
 	FormType                       string                 `json:"formType"`
 	MinHeight                      string                 `json:"min_height"`
 	DisableDelete                  bool                   `json:"disableDelete"`
