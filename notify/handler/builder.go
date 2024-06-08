@@ -38,30 +38,26 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 			Body := Execute(dataJson, target.Body)
 
 			if value == true {
-
-				FCMData := models.FCMData{
-					Title:       target.Title,
-					Body:        Body,
-					FirstName:   user.FirstName,
-					Sound:       config.LambdaConfig.Notify.Sound,
-					Icon:        config.LambdaConfig.Favicon,
-					Link:        target.Link,
-					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
-				}
-
 				FCMNotification := models.FCMNotification{
-					Title:       target.Title,
-					Body:        Body,
-					Icon:        config.LambdaConfig.Domain + "/" + config.LambdaConfig.Favicon,
-					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
+					Title: target.Title,
+					Body:  Body,
 				}
 
-				data := models.NotificationData{
+				FCMData := map[string]interface{}{
+					"Title":       target.Title,
+					"Body":        Body,
+					"FirstName":   user.FirstName,
+					"Sound":       config.LambdaConfig.Notify.Sound,
+					"Icon":        config.LambdaConfig.Favicon,
+					"Link":        target.Link,
+					"ClickAction": config.LambdaConfig.Domain + "/" + target.Link,
+				}
+
+				notification := models.NotificationData{
 					Roles:        []int{target.TargetRole},
-					Data:         FCMData,
 					Notification: FCMNotification,
 				}
-				CreateNotification(data, dataJson)
+				CreateNotification(notification, FCMData)
 
 			}
 		}
@@ -91,30 +87,26 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 			Body := Execute(dataJson, target.Body)
 
 			if value == true {
-
-				FCMData := models.FCMData{
-					Title:       target.Title,
-					Body:        Body,
-					FirstName:   user.FirstName,
-					Sound:       config.LambdaConfig.Notify.Sound,
-					Icon:        config.LambdaConfig.Favicon,
-					Link:        target.Link,
-					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
-				}
-
 				FCMNotification := models.FCMNotification{
-					Title:       target.Title,
-					Body:        Body,
-					Icon:        config.LambdaConfig.Domain + "/" + config.LambdaConfig.Favicon,
-					ClickAction: config.LambdaConfig.Domain + "/" + target.Link,
+					Title: target.Title,
+					Body:  Body,
 				}
 
-				data := models.NotificationData{
+				FCMData := map[string]interface{}{
+					"Title":       target.Title,
+					"Body":        Body,
+					"FirstName":   user.FirstName,
+					"Sound":       config.LambdaConfig.Notify.Sound,
+					"Icon":        config.LambdaConfig.Favicon,
+					"Link":        target.Link,
+					"ClickAction": config.LambdaConfig.Domain + "/" + target.Link,
+				}
+
+				notification := models.NotificationData{
 					Roles:        []int{target.TargetRole},
-					Data:         FCMData,
 					Notification: FCMNotification,
 				}
-				CreateNotification(data, dataJson)
+				CreateNotification(notification, FCMData)
 
 			}
 		}
