@@ -34,36 +34,48 @@ type UserNotificationsUUID struct {
 	Login      string     `gorm:"column:login" json:"login"`
 }
 
-type Payload struct {
-	RegistrationIds []string        `json:"registration_ids"`
-	Data            interface{}     `json:"data"`
-	Notification    FCMNotification `json:"notification"`
+type FCMHTTPRequest struct {
+	Message Message `json:"message"`
 }
-type FCMData struct {
-	Title       string    `json:"title"`
-	Body        string    `gorm:"column:body" json:"body"`
-	Sound       string    `json:"sound"`
-	Icon        string    `json:"icon"`
-	ClickAction string    `gorm:"column:click_action" json:"click_action"`
-	Link        string    `gorm:"column:link" json:"link"`
-	FirstName   string    `gorm:"column:first_name" json:"first_name"`
-	CreatedAt   time.Time `gorm:"column:created_at" json:"created_at"`
-	ID          int64     `gorm:"column:id" json:"id"`
+
+type Message struct {
+	Token        string                 `json:"token"`
+	Notification FCMNotification        `json:"notification"`
+	WebPush      WebPush                `json:"webpush"`
+	Data         map[string]interface{} `json:"data"`
 }
+
 type FCMNotification struct {
-	Title       string `json:"title"`
-	Body        string `gorm:"column:body" json:"body"`
-	Sound       string `json:"sound"`
-	Link        string `gorm:"column:link" json:"link"`
-	ClickAction string `gorm:"column:click_action" json:"click_action"`
-	Icon        string `json:"icon"`
+	Title string `json:"title"`
+	Body  string `gorm:"column:body" json:"body"`
+}
+
+type WebPush struct {
+	Options FCMOptions `json:"fcm_options"`
+}
+
+type FCMOptions struct {
+	Link string `json:"link"`
 }
 
 type NotificationData struct {
 	Users        []int
 	Roles        []int
-	Data         FCMData         `json:"data"`
 	Notification FCMNotification `json:"notification"`
+}
+
+type FCMError struct {
+	Error struct {
+		Code    int      `json:"code"`
+		Message string   `json:"message"`
+		Status  string   `json:"status"`
+		Details []Detail `json:"details"`
+	} `json:"error"`
+}
+
+type Detail struct {
+	Type      string `json:"@type"`
+	ErrorCode string `json:"errorCode"`
 }
 
 type UserNotificationsOracle struct {
