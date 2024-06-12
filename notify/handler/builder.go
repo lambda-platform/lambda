@@ -43,21 +43,24 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 					Body:  Body,
 				}
 
+				FCMOptions := models.FCMOptions{
+					Link: config.LambdaConfig.Domain + "/" + target.Link,
+				}
+
 				FCMData := map[string]interface{}{
-					"Title":       target.Title,
-					"Body":        Body,
-					"FirstName":   user.FirstName,
-					"Sound":       config.LambdaConfig.Notify.Sound,
-					"Icon":        config.LambdaConfig.Favicon,
-					"Link":        target.Link,
-					"ClickAction": config.LambdaConfig.Domain + "/" + target.Link,
+					"Title":     target.Title,
+					"Body":      Body,
+					"FirstName": user.FirstName,
+					"Sound":     config.LambdaConfig.Notify.Sound,
+					"Icon":      config.LambdaConfig.Favicon,
+					"Link":      target.Link,
 				}
 
 				notification := models.NotificationData{
 					Roles:        []int{target.TargetRole},
 					Notification: FCMNotification,
 				}
-				CreateNotification(notification, FCMData)
+				CreateNotification(notification, FCMOptions, FCMData)
 
 			}
 		}
@@ -92,21 +95,24 @@ func BuildNotification(dataJson map[string]interface{}, schemaId int64, action s
 					Body:  Body,
 				}
 
+				FCMOptions := models.FCMOptions{
+					Link: config.LambdaConfig.Domain + "/" + target.Link,
+				}
+
 				FCMData := map[string]interface{}{
-					"Title":       target.Title,
-					"Body":        Body,
-					"FirstName":   user.FirstName,
-					"Sound":       config.LambdaConfig.Notify.Sound,
-					"Icon":        config.LambdaConfig.Favicon,
-					"Link":        target.Link,
-					"ClickAction": config.LambdaConfig.Domain + "/" + target.Link,
+					"Title":     target.Title,
+					"Body":      Body,
+					"FirstName": user.FirstName,
+					"Sound":     config.LambdaConfig.Notify.Sound,
+					"Icon":      config.LambdaConfig.Favicon,
+					"Link":      target.Link,
 				}
 
 				notification := models.NotificationData{
 					Roles:        []int{target.TargetRole},
 					Notification: FCMNotification,
 				}
-				CreateNotification(notification, FCMData)
+				CreateNotification(notification, FCMOptions, FCMData)
 
 			}
 		}

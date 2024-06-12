@@ -41,6 +41,7 @@ type FCMHTTPRequest struct {
 type Message struct {
 	Token        string                 `json:"token"`
 	Notification FCMNotification        `json:"notification"`
+	WebPush      WebPush                `json:"webpush"`
 	Data         map[string]interface{} `json:"data"`
 }
 
@@ -49,10 +50,32 @@ type FCMNotification struct {
 	Body  string `gorm:"column:body" json:"body"`
 }
 
+type WebPush struct {
+	Options FCMOptions `json:"fcm_options"`
+}
+
+type FCMOptions struct {
+	Link string `json:"link"`
+}
+
 type NotificationData struct {
 	Users        []int
 	Roles        []int
 	Notification FCMNotification `json:"notification"`
+}
+
+type FCMError struct {
+	Error struct {
+		Code    int      `json:"code"`
+		Message string   `json:"message"`
+		Status  string   `json:"status"`
+		Details []Detail `json:"details"`
+	} `json:"error"`
+}
+
+type Detail struct {
+	Type      string `json:"@type"`
+	ErrorCode string `json:"errorCode"`
 }
 
 type UserNotificationsOracle struct {

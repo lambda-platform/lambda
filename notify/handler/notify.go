@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/oauth2/google"
+	"io"
 	"log"
 	"os"
 
@@ -260,7 +261,7 @@ func SetToken(c *fiber.Ctx) error {
 //
 //}
 
-func CreateNotification(notification models.NotificationData, data map[string]interface{}) int64 {
+func CreateNotification(notification models.NotificationData, options models.FCMOptions, data map[string]interface{}) int64 {
 	accessToken, err := getAccessToken(config.LambdaConfig.Notify.ServerKey)
 	if err != nil {
 		log.Fatalf("Error getting access token: %v", err)
@@ -302,11 +303,11 @@ func CreateNotification(notification models.NotificationData, data map[string]in
 		data["id"] = notificationDB.ID
 
 		for _, User := range Users {
-			var fcmToken string
-			DB.DB.Model(&models.UserFcmTokens{}).Where("user_id = ?", User.ID).Pluck("fcm_token", &fcmToken)
+			var savedTokens []models.UserFcmTokens
+			DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
 
-			if fcmToken != "" {
-				SendNotification(accessToken, fcmToken, notification.Notification, data)
+			for _, savedToken := range savedTokens {
+				SendNotification(accessToken, savedToken.FcmToken, notification.Notification, options, data)
 			}
 
 			DB.DB.Table("notification_status")
@@ -357,11 +358,11 @@ func CreateNotification(notification models.NotificationData, data map[string]in
 		data["id"] = strconv.FormatInt(notificationDB.ID, 10)
 
 		for _, User := range Users {
-			var fcmToken string
-			DB.DB.Model(&models.UserFcmTokens{}).Where("user_id = ?", User.ID).Pluck("fcm_token", &fcmToken)
+			var savedTokens []models.UserFcmTokens
+			DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
 
-			if fcmToken != "" {
-				SendNotification(accessToken, fcmToken, notification.Notification, data)
+			for _, savedToken := range savedTokens {
+				SendNotification(accessToken, savedToken.FcmToken, notification.Notification, options, data)
 			}
 
 			DB.DB.Table("notification_status")
@@ -401,12 +402,15 @@ func getAccessToken(serviceAccountFile string) (string, error) {
 	return token.AccessToken, nil
 }
 
-func SendNotification(accessToken string, receiver string, notification models.FCMNotification, data map[string]interface{}) {
+func SendNotification(accessToken string, receiver string, notification models.FCMNotification, options models.FCMOptions, data map[string]interface{}) {
 	payload := models.FCMHTTPRequest{
 		Message: models.Message{
 			Token:        receiver,
 			Notification: notification,
-			Data:         data,
+			WebPush: models.WebPush{
+				Options: options,
+			},
+			Data: data,
 		},
 	}
 
@@ -433,18 +437,50 @@ func SendNotification(accessToken string, receiver string, notification models.F
 
 	defer resp.Body.Close()
 
-	//// Check the response status code
-	//if resp.StatusCode == http.StatusOK {
-	//	log.Println("Notification sent successfully.")
-	//} else {
-	//	log.Printf("Failed to send notification. Status code: %d", resp.StatusCode)
-	//}
-	//
-	//// Read the response body
-	//bodyBytes, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	log.Printf("Error reading response body: %v", err)
-	//} else {
-	//	log.Printf("Response body: %s", string(bodyBytes))
-	//}
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Failed to send notification. Status code: %d", resp.StatusCode)
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("Error reading response body: %v", err)
+			return
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			var fcmError models.FCMError
+			if err := json.Unmarshal(bodyBytes, &fcmError); err != nil {
+				log.Printf("Error parsing FCM error response: %v", err)
+				return
+			}
+
+			if detailErrorCodeIsUnregistered(fcmError) {
+				deleteTokenFromDB(receiver)
+			}
+		}
+	}
+}
+
+func detailErrorCodeIsUnregistered(fcmError models.FCMError) bool {
+	for _, detail := range fcmError.Error.Details {
+		if detail.ErrorCode == "UNREGISTERED" {
+			return true
+		}
+	}
+	return false
+}
+
+func deleteTokenFromDB(receiver string) {
+	var savedToken interface{}
+
+	switch {
+	case config.Config.SysAdmin.UUID:
+		savedToken = &models.UserFcmTokensUUID{}
+	case config.Config.Database.Connection == "oracle":
+		savedToken = &models.UserFcmTokensOracle{}
+	default:
+		savedToken = &models.UserFcmTokens{}
+	}
+
+	DB.DB.Where("fcm_token = ?", receiver).Delete(savedToken)
+	log.Println("Deleting unregistered token.")
 }
