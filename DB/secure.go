@@ -34,6 +34,10 @@ func (s *SecureString) Scan(value interface{}) error {
 }
 
 func Encrypt(stringToEncrypt string, passphrase string) (encryptedString string) {
+
+	if stringToEncrypt == "" {
+		return ""
+	}
 	key := generateAESKey(passphrase, 32)
 	plaintext := []byte(stringToEncrypt)
 
@@ -57,31 +61,37 @@ func Encrypt(stringToEncrypt string, passphrase string) (encryptedString string)
 }
 
 func Decrypt(encryptedString string, passphrase string) (decryptedString string) {
-	key := generateAESKey(passphrase, 32)
 
-	enc, err := base64.URLEncoding.DecodeString(encryptedString)
-	if err != nil {
-		panic(err.Error())
+	if encryptedString == "" {
+		return ""
+	} else {
+		key := generateAESKey(passphrase, 32)
+
+		enc, err := base64.URLEncoding.DecodeString(encryptedString)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		block, err := aes.NewCipher(key)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		aesGCM, err := cipher.NewGCM(block)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		nonceSize := aesGCM.NonceSize()
+		nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
+		plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		return string(plaintext)
 	}
 
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	nonceSize := aesGCM.NonceSize()
-	nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
-	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return string(plaintext)
 }
 
 func generateAESKey(passphrase string, keySize int) []byte {
