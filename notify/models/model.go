@@ -60,6 +60,7 @@ type FCMOptions struct {
 
 type NotificationData struct {
 	Users        []int
+	UsersUUID    []string
 	Roles        []int
 	Notification FCMNotification `json:"notification"`
 }

@@ -261,20 +261,21 @@ func SetToken(c *fiber.Ctx) error {
 //
 //}
 
-func CreateNotification(notification models.NotificationData, options models.FCMOptions, data map[string]interface{}) int64 {
+func CreateNotification(notification models.NotificationData, options models.FCMOptions, data map[string]interface{}) {
 	accessToken, err := getAccessToken(config.LambdaConfig.Notify.ServerKey)
 	if err != nil {
 		log.Fatalf("Error getting access token: %v", err)
 	}
 
 	jsonData, _ := json.Marshal(data)
-	if config.Config.Database.Connection == "oracle" {
-		var Users []agentModels.USERSOracle
+
+	if config.Config.SysAdmin.UUID {
+		var Users []agentModels.UserUUID
 
 		if len(notification.Roles) >= 1 {
 			DB.DB.Where("ROLE IN (?)", notification.Roles).Find(&Users)
 		} else {
-			DB.DB.Where("ID IN (?)", notification.Users).Find(&Users)
+			DB.DB.Where("ID IN (?)", notification.UsersUUID).Find(&Users)
 		}
 
 		//authUser := agentUtils.AuthUser(c)
@@ -284,9 +285,9 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 			link = ""
 		}
 
-		notificationDB := models.NotificationOracle{
+		notificationDB := models.NotificationUUID{
 			Link:      link,
-			Sender:    1,
+			Sender:    "",
 			Title:     notification.Notification.Title,
 			Body:      notification.Notification.Body,
 			Data:      string(jsonData),
@@ -303,7 +304,7 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 		data["id"] = notificationDB.ID
 
 		for _, User := range Users {
-			var savedTokens []models.UserFcmTokens
+			var savedTokens []models.UserFcmTokensUUID
 			DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
 
 			for _, savedToken := range savedTokens {
@@ -311,7 +312,7 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 			}
 
 			DB.DB.Table("notification_status")
-			NotificationStatus := models.NotificationStatus{
+			NotificationStatus := models.NotificationStatusUUID{
 				NotifID:    notificationDB.ID,
 				ReceiverID: User.ID,
 				Seen:       0,
@@ -320,65 +321,113 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 
 			DB.DB.Create(&NotificationStatus)
 		}
-
-		return notificationDB.ID
-
 	} else {
-		var Users []agentModels.User
+		if config.Config.Database.Connection == "oracle" {
+			var Users []agentModels.USERSOracle
 
-		if len(notification.Roles) >= 1 {
-			DB.DB.Where("role IN (?)", notification.Roles).Find(&Users)
+			if len(notification.Roles) >= 1 {
+				DB.DB.Where("ROLE IN (?)", notification.Roles).Find(&Users)
+			} else {
+				DB.DB.Where("ID IN (?)", notification.Users).Find(&Users)
+			}
+
+			//authUser := agentUtils.AuthUser(c)
+
+			link, ok := data["link"].(string)
+			if !ok {
+				link = ""
+			}
+
+			notificationDB := models.NotificationOracle{
+				Link:      link,
+				Sender:    1,
+				Title:     notification.Notification.Title,
+				Body:      notification.Notification.Body,
+				Data:      string(jsonData),
+				CreatedAt: time.Now(),
+			}
+
+			DB.DB.Create(&notificationDB)
+
+			if _, exists := data["first_name"]; !exists {
+				data["first_name"] = "Системээс"
+			}
+
+			data["created_at"] = notificationDB.CreatedAt
+			data["id"] = notificationDB.ID
+
+			for _, User := range Users {
+				var savedTokens []models.UserFcmTokens
+				DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
+
+				for _, savedToken := range savedTokens {
+					SendNotification(accessToken, savedToken.FcmToken, notification.Notification, options, data)
+				}
+
+				DB.DB.Table("notification_status")
+				NotificationStatus := models.NotificationStatus{
+					NotifID:    notificationDB.ID,
+					ReceiverID: User.ID,
+					Seen:       0,
+					SeenTime:   time.Now(),
+				}
+
+				DB.DB.Create(&NotificationStatus)
+			}
 		} else {
-			DB.DB.Where("id IN (?)", notification.Users).Find(&Users)
-		}
+			var Users []agentModels.User
 
-		//authUser := agentUtils.AuthUser(c)
-
-		link, ok := data["link"].(string)
-		if !ok {
-			link = ""
-		}
-
-		notificationDB := models.Notification{
-			Link:      link,
-			Sender:    1,
-			Title:     notification.Notification.Title,
-			Body:      notification.Notification.Body,
-			Data:      string(jsonData),
-			CreatedAt: time.Now(),
-		}
-
-		DB.DB.Create(&notificationDB)
-
-		if _, exists := data["first_name"]; !exists {
-			data["first_name"] = "Системээс"
-		}
-
-		data["created_at"] = notificationDB.CreatedAt
-		data["id"] = strconv.FormatInt(notificationDB.ID, 10)
-
-		for _, User := range Users {
-			var savedTokens []models.UserFcmTokens
-			DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
-
-			for _, savedToken := range savedTokens {
-				SendNotification(accessToken, savedToken.FcmToken, notification.Notification, options, data)
+			if len(notification.Roles) >= 1 {
+				DB.DB.Where("role IN (?)", notification.Roles).Find(&Users)
+			} else {
+				DB.DB.Where("id IN (?)", notification.Users).Find(&Users)
 			}
 
-			DB.DB.Table("notification_status")
-			NotificationStatus := models.NotificationStatus{
-				NotifID:    notificationDB.ID,
-				ReceiverID: User.ID,
-				Seen:       0,
-				SeenTime:   time.Now(),
+			//authUser := agentUtils.AuthUser(c)
+
+			link, ok := data["link"].(string)
+			if !ok {
+				link = ""
 			}
 
-			DB.DB.Create(&NotificationStatus)
-		}
+			notificationDB := models.Notification{
+				Link:      link,
+				Sender:    1,
+				Title:     notification.Notification.Title,
+				Body:      notification.Notification.Body,
+				Data:      string(jsonData),
+				CreatedAt: time.Now(),
+			}
 
-		return notificationDB.ID
+			DB.DB.Create(&notificationDB)
+
+			if _, exists := data["first_name"]; !exists {
+				data["first_name"] = "Системээс"
+			}
+
+			data["created_at"] = notificationDB.CreatedAt
+			data["id"] = strconv.FormatInt(notificationDB.ID, 10)
+
+			for _, User := range Users {
+				var savedTokens []models.UserFcmTokens
+				DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
+
+				for _, savedToken := range savedTokens {
+					SendNotification(accessToken, savedToken.FcmToken, notification.Notification, options, data)
+				}
+
+				DB.DB.Table("notification_status")
+				NotificationStatus := models.NotificationStatus{
+					NotifID:    notificationDB.ID,
+					ReceiverID: User.ID,
+					Seen:       0,
+					SeenTime:   time.Now(),
+				}
+
+				DB.DB.Create(&NotificationStatus)
+			}
+		}
 	}
-
 }
 
 func getAccessToken(serviceAccountFile string) (string, error) {
