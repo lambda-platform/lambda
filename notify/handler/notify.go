@@ -264,7 +264,8 @@ func SetToken(c *fiber.Ctx) error {
 func CreateNotification(notification models.NotificationData, options models.FCMOptions, data map[string]interface{}) {
 	accessToken, err := getAccessToken(config.LambdaConfig.Notify.ServerKey)
 	if err != nil {
-		log.Fatalf("Error getting access token: %v", err)
+		log.Printf("Error getting access token: %v", err)
+		return
 	}
 
 	jsonData, _ := json.Marshal(data)
@@ -465,7 +466,8 @@ func SendNotification(accessToken string, receiver string, notification models.F
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		log.Fatalf("Error marshalling payload: %v", err)
+		log.Printf("Error marshalling payload: %v", err)
+		return
 	}
 
 	body := bytes.NewReader(payloadBytes)
@@ -473,7 +475,8 @@ func SendNotification(accessToken string, receiver string, notification models.F
 
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
-		log.Fatalf("Error creating new request: %v", err)
+		log.Printf("Error creating new request: %v", err)
+		return
 	}
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	req.Header.Set("Content-Type", "application/json")
