@@ -1,13 +1,13 @@
 module github.com/lambda-platform/lambda
 
-go 1.21.5
+go 1.22.3
 
 require (
 	github.com/99designs/gqlgen v0.17.40
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/gofiber/contrib/jwt v1.0.7
-	github.com/gofiber/fiber/v2 v2.51.0
+	github.com/gofiber/fiber/v2 v2.52.0
 	github.com/gofiber/template/html/v2 v2.0.5
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/iancoleman/strcase v0.3.0
@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/tealeg/xlsx v1.0.5
 	github.com/thedevsaddam/govalidator v1.9.10
-	github.com/valyala/fasthttp v1.50.0
+	github.com/valyala/fasthttp v1.51.0
 	github.com/vektah/gqlparser/v2 v2.5.10
 	golang.org/x/crypto v0.24.0
 	golang.org/x/oauth2 v0.21.0
@@ -52,7 +52,7 @@ require (
 	github.com/jackc/pgx/v5 v5.4.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
+	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect

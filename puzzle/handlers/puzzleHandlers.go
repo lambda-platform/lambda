@@ -280,7 +280,7 @@ func SaveVB(modelName string) fiber.Handler {
 
 				DB.DB.Where("id = ?", id_).First(&vb)
 
-				BeforeSave(id_, type_, vbs)
+				BeforeSave(id_, type_, vbs, 0)
 
 				vb.Name = vbs.Name
 				vb.Schema = vbs.Schema
@@ -314,7 +314,7 @@ func SaveVB(modelName string) fiber.Handler {
 
 				DB.DB.Where("id = ?", id_).First(&vb)
 
-				BeforeSave(id_, type_, vbs)
+				BeforeSave(id_, type_, vbs, 0)
 				vb.Name = vbs.Name
 
 				vb.Schema = vbs.Schema
@@ -520,7 +520,7 @@ func SaveProjectVB(modelName string) fiber.Handler {
 
 			DB.DB.Where("id = ?", id_).First(&vb)
 
-			//BeforeSave(id_, type_, vbs)
+			BeforeSave(id_, type_, vbs, ProjectID)
 
 			vb.Name = vbs.Name
 			vb.ProjectID = ProjectID
@@ -646,7 +646,7 @@ func BeforeDelete(id uint64, type_ string) {
 	}
 
 }
-func BeforeSave(id uint64, type_ string, vbs *vb_schema) {
+func BeforeSave(id uint64, type_ string, vbs *vb_schema, projectID int) {
 
 	if config.Config.Database.Connection == "postgres" {
 		if type_ == "form" {
@@ -662,7 +662,10 @@ func BeforeSave(id uint64, type_ string, vbs *vb_schema) {
 						substr := "."
 
 						if strings.Contains(schema.Schema[i].Relation.Table, substr) != true {
-							getTableWithSchema(&schema.Schema[i].Relation.Table)
+							fmt.Println(&schema.Schema[i].Relation)
+							fmt.Println(&schema.Schema[i].Relation)
+							fmt.Println(&schema.Schema[i].Relation)
+							getTableWithSchema(&schema.Schema[i].Relation.Table, projectID)
 						}
 					}
 				} else if schema.Schema[i].FormType == "SubForm" {
@@ -672,7 +675,7 @@ func BeforeSave(id uint64, type_ string, vbs *vb_schema) {
 								substr := "."
 
 								if strings.Contains(schema.Schema[i].Schema[si].Relation.Table, substr) != true {
-									getTableWithSchema(&schema.Schema[i].Schema[si].Relation.Table)
+									getTableWithSchema(&schema.Schema[i].Schema[si].Relation.Table, projectID)
 								}
 							}
 						}
@@ -699,7 +702,7 @@ func BeforeSave(id uint64, type_ string, vbs *vb_schema) {
 
 						if strings.Contains(schema.Schema[i].Filter.Relation.Table, substr) != true {
 
-							getTableWithSchema(&schema.Schema[i].Filter.Relation.Table)
+							getTableWithSchema(&schema.Schema[i].Filter.Relation.Table, projectID)
 						}
 					}
 				}
@@ -712,14 +715,45 @@ func BeforeSave(id uint64, type_ string, vbs *vb_schema) {
 	}
 
 }
-func getTableWithSchema(tableName *string) *string {
+func getTableWithSchema(tableName *string, projectID int) *string {
 	var schemaName string
-	err := DB.DB.Raw("SELECT table_schema FROM information_schema.tables WHERE table_name = ? LIMIT 1", *tableName).Scan(&schemaName).Error
-	if err == nil {
-		*tableName = schemaName + "." + *tableName
+
+	if projectID > 0 {
+		schemaName = fmt.Sprintf("project_%d", projectID)
+
+		project := models.Projects{}
+
+		DB.DB.Where("id = ?", projectID).First(&project)
+
+		if project.ID > 0 {
+			schemaName = fmt.Sprintf("project_%d", project.ID)
+
+			schemaFile, err := os.Open(project.DbSchemaPath)
+			defer schemaFile.Close()
+			if err == nil {
+				dbSchemaProject := models.DBSCHEMA{}
+				jsonParser := json.NewDecoder(schemaFile)
+				jsonParser.Decode(&dbSchemaProject)
+
+				if len(dbSchemaProject.TableMeta[*tableName]) > 0 {
+					if dbSchemaProject.TableMeta[*tableName][0].TableSchema != "" {
+						*tableName = dbSchemaProject.TableMeta[*tableName][0].TableSchema + "." + *tableName
+					}
+				}
+			}
+		}
+
+		return tableName
+
+	} else {
+		err := DB.DB.Raw("SELECT table_schema FROM information_schema.tables WHERE table_name = ? LIMIT 1", *tableName).Scan(&schemaName).Error
+		if err == nil {
+			*tableName = schemaName + "." + *tableName
+		}
+
+		return tableName
 	}
 
-	return tableName
 }
 func AfterSave(vb models.VBSchema, type_ string) error {
 
