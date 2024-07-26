@@ -276,7 +276,7 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 		if len(notification.Roles) >= 1 {
 			DB.DB.Where("role IN (?)", notification.Roles).Find(&Users)
 		} else {
-			DB.DB.Where("id IN (?)", notification.Users).Find(&Users)
+			DB.DB.Where("id IN (?)", notification.UsersUUID).Find(&Users)
 		}
 
 		//authUser := agentUtils.AuthUser(c)
