@@ -355,7 +355,7 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 			}
 
 			data["created_at"] = notificationDB.CreatedAt
-			data["id"] = notificationDB.ID
+			data["id"] = strconv.FormatInt(notificationDB.ID, 10)
 
 			for _, User := range Users {
 				var savedTokens []models.UserFcmTokensOracle
