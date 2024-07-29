@@ -197,7 +197,7 @@ func SetToken(c *fiber.Ctx) error {
 		if config.Config.Database.Connection == "oracle" {
 			var savedToken models.UserFcmTokensOracle
 
-			DB.DB.Where("user_id = ? AND fcm_token = ?", user_id, token).Find(&savedToken)
+			DB.DB.Where("USER_ID = ? AND FCM_TOKEN = ?", user_id, token).Find(&savedToken)
 
 			if savedToken.ID == 0 {
 				savedToken.FcmToken = token
@@ -215,7 +215,7 @@ func SetToken(c *fiber.Ctx) error {
 		} else {
 			var savedToken models.UserFcmTokens
 
-			DB.DB.Where("USER_ID = ? AND FCM_TOKEN = ?", user_id, token).Find(&savedToken)
+			DB.DB.Where("user_id = ? AND fcm_token = ?", user_id, token).Find(&savedToken)
 
 			if savedToken.ID == 0 {
 				savedToken.FcmToken = token
@@ -274,9 +274,9 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 		var Users []agentModels.UserUUID
 
 		if len(notification.Roles) >= 1 {
-			DB.DB.Where("ROLE IN (?)", notification.Roles).Find(&Users)
+			DB.DB.Where("role IN (?)", notification.Roles).Find(&Users)
 		} else {
-			DB.DB.Where("ID IN (?)", notification.UsersUUID).Find(&Users)
+			DB.DB.Where("id IN (?)", notification.UsersUUID).Find(&Users)
 		}
 
 		//authUser := agentUtils.AuthUser(c)
@@ -355,18 +355,18 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 			}
 
 			data["created_at"] = notificationDB.CreatedAt
-			data["id"] = notificationDB.ID
+			data["id"] = strconv.FormatInt(notificationDB.ID, 10)
 
 			for _, User := range Users {
-				var savedTokens []models.UserFcmTokens
-				DB.DB.Where("user_id = ?", User.ID).Find(&savedTokens)
+				var savedTokens []models.UserFcmTokensOracle
+				DB.DB.Where("USER_ID = ?", User.ID).Find(&savedTokens)
 
 				for _, savedToken := range savedTokens {
 					SendNotification(accessToken, savedToken.FcmToken, notification.Notification, options, data)
 				}
 
-				DB.DB.Table("notification_status")
-				NotificationStatus := models.NotificationStatus{
+				DB.DB.Table("NOTIFICATION_STATUS")
+				NotificationStatus := models.NotificationStatusOracle{
 					NotifID:    notificationDB.ID,
 					ReceiverID: User.ID,
 					Seen:       0,
@@ -527,12 +527,14 @@ func deleteTokenFromDB(receiver string) {
 	switch {
 	case config.Config.SysAdmin.UUID:
 		savedToken = &models.UserFcmTokensUUID{}
+		DB.DB.Where("fcm_token = ?", receiver).Delete(savedToken)
 	case config.Config.Database.Connection == "oracle":
 		savedToken = &models.UserFcmTokensOracle{}
+		DB.DB.Where("FCM_TOKEN = ?", receiver).Delete(savedToken)
 	default:
 		savedToken = &models.UserFcmTokens{}
+		DB.DB.Where("fcm_token = ?", receiver).Delete(savedToken)
 	}
 
-	DB.DB.Where("fcm_token = ?", receiver).Delete(savedToken)
 	log.Println("Deleting unregistered token.")
 }
