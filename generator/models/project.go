@@ -3,14 +3,14 @@ package models
 import "time"
 
 type ProjectSchemas struct {
-	ID         int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Name       string     `gorm:"column:name" json:"name"`
-	ProjectsID int        `gorm:"column:projects_id" json:"projects_id"`
-	Schema     string     `gorm:"column:schema" json:"schema"`
-	Type       string     `gorm:"column:type" json:"type"`
-	Actions    string     `gorm:"column:actions" json:"actions"`
-	CreatedAt  *time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt  *time.Time `gorm:"column:updated_at" json:"updated_at"`
+	ID         int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	Name       string `gorm:"column:name" json:"name"`
+	ProjectsID int    `gorm:"column:projects_id" json:"projects_id"`
+	Schema     string `gorm:"column:schema" json:"schema"`
+	Type       string `gorm:"column:type" json:"type"`
+
+	CreatedAt *time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 func (p *ProjectSchemas) TableName() string {
@@ -18,7 +18,6 @@ func (p *ProjectSchemas) TableName() string {
 }
 
 type ProjectCruds struct {
-	CreatedAt    *time.Time `gorm:"column:created_at" json:"created_at"`
 	Form         int        `gorm:"column:form" json:"form"`
 	Grid         int        `gorm:"column:grid" json:"grid"`
 	ID           int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
@@ -26,7 +25,9 @@ type ProjectCruds struct {
 	Template     string     `gorm:"column:template" json:"template"`
 	Title        string     `gorm:"column:title" json:"title"`
 	MainTabTitle string     `gorm:"column:main_tab_title" json:"main_tab_title"`
+	CreatedAt    *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt    *time.Time `gorm:"column:updated_at" json:"updated_at"`
+	Actions      string     `gorm:"column:actions" json:"actions"`
 }
 
 func (p *ProjectCruds) TableName() string {
