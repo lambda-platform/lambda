@@ -1,12 +1,18 @@
 package DBDictionary
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/DBSchema"
 	"github.com/lambda-platform/lambda/config"
 	genertarModels "github.com/lambda-platform/lambda/generator/models"
+	pb "github.com/lambda-platform/lambda/grpc/consoleProto"
+	puzzle "github.com/lambda-platform/lambda/puzzle/handlers"
+	"google.golang.org/grpc"
+	"time"
 )
 
 func Dictionary(c *fiber.Ctx) error {
@@ -24,35 +30,81 @@ func Dictionary(c *fiber.Ctx) error {
 	var FormSchemas []interface{}
 	var GridSchemas []interface{}
 
-	if config.Config.Database.Connection == "oracle" {
+	if config.LambdaConfig.LambdaMainServicePath != "" {
 
-		DB.DB.Select("ID AS \"id\", NAME AS \"name\", SCHEMA AS \"schema\", \"TYPE\" AS \"type\", CREATED_AT AS \"created_at\", UPDATED_AT AS \"updated_at\"").Where("TYPE = ?", "form").Table("VB_SCHEMAS").Find(&FormSchemasPre)
-		DB.DB.Select("ID AS \"id\", NAME AS \"name\", SCHEMA AS \"schema\", \"TYPE\" AS \"type\", CREATED_AT AS \"created_at\", UPDATED_AT AS \"updated_at\"").Where("TYPE = ?", "grid").Table("VB_SCHEMAS").Find(&GridSchemasPre)
+		conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(60*time.Second))
+
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		defer conn.Close()
+		cc := pb.NewConsoleClient(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+
+		r, err := cc.LambdaSCHEMA(ctx, &pb.LambdaSchemaParams{
+			ProjectKey: config.LambdaConfig.ProjectKey,
+		})
+
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		data := puzzle.CloudData{}
+
+		json.Unmarshal(r.Data, &data)
+
+		for _, vb := range data.FormSchemas {
+
+			var result FormSCHEMA
+			err := json.Unmarshal([]byte(vb.Schema), &result)
+			if err == nil {
+				result.Name = vb.Name
+				FormSchemas = append(FormSchemas, result)
+			}
+		}
+		for _, vb := range data.GridSchemas {
+			var result GridSCHEMA
+			err := json.Unmarshal([]byte(vb.Schema), &result)
+			if err == nil {
+				result.Name = vb.Name
+				GridSchemas = append(GridSchemas, result)
+			}
+		}
 
 	} else {
-		DB.DB.Where("type = ?", "form").Table("vb_schemas").Find(&FormSchemasPre)
-		DB.DB.Where("type = ?", "grid").Table("vb_schemas").Find(&GridSchemasPre)
 
-	}
+		if config.Config.Database.Connection == "oracle" {
 
-	for _, vb := range FormSchemasPre {
-		var result FormSCHEMA
-		err := json.Unmarshal([]byte(vb.Schema), &result)
-		if err == nil {
-			result.Name = vb.Name
-			FormSchemas = append(FormSchemas, result)
+			DB.DB.Select("ID AS \"id\", NAME AS \"name\", SCHEMA AS \"schema\", \"TYPE\" AS \"type\", CREATED_AT AS \"created_at\", UPDATED_AT AS \"updated_at\"").Where("TYPE = ?", "form").Table("VB_SCHEMAS").Find(&FormSchemasPre)
+			DB.DB.Select("ID AS \"id\", NAME AS \"name\", SCHEMA AS \"schema\", \"TYPE\" AS \"type\", CREATED_AT AS \"created_at\", UPDATED_AT AS \"updated_at\"").Where("TYPE = ?", "grid").Table("VB_SCHEMAS").Find(&GridSchemasPre)
+
+		} else {
+			DB.DB.Where("type = ?", "form").Table("vb_schemas").Find(&FormSchemasPre)
+			DB.DB.Where("type = ?", "grid").Table("vb_schemas").Find(&GridSchemasPre)
+
+		}
+
+		for _, vb := range FormSchemasPre {
+			var result FormSCHEMA
+			err := json.Unmarshal([]byte(vb.Schema), &result)
+			if err == nil {
+				result.Name = vb.Name
+				FormSchemas = append(FormSchemas, result)
+			}
+
+		}
+		for _, vb := range GridSchemasPre {
+			var result GridSCHEMA
+			err := json.Unmarshal([]byte(vb.Schema), &result)
+			if err == nil {
+				result.Name = vb.Name
+				GridSchemas = append(GridSchemas, result)
+			}
 		}
 
 	}
-	for _, vb := range GridSchemasPre {
-		var result GridSCHEMA
-		err := json.Unmarshal([]byte(vb.Schema), &result)
-		if err == nil {
-			result.Name = vb.Name
-			GridSchemas = append(GridSchemas, result)
-		}
-	}
-
 	return c.JSON(map[string]interface{}{
 		"tableMetas":  dbSchema.TableMeta,
 		"tableList":   dbSchema.TableList,
