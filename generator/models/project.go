@@ -8,6 +8,7 @@ type ProjectSchemas struct {
 	ProjectsID int        `gorm:"column:projects_id" json:"projects_id"`
 	Schema     string     `gorm:"column:schema" json:"schema"`
 	Type       string     `gorm:"column:type" json:"type"`
+	Actions    string     `gorm:"column:actions" json:"actions"`
 	CreatedAt  *time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt  *time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
