@@ -69,7 +69,12 @@ func GetDBCHEMA() []byte {
 }
 func GetLambdaSCHEMA() {
 
-	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(60*time.Second))
+	//conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(60*time.Second))
+
+	conn, err := grpc.Dial(config.LambdaConfig.LambdaMainServicePath, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(60*time.Second), grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(1024*1024*20), // 20 MB
+		grpc.MaxCallSendMsgSize(1024*1024*20), // 20 MB
+	))
 
 	if err != nil {
 		fmt.Println(err.Error())
