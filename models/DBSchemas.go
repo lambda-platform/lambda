@@ -174,24 +174,25 @@ type SCHEMAGRID struct {
 	Paging         int      `json:"paging"`
 	Template       int      `json:"template"`
 	Schema         []struct {
-		VirtualColumn bool   `json:"virtualColumn"`
-		Model         string `json:"model"`
-		Title         string `json:"title"`
-		DbType        string `json:"dbType"`
-		Table         string `json:"table"`
-		Key           string `json:"key"`
-		Extra         string `json:"extra"`
-		Label         string `json:"label"`
-		GridType      string `json:"gridType"`
-		Width         int    `json:"width"`
-		Hide          bool   `json:"hide"`
-		Sortable      bool   `json:"sortable"`
-		Printable     bool   `json:"printable"`
-		Updateable    bool   `json:"updateable"`
-		Pinned        bool   `json:"pinned"`
-		PinPosition   string `json:"pinPosition"`
-		Link          string `json:"link"`
-		LinkTarget    string `json:"linkTarget"`
+		VirtualColumn bool        `json:"virtualColumn"`
+		Model         string      `json:"model"`
+		Title         string      `json:"title"`
+		DbType        string      `json:"dbType"`
+		Table         string      `json:"table"`
+		Key           string      `json:"key"`
+		Extra         string      `json:"extra"`
+		Label         string      `json:"label"`
+		GridType      string      `json:"gridType"`
+		Width         int         `json:"width"`
+		Hide          bool        `json:"hide"`
+		Sortable      bool        `json:"sortable"`
+		Printable     bool        `json:"printable"`
+		Updateable    bool        `json:"updateable"`
+		Update        interface{} `json:"update"`
+		Pinned        bool        `json:"pinned"`
+		PinPosition   string      `json:"pinPosition"`
+		Link          string      `json:"link"`
+		LinkTarget    string      `json:"linkTarget"`
 		Relation      struct {
 			Column          string `json:"column"`
 			ConnectionField string `json:"connection_field"`
