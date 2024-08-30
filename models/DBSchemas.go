@@ -187,6 +187,7 @@ type SCHEMAGRID struct {
 		Hide          bool   `json:"hide"`
 		Sortable      bool   `json:"sortable"`
 		Printable     bool   `json:"printable"`
+		Updateable    bool   `json:"updateable"`
 		Pinned        bool   `json:"pinned"`
 		PinPosition   string `json:"pinPosition"`
 		Link          string `json:"link"`
