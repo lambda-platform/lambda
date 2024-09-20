@@ -210,11 +210,12 @@ type SCHEMAGRID struct {
 			ParamCompareType string `json:"paramCompareType"`
 			Default          any    `json:"default"`
 			Relation         struct {
-				Table     string `json:"table"`
-				Key       any    `json:"key"`
-				Fields    []any  `json:"fields"`
-				SortField any    `json:"sortField"`
-				SortOrder string `json:"sortOrder"`
+				Table          string `json:"table"`
+				Key            any    `json:"key"`
+				Fields         []any  `json:"fields"`
+				FilterWithUser []any  `json:"filterWithUser"`
+				SortField      any    `json:"sortField"`
+				SortOrder      string `json:"sortOrder"`
 			} `json:"relation"`
 		} `json:"filter"`
 		Editable struct {
