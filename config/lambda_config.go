@@ -73,6 +73,8 @@ type lambdaConfig struct {
 		Table  string `json:"table"`
 		Column string `json:"column"`
 	} `json:"secure_fields"`
+	IgnoreTables        []string `json:"ignore_tables"`
+	JsonLowerCaseTables []string `json:"json_lower_case_tables"`
 }
 type LambdaConfigFile struct {
 	SchemaLoadMode string `json:"schema_load_mode"`
@@ -140,4 +142,6 @@ type LambdaConfigFile struct {
 		Table  string `json:"table"`
 		Column string `json:"column"`
 	} `json:"secure_fields"`
+	IgnoreTables        []string `json:"ignore_tables"`
+	JsonLowerCaseTables []string `json:"json_lower_case_tables"`
 }
