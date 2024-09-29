@@ -23,7 +23,6 @@ func GetDBSchema() models.DBSCHEMA {
 	}
 
 	for _, table := range tables["tables"] {
-		fmt.Println(config.LambdaConfig.IgnoreTables)
 		if !utils.StringInSlice(table, config.LambdaConfig.IgnoreTables) {
 			tableMetas[table] = TableMetas(table)
 		}
