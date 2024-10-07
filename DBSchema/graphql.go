@@ -3,9 +3,7 @@ package DBSchema
 import (
 	"fmt"
 	"github.com/iancoleman/strcase"
-	"github.com/lambda-platform/lambda/config"
 	generatorModels "github.com/lambda-platform/lambda/generator/models"
-	"github.com/lambda-platform/lambda/utils"
 	"strings"
 )
 
@@ -56,7 +54,7 @@ func GenerateGrapql(columnTypes []generatorModels.ColumnData, tableName string, 
 }
 func GenerateGrapqlOrder(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 
-	dbTypes := generateQraphqlTypesOrder(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes, utils.StringInSlice(tableName, config.LambdaConfig.JsonLowerCaseTables))
+	dbTypes := generateQraphqlTypesOrder(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
 	src := fmt.Sprintf("\n  \ninput %s %s %s \n} %s",
 		structName,
@@ -101,11 +99,7 @@ func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, j
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			if !utils.StringInSlice(tableName, config.LambdaConfig.JsonLowerCaseTables) {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s\"", columnType.Name))
-			} else {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s\"", strings.ToLower(columnType.Name)))
-			}
+			annotations = append(annotations, fmt.Sprintf("json:\"%s\"", columnType.Name))
 
 		}
 		if fieldName == "DeletedAt" || fieldName == "deleted_at" || fieldName == "DELETED_AT" {
@@ -125,22 +119,16 @@ func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, j
 				strings.Join(annotations, " "))
 
 		} else {
-			if !utils.StringInSlice(tableName, config.LambdaConfig.JsonLowerCaseTables) {
-				structure += fmt.Sprintf("\n    %s: %s",
-					fieldName,
-					valueType)
-			} else {
-				structure += fmt.Sprintf("\n    %s: %s",
-					strings.ToLower(fieldName),
-					valueType)
-			}
+			structure += fmt.Sprintf("\n    %s: %s",
+				fieldName,
+				valueType)
 
 		}
 	}
 
 	return structure
 }
-func generateQraphqlTypesOrder(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, jsonLowerCase bool) string {
+func generateQraphqlTypesOrder(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) string {
 
 	structure := " {"
 
@@ -158,11 +146,7 @@ func generateQraphqlTypesOrder(columnTypes []generatorModels.ColumnData, depth i
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			if jsonLowerCase {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s\"", strings.ToLower(columnType.Name)))
-			} else {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
-			}
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 
 		}
 

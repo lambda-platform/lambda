@@ -2,9 +2,7 @@ package DBSchema
 
 import (
 	"fmt"
-	"github.com/lambda-platform/lambda/config"
 	generatorModels "github.com/lambda-platform/lambda/generator/models"
-	"github.com/lambda-platform/lambda/utils"
 	"go/format"
 	"strings"
 )
@@ -36,7 +34,7 @@ const (
 func GenerateOnlyStruct(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
-	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes, utils.StringInSlice(tableName, config.LambdaConfig.JsonLowerCaseTables))
+	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
 	tableSchema := GetTableSchema(columnTypes)
 
@@ -61,7 +59,7 @@ func GenerateOnlyStruct(columnTypes []generatorModels.ColumnData, tableName stri
 func GenerateWithImports(otherPackage string, columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string, virtualColums string) ([]byte, error) {
 	var dbTypes string
 
-	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes, utils.StringInSlice(tableName, config.LambdaConfig.JsonLowerCaseTables))
+	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
 	tableSchema := GetTableSchema(columnTypes)
 
@@ -89,7 +87,7 @@ func GenerateWithImports(otherPackage string, columnTypes []generatorModels.Colu
 func GenerateWithImportsNoTime(otherPackage string, columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
-	dbTypes, timeFound := generateStructTypesNoTime(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes, utils.StringInSlice(tableName, config.LambdaConfig.JsonLowerCaseTables))
+	dbTypes, timeFound := generateStructTypesNoTime(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 	tableSchema := GetTableSchema(columnTypes)
 	var _ = timeFound
 	importTime := ""
@@ -190,7 +188,7 @@ func sqlTypeToGoType(columnType string, nullable bool, gureguTypes bool) string 
 	return ""
 }
 
-func generateStructTypes(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, jsonLowerCase bool) (string, bool, bool) {
+func generateStructTypes(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string, bool, bool) {
 
 	structure := "struct {"
 	time_found := false
@@ -244,11 +242,7 @@ func generateStructTypes(columnTypes []generatorModels.ColumnData, depth int, js
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 
-			if jsonLowerCase {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", strings.ToLower(columnType.Name), ""))
-			} else {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
-			}
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 
 		}
 		if fieldName == "DeletedAt" || fieldName == "DELETE_DAT" {
@@ -269,7 +263,7 @@ func generateStructTypes(columnTypes []generatorModels.ColumnData, depth int, js
 
 	return structure, time_found, date_found
 }
-func generateStructTypesNoTime(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, jsonLowerCase bool) (string, bool) {
+func generateStructTypesNoTime(columnTypes []generatorModels.ColumnData, depth int, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool) (string, bool) {
 
 	structure := "struct {"
 	time_found := false
@@ -304,11 +298,7 @@ func generateStructTypesNoTime(columnTypes []generatorModels.ColumnData, depth i
 			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", columnType.Name, primary))
 		}
 		if jsonAnnotation == true {
-			if jsonLowerCase {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", strings.ToLower(columnType.Name), ""))
-			} else {
-				annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
-			}
+			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
 
 		}
 		if fieldName == "DeletedAt" || fieldName == "DELETEDAT" {

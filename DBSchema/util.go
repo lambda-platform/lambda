@@ -2,9 +2,7 @@ package DBSchema
 
 import (
 	"fmt"
-	"github.com/lambda-platform/lambda/config"
 	generatorModels "github.com/lambda-platform/lambda/generator/models"
-	"github.com/lambda-platform/lambda/utils"
 	"go/format"
 	"strconv"
 	"strings"
@@ -63,7 +61,7 @@ var Debug = false
 func Generate(columnTypes []generatorModels.ColumnData, tableName string, structName string, pkgName string, jsonAnnotation bool, gormAnnotation bool, gureguTypes bool, extraColumns string, extraStucts string) ([]byte, error) {
 	var dbTypes string
 
-	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes, utils.StringInSlice(tableName, config.LambdaConfig.JsonLowerCaseTables))
+	dbTypes, _, _ = generateStructTypes(columnTypes, 0, jsonAnnotation, gormAnnotation, gureguTypes)
 
 	importTime := "import (\n\"time\"\n\"github.com/lambda-platform/lambda/DB\") \n var _ = time.Time{}  \n var _ = DB.Date{}  \n"
 
