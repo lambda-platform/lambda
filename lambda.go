@@ -79,8 +79,9 @@ func New(lambdaSettings ...*Settings) *Lambda {
 
 	lambda := &Lambda{
 		App: fiber.New(fiber.Config{
-			Views:     engine,
-			BodyLimit: 100 * 1024 * 1024, // this is the default limit of 100MB
+			Views:          engine,
+			BodyLimit:      100 * 1024 * 1024, // this is the default limit of 100MB
+			ReadBufferSize: 1024 * 1024,       // Set this to the desired size in  1MB
 			//JSONEncoder: json.Marshal,
 			//JSONDecoder: json.Unmarshal,
 		}),
