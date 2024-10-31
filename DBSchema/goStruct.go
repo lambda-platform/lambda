@@ -241,7 +241,9 @@ func generateStructTypes(columnTypes []generatorModels.ColumnData, depth int, js
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
+
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
+
 		}
 		if fieldName == "DeletedAt" || fieldName == "DELETE_DAT" {
 			valueType = "gorm.DeletedAt"
@@ -296,8 +298,8 @@ func generateStructTypesNoTime(columnTypes []generatorModels.ColumnData, depth i
 			annotations = append(annotations, fmt.Sprintf("gorm:\"column:%s%s\"", columnType.Name, primary))
 		}
 		if jsonAnnotation == true {
-			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
+
 		}
 		if fieldName == "DeletedAt" || fieldName == "DELETEDAT" {
 			valueType = "gorm.DeletedAt"

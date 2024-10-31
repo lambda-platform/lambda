@@ -6,6 +6,7 @@ import (
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/models"
+	"github.com/lambda-platform/lambda/utils"
 	"os"
 	"strings"
 )
@@ -22,11 +23,15 @@ func GetDBSchema() models.DBSCHEMA {
 	}
 
 	for _, table := range tables["tables"] {
-		tableMetas[table] = TableMetas(table)
+		if !utils.StringInSlice(table, config.LambdaConfig.IgnoreTables) {
+			tableMetas[table] = TableMetas(table)
+		}
 	}
 
 	for _, table := range tables["views"] {
-		tableMetas[table] = TableMetas(table)
+		if !utils.StringInSlice(table, config.LambdaConfig.IgnoreTables) {
+			tableMetas[table] = TableMetas(table)
+		}
 	}
 
 	vbSchemas := models.DBSCHEMA{

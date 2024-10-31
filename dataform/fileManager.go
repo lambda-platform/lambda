@@ -207,7 +207,7 @@ func Upload(c *fiber.Ctx) error {
 	}
 	if ext == "mp4" || ext == "m4v" || ext == "avi" || ext == "webm" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:mp4,m4v,avi,webm,MP4,M4V,AVI,WEBM", "size:400000000", "required"},
+			"file:file": []string{"ext:mp4,m4v,avi,webm,MP4,M4V,AVI,WEBM", "size:8000000000", "required"},
 		}
 		mimeTypes = []string{
 			"video/mp4",

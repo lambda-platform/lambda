@@ -99,7 +99,8 @@ func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, j
 		}
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
-			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
+			annotations = append(annotations, fmt.Sprintf("json:\"%s\"", columnType.Name))
+
 		}
 		if fieldName == "DeletedAt" || fieldName == "deleted_at" || fieldName == "DELETED_AT" {
 			valueType = "GormDeletedAt"
@@ -121,6 +122,7 @@ func generateQraphqlTypes(columnTypes []generatorModels.ColumnData, depth int, j
 			structure += fmt.Sprintf("\n    %s: %s",
 				fieldName,
 				valueType)
+
 		}
 	}
 
@@ -145,6 +147,7 @@ func generateQraphqlTypesOrder(columnTypes []generatorModels.ColumnData, depth i
 		if jsonAnnotation == true {
 			//annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", key, primary))
 			annotations = append(annotations, fmt.Sprintf("json:\"%s%s\"", columnType.Name, ""))
+
 		}
 
 		if len(annotations) > 0 {

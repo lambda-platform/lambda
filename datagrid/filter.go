@@ -177,7 +177,7 @@ func Filter(c *fiber.Ctx, datagrid Datagrid, query *gorm.DB) (*gorm.DB, string) 
 								//query = query.Where("LOWER("+k+") LIKE ?", "%"+strings.ToLower(fmt.Sprintf("%v", v))+"%")
 							}
 						default:
-							if filterType == "Text" {
+							if filterType == "Text" || filterType == "Textarea" {
 
 								query = query.Where("LOWER("+k+") LIKE ?", "%"+strings.ToLower(fmt.Sprintf("%v", v))+"%")
 
