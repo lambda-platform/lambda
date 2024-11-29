@@ -52,6 +52,17 @@ func Login(c *fiber.Ctx) error {
 	if agentUtils.IsSame(request.Password, user["password"].(string)) {
 
 		roleID = agentUtils.GetRole(user["role"])
+
+		delete(user, "password")
+		delete(user, "updated_at")
+		delete(user, "created_at")
+		delete(user, "deleted_at")
+		delete(user, "bio")
+		delete(user, "status")
+		delete(user, "birthday")
+		delete(user, "register_number")
+		delete(user, "gender")
+
 		// create jwt token
 		token, err := CreateJwtToken(user, roleID)
 		if err != nil {
@@ -73,16 +84,6 @@ func Login(c *fiber.Ctx) error {
 		}
 
 		cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
-
-		delete(user, "password")
-		delete(user, "updated_at")
-		delete(user, "created_at")
-		delete(user, "deleted_at")
-		delete(user, "bio")
-		delete(user, "status")
-		delete(user, "birthday")
-		delete(user, "register_number")
-		delete(user, "gender")
 
 		c.Cookie(cookie)
 
