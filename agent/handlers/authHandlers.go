@@ -80,7 +80,6 @@ func Login(c *fiber.Ctx) error {
 		cookie.HTTPOnly = true
 		if !config.Config.JWT.DisableCookieSecure {
 			cookie.Secure = true
-
 		}
 
 		cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
@@ -253,7 +252,7 @@ func CreateJwtToken(user map[string]interface{}, role int64) (string, error) {
 	}
 
 	for k, v := range user {
-		if k != "role" && k != "password" && k != "bio" && k != "deleted_at" && k != "status" && k != "created_at" && k != "updated_at" && k != "avatar" && k != "gender" {
+		if k != "role" && k != "password" && k != "bio" && k != "deleted_at" && k != "status" && k != "created_at" && k != "updated_at" && k != "gender" {
 			claims[k] = v
 		}
 	}
