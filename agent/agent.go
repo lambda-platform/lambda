@@ -25,6 +25,7 @@ func Set(e *fiber.App) {
 	a.Get("/login", handlers.LoginPage)
 	a.Get("/forgot", handlers.LoginPage)
 	a.Post("/login", handlers.Login)
+	a.Get("/check", agentMW.IsLoggedIn(), handlers.CheckAuth)
 
 	e.Get("/get-permissions", agentMW.IsLoggedIn(), handlers.GetPermissions)
 	a.Post("/logout", handlers.Logout)

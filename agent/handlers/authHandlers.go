@@ -53,16 +53,6 @@ func Login(c *fiber.Ctx) error {
 
 		roleID = agentUtils.GetRole(user["role"])
 
-		delete(user, "password")
-		delete(user, "updated_at")
-		delete(user, "created_at")
-		delete(user, "deleted_at")
-		delete(user, "bio")
-		delete(user, "status")
-		delete(user, "birthday")
-		delete(user, "register_number")
-		delete(user, "gender")
-
 		// create jwt token
 		token, err := CreateJwtToken(user, roleID)
 		if err != nil {
@@ -103,6 +93,22 @@ func Login(c *fiber.Ctx) error {
 		Status: false,
 	})
 
+}
+
+func CheckAuth(c *fiber.Ctx) error {
+	user, err := agentUtils.AuthUserObject(c)
+
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
+			Error:  err.Error(),
+			Status: false,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"authenticated": true,
+		"user":          user,
+	})
 }
 
 func withOAuth(username string, c *fiber.Ctx) bool {

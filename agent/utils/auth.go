@@ -79,6 +79,17 @@ func AuthUser(value interface{}, uniqField string) (map[string]interface{}, erro
 		if config.Config.Database.Connection == "oracle" {
 			userData = toLowerKeys(userData)
 		}
+
+		delete(userData, "password")
+		delete(userData, "updated_at")
+		delete(userData, "created_at")
+		delete(userData, "deleted_at")
+		delete(userData, "bio")
+		delete(userData, "status")
+		delete(userData, "birthday")
+		delete(userData, "register_number")
+		delete(userData, "gender")
+
 		return userData, err
 	} else {
 		return userData, gorm.ErrRecordNotFound
