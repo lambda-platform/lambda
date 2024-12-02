@@ -51,6 +51,7 @@ func Login(c *fiber.Ctx) error {
 
 	if agentUtils.IsSame(request.Password, user["password"].(string)) {
 
+		delete(user, "password")
 		roleID = agentUtils.GetRole(user["role"])
 
 		// create jwt token

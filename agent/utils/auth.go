@@ -80,7 +80,6 @@ func AuthUser(value interface{}, uniqField string) (map[string]interface{}, erro
 			userData = toLowerKeys(userData)
 		}
 
-		delete(userData, "password")
 		delete(userData, "updated_at")
 		delete(userData, "created_at")
 		delete(userData, "deleted_at")
