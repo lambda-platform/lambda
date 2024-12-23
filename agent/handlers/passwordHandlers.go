@@ -327,8 +327,7 @@ func PasswordReset(c *fiber.Ctx) error {
 
 						newPassword, _ := agentUtils.Hash(data.Password)
 
-						foundUser.Password = newPassword
-						err := DB.DB.Save(foundUser).Error
+						err := DB.DB.Model(&foundUser).Update("Password", newPassword).Error
 						if err != nil {
 
 							return c.JSON(map[string]interface{}{
