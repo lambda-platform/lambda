@@ -117,7 +117,18 @@ func toLowerCase(value interface{}) string {
 func toLowerKeys(m map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range m {
-		result[strings.ToLower(k)] = v
+		switch v.(type) {
+		case string:
+			intV, parseError := strconv.ParseInt(v.(string), 10, 64)
+			if parseError == nil {
+				result[strings.ToLower(k)] = intV
+			} else {
+				result[strings.ToLower(k)] = v
+			}
+		default:
+			result[strings.ToLower(k)] = v
+		}
+
 	}
 	return result
 }
