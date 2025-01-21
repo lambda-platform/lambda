@@ -72,6 +72,11 @@ func Login(c *fiber.Ctx) error {
 		if !config.Config.JWT.DisableCookieSecure {
 			cookie.Secure = true
 		}
+		if config.LambdaConfig.CookieDomain != "" {
+			cookie.Domain = config.LambdaConfig.CookieDomain
+		} else if config.LambdaConfig.Domain != "" {
+			cookie.Domain = config.LambdaConfig.Domain
+		}
 
 		cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
 

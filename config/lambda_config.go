@@ -8,6 +8,7 @@ type lambdaConfig struct {
 	MicroserviceDev       bool   `json:"microservice_dev"`
 	Theme                 string `json:"theme"`
 	Domain                string `json:"domain"`
+	CookieDomain          string `json:"cookie_domain"`
 	Title                 string `json:"title"`
 	SubTitle              string `json:"subTitle"`
 	Copyright             string `json:"copyright"`
