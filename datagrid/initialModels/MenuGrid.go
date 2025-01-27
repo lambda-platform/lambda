@@ -22,7 +22,7 @@ type MenuGrid struct {
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *MenuGrid) TableName() string {
 	return "vb_schemas"
 }
@@ -36,7 +36,7 @@ type MenuGridMain struct {
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (v *MenuGridMain) TableName() string {
 	return "vb_schemas"
 }
@@ -57,7 +57,7 @@ var MenuGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	Filters:     map[string]string{},
 	Relations:   []models.GridRelation{},
 	Condition:   "type = 'menu'",
-	Aggergation: "",
+	Aggregation: "",
 	Triggers: map[string]interface{}{
 		"beforeFetch":        "",
 		"beforeFetchStruct":  new(interface{}),

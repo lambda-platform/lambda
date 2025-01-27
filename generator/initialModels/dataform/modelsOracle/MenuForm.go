@@ -41,5 +41,18 @@ func MenuFormDataform() dataform.Dataform {
 		BeforeInsert:     nil,
 		BeforeUpdate:     nil,
 		TriggerNameSpace: "",
+		Relations: map[string]models.Relation{
+			"krud": models.Relation{
+				Table:              "KRUD",
+				Key:                "ID",
+				Fields:             []string{"TITLE", "TEMPLATE"},
+				FilterWithUser:     (*[]models.FilterWithUser)(nil),
+				SortField:          "TITLE",
+				SortOrder:          "asc",
+				ParentFieldOfForm:  "",
+				ParentFieldOfTable: "",
+				Filter:             "",
+			},
+		},
 	}
 }

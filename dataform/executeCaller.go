@@ -16,7 +16,7 @@ func Exec(c *fiber.Ctx, schemaId string, action string, id string, GetMODEL func
 	case "edit":
 		return Edit(c, datform, id)
 	case "options":
-		return Options(c)
+		return Options(c, datform)
 	}
 
 	return c.Status(http.StatusBadRequest).JSON(map[string]string{

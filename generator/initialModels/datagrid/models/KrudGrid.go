@@ -30,7 +30,7 @@ var KrudGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	Filters:     map[string]string{},
 	Relations:   []models.GridRelation{},
 	Condition:   "",
-	Aggergation: "",
+	Aggregation: "",
 	Triggers: map[string]interface{}{
 		"beforeFetch":        "",
 		"beforeFetchStruct":  new(interface{}),

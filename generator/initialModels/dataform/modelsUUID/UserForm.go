@@ -55,5 +55,18 @@ func UserFormDataform() dataform.Dataform {
 		BeforeInsert:     nil,
 		BeforeUpdate:     nil,
 		TriggerNameSpace: "",
+		Relations: map[string]models.Relation{
+			"role": models.Relation{
+				Table:              "roles",
+				Key:                "id",
+				Fields:             []string{"display_name"},
+				FilterWithUser:     (*[]models.FilterWithUser)(nil),
+				SortField:          "name",
+				SortOrder:          "asc",
+				ParentFieldOfForm:  "",
+				ParentFieldOfTable: "",
+				Filter:             "id != 1",
+			},
+		},
 	}
 }

@@ -16,12 +16,20 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
 
-func CheckFileExist(filepath string, fileName string, fileType string, ext string, i int) string {
+// Default maximum file size in bytes (10MB)
+var defaultMaxFileSize = 10 * 1024 * 1024
 
+func sanitizeFileName(fileName string) string {
+	reg := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+	return reg.ReplaceAllString(fileName, "_")
+}
+
+func CheckFileExist(filepath string, fileName string, fileType string, ext string, i int) string {
 	newFileName := ""
 	if i > 0 {
 		newFileName = fmt.Sprintf("%v", i) + "-" + fileName + ext
@@ -38,7 +46,23 @@ func CheckFileExist(filepath string, fileName string, fileType string, ext strin
 	}
 }
 
-func makeUploadable(src io.Reader, fileType string, ext string, fileName string) (map[string]string, error) {
+func sanitizeSvgContent(content []byte) ([]byte, error) {
+	svgContent := string(content)
+
+	// `<script>` болон бусад хортой элементүүдийг устгах
+	if strings.Contains(svgContent, "<script") {
+		return nil, errors.New("SVG file contains prohibited <script> tag")
+	}
+
+	// Doctype болон entity шалгалт хийх
+	if strings.Contains(svgContent, "<!DOCTYPE") {
+		return nil, errors.New("SVG file contains prohibited <!DOCTYPE>")
+	}
+
+	return content, nil
+}
+
+func makeUploadable(src io.Reader, fileType string, ext string, fileName string, mimeType string) (map[string]string, error) {
 	var name = strings.TrimRight(fileName, ext)
 	currentTime := time.Now()
 	year := fmt.Sprintf("%v", currentTime.Year())
@@ -72,26 +96,49 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 	}
 	defer dst.Close()
 
-	// Copy
-	if _, err = io.Copy(dst, src); err != nil {
-		return map[string]string{
-			"httpPath": "",
-			"basePath": "",
-			"fileName": "",
-		}, errors.New("file create error")
-	}
-
-	if config.Config.Image.MaxSize > 0 {
-		targetSizeBytes := int64(config.Config.Image.MaxSize * 1e6)
-		errO := optimizeImage(publicPath+uploadPath+newFileName, targetSizeBytes)
-		if errO != nil {
-			fmt.Print(errO.Error())
+	// Copy and sanitize SVG content if necessary
+	var content []byte
+	if mimeType == "image/svg+xml" {
+		content, err = io.ReadAll(src)
+		if err != nil {
 			return map[string]string{
 				"httpPath": "",
 				"basePath": "",
 				"fileName": "",
-			}, errO
+			}, errors.New("file read error")
+		}
+		content, err = sanitizeSvgContent(content)
 
+		if err != nil {
+			return map[string]string{
+				"httpPath": "",
+				"basePath": "",
+				"fileName": "",
+			}, errors.New("file sanitization error")
+		}
+		_, err = dst.Write(content)
+	} else {
+		_, err = io.Copy(dst, src)
+	}
+
+	if err != nil {
+		return map[string]string{
+			"httpPath": "",
+			"basePath": "",
+			"fileName": "",
+		}, errors.New("file write error")
+	}
+
+	// Create a thumbnail only for jpg, jpeg, and png files
+	if fileType == "images" && (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".JPG" || ext == ".JPEG" || ext == ".PNG") {
+		thumbnailPath := fullPath + "thumb_" + newFileName
+		err = createThumbnail(publicPath+uploadPath+newFileName, thumbnailPath, 500*1024) // 500KB
+		if err != nil {
+			return map[string]string{
+				"httpPath": "",
+				"basePath": "",
+				"fileName": "",
+			}, errors.New("thumbnail creation error")
 		}
 	}
 
@@ -100,21 +147,11 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string)
 		"basePath": fullPath,
 		"fileName": newFileName,
 	}, nil
-
 }
-func optimizeImage(filePath string, targetSize int64) error {
-	// Check the file size first
-	fileInfo, err := os.Stat(filePath)
-	if err != nil {
-		return err
-	}
 
-	// If the file is already smaller than the target size, return
-	if fileInfo.Size() <= targetSize {
-		return nil
-	}
-
-	file, err := os.Open(filePath)
+func createThumbnail(inputPath, outputPath string, maxSize int64) error {
+	// Open the image file
+	file, err := os.Open(inputPath)
 	if err != nil {
 		return err
 	}
@@ -125,8 +162,8 @@ func optimizeImage(filePath string, targetSize int64) error {
 		return err
 	}
 
-	// Resize the image to reduce size
-	img = resize.Thumbnail(1024, 1024, img, resize.Lanczos3)
+	// Resize the image for the thumbnail
+	img = resize.Thumbnail(500, 500, img, resize.Lanczos3)
 
 	var buf bytes.Buffer
 
@@ -136,19 +173,20 @@ func optimizeImage(filePath string, targetSize int64) error {
 	case "png":
 		err = png.Encode(&buf, img)
 	default:
-		return nil
+		return errors.New("unsupported image format for thumbnail")
 	}
 
 	if err != nil {
 		return err
 	}
 
-	if int64(buf.Len()) > targetSize {
-		return nil
+	// Check the size of the thumbnail
+	if int64(buf.Len()) > maxSize {
+		return errors.New("thumbnail size exceeds the limit of 500KB")
 	}
 
-	// Write the optimized image back to disk
-	return os.WriteFile(filePath, buf.Bytes(), 0644)
+	// Save the thumbnail
+	return os.WriteFile(outputPath, buf.Bytes(), 0644)
 }
 
 func Upload(c *fiber.Ctx) error {
@@ -170,14 +208,17 @@ func Upload(c *fiber.Ctx) error {
 		})
 	}
 	defer src.Close()
-	//srcMime := src
+
+	if config.Config.File.FileMaxSize > 0 {
+		defaultMaxFileSize = config.Config.File.FileMaxSize * 1024 * 1024
+	}
 
 	var ext_ = filepath.Ext(file.Filename)
 	ext := strings.ToLower(strings.TrimPrefix(ext_, "."))
+	sanitizedFileName := sanitizeFileName(file.Filename)
 	var fileType string = "images"
 	rules := govalidator.MapData{
-		//"file:file": []string{"ext:jpg,png,jpeg,svg,JPG,PNG,JPEG,SVG", "size:100000", "mime:jpg,png,jpeg,svg,JPG,PNG,JPEG,SVG", "required"},
-		"file:file": []string{"ext:jpg,png,jpeg,svg,gif,JPG,PNG,JPEG,SVG,GIF", "size:100000000", "required"},
+		"file:file": []string{"ext:jpg,png,jpeg,svg,gif,JPG,PNG,JPEG,SVG,GIF", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
 	}
 	mimeTypes := []string{
 		"image/svg+xml",
@@ -188,7 +229,7 @@ func Upload(c *fiber.Ctx) error {
 
 	if ext == "dwg" || ext == "pdf" || ext == "zip" || ext == "swf" || ext == "doc" || ext == "docx" || ext == "csv" || ext == "xls" || ext == "xlsx" || ext == "ppt" || ext == "pptx" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:xls,xlsx,doc,docx,pdf,ppt,pptx,csv,zip,dwg,XLS,XLSX,DOC,DOCX,PDF,PPT,PPTX,CSV,ZIP,DWG", "size:400000000", "required"},
+			"file:file": []string{"ext:xls,xlsx,doc,docx,pdf,ppt,pptx,csv,zip,dwg,XLS,XLSX,DOC,DOCX,PDF,PPT,PPTX,CSV,ZIP,DWG", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
 		}
 		mimeTypes = []string{
 			"application/acad",
@@ -207,7 +248,7 @@ func Upload(c *fiber.Ctx) error {
 	}
 	if ext == "mp4" || ext == "m4v" || ext == "avi" || ext == "webm" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:mp4,m4v,avi,webm,MP4,M4V,AVI,WEBM", "size:8000000000", "required"},
+			"file:file": []string{"ext:mp4,m4v,avi,webm,MP4,M4V,AVI,WEBM", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
 		}
 		mimeTypes = []string{
 			"video/mp4",
@@ -219,7 +260,7 @@ func Upload(c *fiber.Ctx) error {
 	}
 	if ext == "mp3" || ext == "wav" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:mp3,wav,MP3,WAV", "size:500000000", "required"},
+			"file:file": []string{"ext:mp3,wav,MP3,WAV", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
 		}
 		mimeTypes = []string{
 			"audio/mpeg",
@@ -230,7 +271,7 @@ func Upload(c *fiber.Ctx) error {
 
 	if ext == "so" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:so", "size:40000000", "required"},
+			"file:file": []string{"ext:so", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
 		}
 		mimeTypes = []string{
 			"application/x-sharedlib",
@@ -238,9 +279,7 @@ func Upload(c *fiber.Ctx) error {
 		fileType = "sharedlib"
 	}
 
-	//mimeType, _, err  := mimetype.DetectReader(srcMime)
-
-	mimeType := "1"
+	mimeType := file.Header.Get("Content-Type")
 
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(map[string]string{
@@ -256,10 +295,10 @@ func Upload(c *fiber.Ctx) error {
 	}
 
 	if mimeAllowed == false {
-		//return c.Status(http.StatusBadRequest).JSON(map[string]string{
-		//	"status": "false",
-		//	"message": "file mime not allowed",
-		//})
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{
+			"status":  "false",
+			"message": "file mime not allowed",
+		})
 	}
 
 	messages := govalidator.MapData{
@@ -284,7 +323,7 @@ func Upload(c *fiber.Ctx) error {
 			"message": e,
 		})
 	}
-	upload, uerr := makeUploadable(src, fileType, ext_, file.Filename)
+	upload, uerr := makeUploadable(src, fileType, ext_, sanitizedFileName, mimeType)
 
 	if uerr != nil {
 		return c.Status(http.StatusBadRequest).JSON(map[string]string{

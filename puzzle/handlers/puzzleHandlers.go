@@ -799,13 +799,13 @@ func GetOptions(c *fiber.Ctx) error {
 		})
 	}
 	var optionsData = map[string][]map[string]interface{}{}
-
-	for table, relation := range r.Relations {
-		data := dataform.OptionsData(relation, c)
-
-		optionsData[table] = data
-
-	}
+	//
+	//for table, relation := range r.Relations {
+	//	data := dataform.OptionsData(relation, c)
+	//
+	//	optionsData[table] = data
+	//
+	//}
 	return c.JSON(optionsData)
 
 }

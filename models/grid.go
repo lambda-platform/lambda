@@ -1,6 +1,5 @@
 package models
 
-
 type GridRelation struct {
 	Column          string `json:"column"`
 	ConnectionField string `json:"connection_field"`

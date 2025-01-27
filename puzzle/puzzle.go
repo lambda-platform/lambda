@@ -64,8 +64,8 @@ func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) da
 	g.Post("/puzzle/grid-public/:action/:schemaId", handlers.GridVB(GetGridMODEL))
 
 	//Get From Options
-	g.Post("/puzzle/get_options", agentMW.IsLoggedIn(), handlers.GetOptions)
-	g.Post("/puzzle/get_options-public", handlers.GetOptions)
+	//g.Post("/puzzle/get_options", agentMW.IsLoggedIn(), handlers.GetOptions)
+	//g.Post("/puzzle/get_options-public", handlers.GetOptions)
 
 	//Roles
 	g.Get("/puzzle/roles-menus", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRolesMenus)

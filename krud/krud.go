@@ -22,6 +22,12 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 			g.Use(krudMiddleWare)
 		}
 	}
+	kp := e.Group("/lambda/krud-public")
+	if len(krudMiddleWares) >= 1 {
+		for _, krudMiddleWare := range krudMiddleWares {
+			kp.Use(krudMiddleWare)
+		}
+	}
 	p := e.Group("/lambda/puzzle")
 	if len(krudMiddleWares) >= 1 {
 		for _, krudMiddleWare := range krudMiddleWares {
@@ -33,18 +39,21 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	g.Post("/import-excel/:schemaId", agentMW.IsLoggedIn(), handlers.ImportExcel(GetGridMODEL))
 	g.Post("/print/:schemaId", agentMW.IsLoggedIn(), handlers.Print(GetGridMODEL))
 	if KrudWithPermission {
+		g.Post("/:schemaId/filter-options", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.FilterOptions(GetGridMODEL))
 		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.UpdateRow(GetGridMODEL))
 		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), krudMW.PermissionCreate, handlers.Crud(GetMODEL))
 		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), krudMW.PermissionEdit, handlers.Crud(GetMODEL))
 		g.Delete("/delete/:schemaId/:id", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.Delete(GetGridMODEL))
 
 	} else {
+		g.Post("/:schemaId/filter-options", agentMW.IsLoggedIn(), handlers.FilterOptions(GetGridMODEL))
 		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), handlers.UpdateRow(GetGridMODEL))
 		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), handlers.Crud(GetMODEL))
 		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), handlers.Crud(GetMODEL))
 		g.Delete("/delete/:schemaId/:id", agentMW.IsLoggedIn(), handlers.Delete(GetGridMODEL))
-	}
 
+	}
+	kp.Post("/:schemaId/:action", krudMW.PermissionCreate, handlers.Crud(GetMODEL))
 	/*
 		OTHER
 	*/

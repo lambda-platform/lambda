@@ -49,8 +49,8 @@ func WriteGridModel(dbSchema lambdaModels.DBSCHEMA, grids []genertarModels.Proje
 		/*GRID DEFAULT CONDITION & Filters*/
 		filters := createFilter(schema, modelAliasWithID)
 
-		/*GRID Aggergation*/
-		aggergations := createAggergation(schema, modelAliasWithID)
+		/*GRID Aggregation*/
+		aggregations := createAggregation(schema, modelAliasWithID)
 
 		/*Grid Trigger*/
 		triggers := createTrigger(schema, modelAliasWithID, modelAlias, vb.ID)
@@ -59,6 +59,9 @@ func WriteGridModel(dbSchema lambdaModels.DBSCHEMA, grids []genertarModels.Proje
 		excelImporter := createExcelImporter(schema, modelAliasWithID, modelAlias, vb.ID)
 
 		IsExcelUpload := "false"
+
+		// Extract relations from the schema
+		FilterRelations := GetGridRelations(schema.Schema, 0)
 
 		if schema.IsExcelUpload {
 			IsExcelUpload = "true"
@@ -79,19 +82,22 @@ var %sDatagrid datagrid.Datagrid = datagrid.Datagrid{
     Filters: %s,
     Relations: %s,
     Condition: "%s",
-    Aggergation: "%s",
+    Aggregation: "%s",
    	%s
     TriggerNameSpace: "%s",
 	FillVirtualColumns: fillVirtualColumns%s,
 	IsExcelUpload:              %s,
 	ExcelUploadCustomNamespace:              "%s",
 	%s
+    FilterRelations: map[string]models.Relation{
+%s
+        },
 }
 
 func fillVirtualColumns%s(rowsPre interface{}) interface{}{
     %s
 }
-`, models, modelAliasWithID, vb.Name, schema.Identity, tableSchema+schema.Model, tableSchema+schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggergations, triggers, schema.Triggers.Namespace, modelAliasWithID, IsExcelUpload, schema.ExcelUploadCustomNamespace, excelImporter, modelAliasWithID, MicroserviceCaller)
+`, models, modelAliasWithID, vb.Name, schema.Identity, tableSchema+schema.Model, tableSchema+schema.MainTable, modelAliasWithID, modelAliasWithID, MainTableAliasWithID, columns, columnList, filters, relations, schema.Condition, aggregations, triggers, schema.Triggers.Namespace, modelAliasWithID, IsExcelUpload, schema.ExcelUploadCustomNamespace, excelImporter, buildRelationString(FilterRelations), modelAliasWithID, MicroserviceCaller)
 
 		Werror := utils.WriteFileFormat(content, "lambda/models/grid/"+modelAlias+strconv.FormatInt(int64(vb.ID), 10)+".go")
 		if Werror == nil {
@@ -105,6 +111,32 @@ func fillVirtualColumns%s(rowsPre interface{}) interface{}{
 	return genertedGrids
 
 }
+func GetGridRelations(schema []lambdaModels.GridItem, microserviceID int) map[string]lambdaModels.Relation {
+	relations := make(map[string]lambdaModels.Relation)
+
+	for _, item := range schema {
+
+		if item.Filterable {
+			if item.Filter.Type == "Radio" || item.Filter.Type == "Select" || item.Filter.Type == "ISelect" || item.Filter.Type == "TreeSelect" || item.Filter.Type == "FooterButton" || item.Filter.Type == "AdminMenu" {
+
+				if item.Filter.Relation.Table != "" {
+					if microserviceID == 0 || (item.Filter.Relation.MicroserviceID == microserviceID) {
+
+						key := item.Model
+						if item.Filter.Relation.Filter == "" {
+							key = item.Filter.Relation.Table
+						}
+
+						relations[key] = item.Filter.Relation
+					}
+				}
+			}
+		}
+	}
+
+	return relations
+}
+
 func WriteGridDataCaller(grids []genertarModels.ProjectSchemas, copyClienModels bool) {
 	content := "package caller\n"
 
@@ -304,19 +336,19 @@ func createExcelImporter(schema lambdaModels.SCHEMAGRID, modelAliasWithID string
 
 	return ExcelUploadCustomTrigger
 }
-func createAggergation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) string {
-	gridAggergation := ``
+func createAggregation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) string {
+	gridAggregation := ``
 
-	for i, aggergation := range schema.ColumnAggregations {
+	for i, aggregation := range schema.ColumnAggregations {
 
 		if i <= 0 {
-			gridAggergation = gridAggergation + `` + aggergation["aggregation"] + `(` + aggergation["column"] + `) as ` + aggergation["aggregation"] + `_` + aggergation["column"]
+			gridAggregation = gridAggregation + `` + aggregation["aggregation"] + `(` + aggregation["column"] + `) as ` + aggregation["aggregation"] + `_` + aggregation["column"]
 		} else {
-			gridAggergation = gridAggergation + `, ` + aggergation["aggregation"] + `(` + aggergation["column"] + `) as ` + aggergation["aggregation"] + `_` + aggergation["column"]
+			gridAggregation = gridAggregation + `, ` + aggregation["aggregation"] + `(` + aggregation["column"] + `) as ` + aggregation["aggregation"] + `_` + aggregation["column"]
 		}
 
 	}
-	return gridAggergation
+	return gridAggregation
 }
 func createRelation(schema lambdaModels.SCHEMAGRID, modelAliasWithID string) (string, string, bool) {
 	IDvariables := ""

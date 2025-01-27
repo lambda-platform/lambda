@@ -90,6 +90,9 @@ func WriteFormModel(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.Pro
 		rules, messages := createValidation(schema, columnDataTypes)
 		subForms, gridSubFroms := createSubForms(modelAliasWithID, schema)
 
+		// Extract relations from the schema
+		relations := GetRelations(schema.Schema, 0)
+
 		content := fmt.Sprintf(`package form
 
 import (
@@ -121,15 +124,47 @@ func %sDataform() dataform.Dataform {
         BeforeInsert: %s,
         BeforeUpdate: %s,
         TriggerNameSpace: "%s",
+        Relations: map[string]models.Relation{
+%s
+        },
     }
 }
 %s
-`, triggersNamespace, modelAliasWithID, vb.Name, schema.Identity, schema.Model, modelAliasWithID, formFields, formulas, rules, messages, subForms, afterInsertTrigger, afterUpdateTrigger, beforInsertTrigger, beforUpdateTrigger, schema.Triggers.Namespace, gridSubFroms)
+`, triggersNamespace, modelAliasWithID, vb.Name, schema.Identity, schema.Model, modelAliasWithID, formFields, formulas, rules, messages, subForms, afterInsertTrigger, afterUpdateTrigger, beforInsertTrigger, beforUpdateTrigger, schema.Triggers.Namespace, buildRelationString(relations), gridSubFroms)
 		utils.WriteFileFormat(string(struc), "lambda/models/form/formModels/"+modelAlias+strconv.FormatInt(int64(vb.ID), 10)+".go")
 		utils.WriteFileFormat(content, "lambda/models/form/"+modelAlias+strconv.FormatInt(int64(vb.ID), 10)+".go")
 
 	}
 
+}
+func buildRelationString(relations map[string]lambdaModels.Relation) string {
+	relationString := ""
+	for key, relation := range relations {
+		relationString += fmt.Sprintf(`            "%s": models.Relation{
+                Table: "%s",
+                Key: "%s",
+                Fields: %#v,
+                FilterWithUser: %#v,
+                SortField: "%s",
+                SortOrder: "%s",
+                ParentFieldOfForm: "%s",
+                ParentFieldOfTable: "%s",
+                Filter: "%s",
+            },
+`,
+			key,
+			relation.Table,
+			relation.Key,
+			relation.Fields,
+			relation.FilterWithUser,
+			relation.SortField,
+			relation.SortOrder,
+			relation.ParentFieldOfForm,
+			relation.ParentFieldOfTable,
+			relation.Filter,
+		)
+	}
+	return relationString
 }
 func createSubForms(modelAliasWithID string, schema lambdaModels.SCHEMA) (string, string) {
 	gridSubFroms := ""
@@ -198,6 +233,34 @@ func %sDataform() dataform.Dataform {
 	}
 	subForms = subForms + `}`
 	return subForms, gridSubFroms
+}
+func GetRelations(schema []lambdaModels.FormItem, microserviceID int) map[string]lambdaModels.Relation {
+	relations := make(map[string]lambdaModels.Relation)
+
+	for _, item := range schema {
+		if item.FormType == "Radio" || item.FormType == "Select" || item.FormType == "ISelect" || item.FormType == "TreeSelect" || item.FormType == "FooterButton" || item.FormType == "AdminMenu" {
+			if item.Relation.Table != "" {
+				if microserviceID == 0 || (item.Relation.MicroserviceID == microserviceID) {
+
+					key := item.Model
+					if item.Relation.Filter == "" {
+						key = item.Relation.Table
+					}
+
+					relations[key] = item.Relation
+				}
+			}
+		}
+
+		if item.FormType == "SubForm" && item.Schema != nil {
+			subformRelations := GetRelations(item.Schema, microserviceID)
+			for k, v := range subformRelations {
+				relations[k] = v
+			}
+		}
+	}
+
+	return relations
 }
 
 func createFieldTypes(schema lambdaModels.SCHEMA) string {

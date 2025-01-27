@@ -50,7 +50,7 @@ func init() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		err = envconfig.Process("image", &Config.Image)
+		err = envconfig.Process("file", &Config.File)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -78,7 +78,7 @@ type config struct {
 	JWT      JWT
 	Mail     Mail
 	Graphql  Graphql
-	Image    Image
+	File     File
 }
 
 type database struct {
@@ -126,8 +126,8 @@ type Mail struct {
 	FromAddress string `envconfig:"MAIL_FROM_ADDRESS"`
 	FromName    string `envconfig:"MAIL_FROM_NAME"`
 }
-type Image struct {
-	MaxSize int `envconfig:"IMAGE_MAX_SIZE"`
+type File struct {
+	FileMaxSize int `envconfig:"FILE_MAX_SIZE"`
 }
 type Graphql struct {
 	Debug string

@@ -19,7 +19,7 @@ type Datagrid struct {
 	Filters                    map[string]string
 	Relations                  []models.GridRelation
 	Condition                  string
-	Aggergation                string
+	Aggregation                string
 	Triggers                   map[string]interface{}
 	BeforeFetch                func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
 	AfterFetch                 func(interface{}, Datagrid, *gorm.DB, *fiber.Ctx) (interface{}, *gorm.DB, bool, bool)
@@ -31,6 +31,7 @@ type Datagrid struct {
 	ExcelUploadCustomNamespace string
 	ExcelUploadCustomTrigger   func(Datagrid, *fiber.Ctx) error
 	FillVirtualColumns         func(interface{}) interface{}
+	FilterRelations            map[string]models.Relation
 }
 
 type Column struct {

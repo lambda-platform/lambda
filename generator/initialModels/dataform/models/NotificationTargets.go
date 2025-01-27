@@ -51,5 +51,29 @@ func NotificationTargetsDataform() dataform.Dataform {
 		BeforeInsert:     nil,
 		BeforeUpdate:     nil,
 		TriggerNameSpace: "",
+		Relations: map[string]models.Relation{
+			"target_role": models.Relation{
+				Table:              "roles",
+				Key:                "id",
+				Fields:             []string{"name", "display_name"},
+				FilterWithUser:     (*[]models.FilterWithUser)(nil),
+				SortField:          "name",
+				SortOrder:          "asc",
+				ParentFieldOfForm:  "",
+				ParentFieldOfTable: "",
+				Filter:             "id != 1",
+			},
+			"schema_id": models.Relation{
+				Table:              "vb_schemas",
+				Key:                "id",
+				Fields:             []string{"name"},
+				FilterWithUser:     (*[]models.FilterWithUser)(nil),
+				SortField:          "name",
+				SortOrder:          "asc",
+				ParentFieldOfForm:  "",
+				ParentFieldOfTable: "",
+				Filter:             "type = 'form'",
+			},
+		},
 	}
 }

@@ -57,7 +57,7 @@ var MenuGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	Filters:     map[string]string{},
 	Relations:   []models.GridRelation{},
 	Condition:   "type = 'menu'",
-	Aggergation: "",
+	Aggregation: "",
 	Triggers: map[string]interface{}{
 		"beforeFetch":        "",
 		"beforeFetchStruct":  new(interface{}),

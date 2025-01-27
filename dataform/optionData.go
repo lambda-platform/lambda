@@ -6,38 +6,26 @@ import (
 	"github.com/lambda-platform/lambda/DB"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
-	"net/http"
+	"github.com/lambda-platform/lambda/models"
 	"strconv"
 	"strings"
 )
 
-func Options(c *fiber.Ctx) error {
-	r := new(RalationOption)
-	if err := c.BodyParser(r); err != nil {
+func Options(c *fiber.Ctx, dataform Dataform) error {
 
-		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-			"status": false,
-			"error":  err.Error(),
-		})
+	var optionsData = map[string][]map[string]interface{}{}
+
+	for table, relation := range dataform.Relations {
+		data := OptionsData(relation, c)
+
+		optionsData[table] = data
+
 	}
 
-	Relation := Ralation_{}
-
-	Relation.Fields = r.Fields
-	Relation.Filter = r.Filter
-	Relation.Key = r.Key
-	Relation.SortField = r.SortField
-	Relation.SortOrder = r.SortOrder
-	Relation.Table = r.Table
-	Relation.FilterWithUser = r.FilterWithUser
-	Relation.ParentFieldOfForm = r.ParentFieldOfForm
-	Relation.ParentFieldOfTable = r.ParentFieldOfTable
-
-	data := OptionsData(Relation, c)
-	return c.JSON(data)
+	return c.JSON(optionsData)
 }
 
-func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
+func OptionsData(relation models.Relation, c *fiber.Ctx) []map[string]interface{} {
 
 	table := relation.Table
 	labels := strings.Join(relation.Fields[:], ",', ',")
@@ -67,7 +55,7 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 		where_value = filter
 	}
 
-	if len(FilterWithUser) >= 1 {
+	if FilterWithUser != nil {
 
 		User, err := agentUtils.AuthUserObject(c)
 
@@ -77,23 +65,20 @@ func OptionsData(relation Ralation_, c *fiber.Ctx) []map[string]interface{} {
 				"status": false,
 			})
 		}
-		for _, userCon := range FilterWithUser {
-
-			tableField := userCon["tableField"]
-			userField := User[userCon["userField"]]
+		for _, userCon := range *FilterWithUser {
+			fmt.Println(userCon)
+			tableField := userCon.TableField
+			userFieldValue := User[userCon.UserField]
 
 			//if userField
-			if userField != nil {
-				userFieldValue := strconv.FormatInt(agentUtils.GetRole(userField), 10)
+			if userFieldValue != nil {
 
-				userDataFilter := tableField + " = '" + userFieldValue + "'"
+				userDataFilter := tableField + " = '" + fmt.Sprintf("%v", userFieldValue) + "'"
 
-				if userFieldValue != "" && userFieldValue != "0" {
-					if where_value == "" {
-						where_value = "WHERE " + userDataFilter
-					} else {
-						where_value = where_value + " AND " + userDataFilter
-					}
+				if where_value == "" {
+					where_value = userDataFilter
+				} else {
+					where_value = where_value + " AND " + userDataFilter
 				}
 			}
 		}

@@ -16,12 +16,12 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 	requestData, err := GetData(c, action, id, dataform)
 
 	if err != nil {
-		errData := map[string]interface{}{"error": err}
+		errData := map[string]interface{}{"error": "Invalid request data."}
 		errData["status"] = false
-		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
-			"status": false,
-			"error":  err.Error(),
-		})
+		if config.Config.Database.Debug {
+			errData["details"] = err.Error()
+		}
+		return c.Status(http.StatusBadRequest).JSON(errData)
 	}
 
 	if len(dataform.ValidationRules) >= 1 {
@@ -35,9 +35,9 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 		e := v.ValidateStruct()
 
 		if len(e) >= 1 {
-			err := map[string]interface{}{"error": e}
-			err["status"] = false
-			return c.Status(http.StatusBadRequest).JSON(err)
+			errValidation := map[string]interface{}{"error": e}
+			errValidation["status"] = false
+			return c.Status(http.StatusBadRequest).JSON(errValidation)
 		}
 	}
 
@@ -52,10 +52,14 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 		err := query.Save(dataform.Model).Error
 		if err != nil {
 
-			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+			errResponse := map[string]interface{}{
 				"status": false,
-				"error":  err.Error(),
-			})
+				"error":  "Failed to update the record.",
+			}
+			if config.Config.Database.Debug {
+				errResponse["details"] = err.Error()
+			}
+			return c.Status(http.StatusBadRequest).JSON(errResponse)
 		} else {
 
 			saveNestedSubItem(dataform, *requestData)
@@ -76,11 +80,14 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 
 		if err != nil {
 
-			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+			errResponse := map[string]interface{}{
 				"status": false,
-				"error":  err.Error(),
-				"from":   "query",
-			})
+				"error":  "Failed to create the record.",
+			}
+			if config.Config.Database.Debug {
+				errResponse["details"] = err.Error()
+			}
+			return c.Status(http.StatusBadRequest).JSON(errResponse)
 		} else {
 
 			saveNestedSubItem(dataform, *requestData)
@@ -93,11 +100,14 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 
 			if errIDValue != nil {
 
-				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				errResponse := map[string]interface{}{
 					"status": false,
-					"error":  errIDValue.Error(),
-					"from":   "get ID",
-				})
+					"error":  "Failed to retrieve the ID.",
+				}
+				if config.Config.Database.Debug {
+					errResponse["details"] = errIDValue.Error()
+				}
+				return c.Status(http.StatusBadRequest).JSON(errResponse)
 			}
 
 			return c.JSON(map[string]interface{}{

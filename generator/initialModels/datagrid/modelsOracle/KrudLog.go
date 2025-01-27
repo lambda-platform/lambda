@@ -74,7 +74,7 @@ var CrudLogDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	},
 	Relations:   []models.GridRelation{},
 	Condition:   "",
-	Aggergation: "",
+	Aggregation: "",
 	Triggers: map[string]interface{}{
 		"beforeFetch":        "",
 		"beforeFetchStruct":  new(interface{}),

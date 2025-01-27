@@ -24,6 +24,8 @@ func Exec(c *fiber.Ctx, schemaId string, action string, id string, GetGridMODEL 
 		return Print(c, datagrid)
 	case "update-row":
 		return UpdateRow(c, datagrid)
+	case "filter-options":
+		return FilterOptions(c, datagrid)
 	}
 	return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 		"status": false,

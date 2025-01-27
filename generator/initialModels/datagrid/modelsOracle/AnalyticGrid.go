@@ -36,7 +36,7 @@ var AnalyticGridDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	Filters:     map[string]string{},
 	Relations:   []models.GridRelation{},
 	Condition:   "",
-	Aggergation: "",
+	Aggregation: "",
 	Triggers: map[string]interface{}{
 		"beforeFetch":        "",
 		"beforeFetchStruct":  new(interface{}),
@@ -68,7 +68,7 @@ func (a *AnalyticMainTable) TableName() string {
 	return "analytic"
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (a *AnalyticGrid) TableName() string {
 	return "analytic"
 }

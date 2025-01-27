@@ -22,6 +22,7 @@ type Dataform struct {
 	AfterInsert        func(interface{})
 	AfterUpdate        func(interface{})
 	TriggerNameSpace   string
+	Relations          map[string]models.Relation
 }
 
 func (d *Dataform) getStringField(field string) (string, error) {

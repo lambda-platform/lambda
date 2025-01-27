@@ -32,7 +32,7 @@ func (n *NotificationTargetMainTable) TableName() string {
 	return "notification_targets"
 }
 
-//  TableName sets the insert table name for this struct type
+// TableName sets the insert table name for this struct type
 func (n *NotificationTarget) TableName() string {
 	return "notification_targets"
 }
@@ -52,7 +52,7 @@ var NotificationTargetDatagrid datagrid.Datagrid = datagrid.Datagrid{
 	Filters:     map[string]string{},
 	Relations:   []models.GridRelation{},
 	Condition:   "",
-	Aggergation: "",
+	Aggregation: "",
 	Triggers: map[string]interface{}{
 		"beforeFetch":        "",
 		"beforeFetchStruct":  new(interface{}),

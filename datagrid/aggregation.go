@@ -28,7 +28,7 @@ func Aggregation(c *fiber.Ctx, datagrid Datagrid) error {
 			query = query.Where("deleted_at IS NULL")
 		}
 	}
-	query = query.Select(datagrid.Aggergation)
+	query = query.Select(datagrid.Aggregation)
 	rows, _ := query.Rows()
 
 	data := []interface{}{}
