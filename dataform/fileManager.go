@@ -266,6 +266,7 @@ func Upload(c *fiber.Ctx) error {
 			"audio/mpeg",
 			"audio/wav",
 			"audio/aac",
+			"application/octet-stream",
 		}
 		fileType = "audios"
 	}
