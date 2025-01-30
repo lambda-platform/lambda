@@ -298,7 +298,7 @@ func Upload(c *fiber.Ctx) error {
 	if mimeAllowed == false {
 		return c.Status(http.StatusBadRequest).JSON(map[string]string{
 			"status":  "false",
-			"message": "file mime not allowed",
+			"message": "file mime not allowed, " + mimeType,
 		})
 	}
 
