@@ -225,6 +225,7 @@ func Upload(c *fiber.Ctx) error {
 		"image/jpeg",
 		"image/png",
 		"image/gif",
+		"application/octet-stream",
 	}
 
 	if ext == "dwg" || ext == "pdf" || ext == "zip" || ext == "swf" || ext == "doc" || ext == "docx" || ext == "csv" || ext == "xls" || ext == "xlsx" || ext == "ppt" || ext == "pptx" {
@@ -255,6 +256,7 @@ func Upload(c *fiber.Ctx) error {
 			"video/x-m4v",
 			"video/x-msvideo",
 			"video/webm",
+			"application/octet-stream",
 		}
 		fileType = "videos"
 	}
