@@ -260,14 +260,15 @@ func Upload(c *fiber.Ctx) error {
 		}
 		fileType = "videos"
 	}
-	if ext == "mp3" || ext == "wav" || ext == "aac" {
+	if ext == "mp3" || ext == "wav" || ext == "aac" || ext == "m4a" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:mp3,wav,aac,MP3,WAV,AAC", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
+			"file:file": []string{"ext:mp3,wav,aac,m4a,MP3,WAV,AAC,M4A", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
 		}
 		mimeTypes = []string{
 			"audio/mpeg",
 			"audio/wav",
 			"audio/aac",
+			"audio/m4a",
 			"application/octet-stream",
 		}
 		fileType = "audios"
