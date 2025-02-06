@@ -173,18 +173,20 @@ func TableMetas(tableName string) []models.TableMeta {
 		var currentTableMetas []models.MSTableMata
 
 		query := fmt.Sprintf(`
-        SELECT 
-            C.COLUMN_NAME, 
-            C.DATA_TYPE, 
-            DC.definition AS DEFAULT_VALUE
-        FROM 
-            %s.INFORMATION_SCHEMA.COLUMNS C
-        LEFT JOIN 
-            sys.columns SC ON SC.object_id = OBJECT_ID(C.TABLE_SCHEMA + '.' + C.TABLE_NAME) AND SC.name = C.COLUMN_NAME
-        LEFT JOIN 
-            sys.default_constraints DC ON DC.parent_object_id = SC.object_id AND DC.parent_column_id = SC.column_id
-        WHERE 
-            C.TABLE_NAME = '%s'`, config.Config.Database.Database, tableName)
+    SELECT 
+        C.COLUMN_NAME, 
+        C.DATA_TYPE, 
+        DC.definition AS DEFAULT_VALUE
+    FROM 
+        %s.INFORMATION_SCHEMA.COLUMNS C
+    LEFT JOIN 
+        sys.columns SC ON SC.object_id = OBJECT_ID(C.TABLE_SCHEMA + '.' + C.TABLE_NAME) AND SC.name = C.COLUMN_NAME
+    LEFT JOIN 
+        sys.default_constraints DC ON DC.parent_object_id = SC.object_id AND DC.parent_column_id = SC.column_id
+    WHERE 
+        C.TABLE_NAME = '%s'
+    ORDER BY 
+        C.ORDINAL_POSITION`, config.Config.Database.Database, tableName)
 
 		DB.DB.Raw(query).Scan(&currentTableMetas)
 		for _, column := range currentTableMetas {
