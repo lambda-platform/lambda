@@ -90,7 +90,7 @@ func Login(c *fiber.Ctx) error {
 			cookie.Domain = config.LambdaConfig.CookieDomain
 		}
 
-		cookie.Expires = time.Now().Add(time.Hour * time.Duration(config.Config.JWT.Ttl))
+		cookie.Expires = time.Now().Add(time.Minute * time.Duration(config.Config.JWT.Ttl))
 
 		c.Cookie(cookie)
 
