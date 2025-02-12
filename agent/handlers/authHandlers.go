@@ -30,24 +30,38 @@ type Permissions struct {
 	Permissions interface{} `json:"permissions"`
 }
 
+var failedAttempts = make(map[string]int)     // Нэвтрэлтийн алдааны тоолуур
+var lockoutUntil = make(map[string]time.Time) // Блок хийх хугацаа
 func Login(c *fiber.Ctx) error {
 
 	request := LoginRequest{}
 	if err := c.BodyParser(&request); err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
-			Error:  "Username & password required",
-			Status: false,
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  "Нэвтрэх нэр болон нууц үг шаардлагатай",
+			"status": false,
+		})
+	}
+	// Блок хугацааг шалгах
+	if lockoutTime, exists := lockoutUntil[request.Login]; exists && time.Now().Before(lockoutTime) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": fmt.Sprintf("Таны бүртгэл хаагдсан байна. %v минутын дараа дахин оролдоно уу.", int(lockoutTime.Sub(time.Now()).Minutes())),
 		})
 	}
 
+	// Хэрэглэгчийг шалгах
 	user, err := agentUtils.AuthUser(request.Login, "login")
-	var roleID int64 = 0
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
-			Error:  err.Error(),
-			Status: false,
+		failedAttempts[request.Login]++
+		lockAccountIfNeeded(request.Login)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  "Нэвтрэх нэр эсвэл нууц үг буруу байна",
+			"status": false,
 		})
 	}
+	// Амжилттай нэвтэрсэн тохиолдолд алдааны тоолуурыг цэвэрлэх
+	delete(failedAttempts, request.Login)
+	delete(lockoutUntil, request.Login)
+	var roleID int64 = 0
 
 	if agentUtils.IsSame(request.Password, user["password"].(string)) {
 
@@ -99,6 +113,16 @@ func Login(c *fiber.Ctx) error {
 
 }
 
+// Блоклох нөхцөлүүдийг хэрэгжүүлэх функц
+func lockAccountIfNeeded(username string) {
+	if failedAttempts[username] == 3 {
+		lockoutUntil[username] = time.Now().Add(10 * time.Minute) // 10 минут түгжинэ
+	} else if failedAttempts[username] == 6 {
+		lockoutUntil[username] = time.Now().Add(1 * time.Hour) // 1 цаг түгжинэ
+	} else if failedAttempts[username] >= 9 {
+		lockoutUntil[username] = time.Now().Add(24 * time.Hour) // 1 өдөр түгжинэ
+	}
+}
 func CheckAuth(c *fiber.Ctx) error {
 	user, err := agentUtils.AuthUserObject(c)
 

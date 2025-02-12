@@ -22,13 +22,20 @@ import (
 )
 
 func GetNewNotifications(c *fiber.Ctx) error {
+	user, err := agentUtils.AuthUserObject(c)
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  err.Error(),
+			"status": false,
+		})
+	}
 	if config.Config.Database.Connection == "oracle" {
 		var unseenCount int64
-		user_id := c.Params("user_id")
-		DB.DB.Table("NOTIFICATION_STATUS").Where("RECEIVER_ID = ? and SEEN = 0", user_id).Count(&unseenCount)
+
+		DB.DB.Table("NOTIFICATION_STATUS").Where("RECEIVER_ID = ? and SEEN = 0", user["id"]).Count(&unseenCount)
 
 		var notifications []models.UserNotificationsOracle
-		DB.DB.Table("NOTIFICATION_STATUS").Select("NOTIFICATIONS.*, USERS.FIRST_NAME, USERS.LOGIN, NOTIFICATION_STATUS.ID as SID, NOTIFICATION_STATUS.SEEN").Joins("LEFT JOIN NOTIFICATIONS on NOTIFICATIONS.ID = NOTIFICATION_STATUS.NOTIF_ID LEFT JOIN USERS on USERS.ID = NOTIFICATION_STATUS.RECEIVER_ID").Where("RECEIVER_ID = ? and SEEN = 0", user_id).Order("NOTIFICATIONS.CREATED_AT DESC").Limit(30).Find(&notifications)
+		DB.DB.Table("NOTIFICATION_STATUS").Select("NOTIFICATIONS.*, USERS.FIRST_NAME, USERS.LOGIN, NOTIFICATION_STATUS.ID as SID, NOTIFICATION_STATUS.SEEN").Joins("LEFT JOIN NOTIFICATIONS on NOTIFICATIONS.ID = NOTIFICATION_STATUS.NOTIF_ID LEFT JOIN USERS on USERS.ID = NOTIFICATION_STATUS.RECEIVER_ID").Where("RECEIVER_ID = ? and SEEN = 0", user["id"]).Order("NOTIFICATIONS.CREATED_AT DESC").Limit(30).Find(&notifications)
 
 		return c.JSON(map[string]interface{}{
 			"count":         unseenCount,
@@ -36,12 +43,12 @@ func GetNewNotifications(c *fiber.Ctx) error {
 		})
 	} else {
 		var unseenCount int64
-		user_id := c.Params("user_id")
-		DB.DB.Table("notification_status").Where("receiver_id = ? and seen = 0", user_id).Count(&unseenCount)
+
+		DB.DB.Table("notification_status").Where("receiver_id = ? and seen = 0", user["id"]).Count(&unseenCount)
 
 		if config.Config.SysAdmin.UUID {
 			var notifications []models.UserNotificationsUUID
-			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
+			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user["id"]).Order("n.created_at DESC").Limit(30).Find(&notifications)
 
 			return c.JSON(map[string]interface{}{
 				"count":         unseenCount,
@@ -49,7 +56,7 @@ func GetNewNotifications(c *fiber.Ctx) error {
 			})
 		} else {
 			var notifications []models.UserNotifications
-			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user_id).Order("n.created_at DESC").Limit(30).Find(&notifications)
+			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ? and seen = 0", user["id"]).Order("n.created_at DESC").Limit(30).Find(&notifications)
 
 			return c.JSON(map[string]interface{}{
 				"count":         unseenCount,
@@ -62,12 +69,18 @@ func GetNewNotifications(c *fiber.Ctx) error {
 
 func GetAllNotifications(c *fiber.Ctx) error {
 
-	user_id := c.Params("user_id")
+	user, err := agentUtils.AuthUserObject(c)
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  err.Error(),
+			"status": false,
+		})
+	}
 
 	if config.Config.SysAdmin.UUID {
 		var notifications []models.UserNotificationsUUID
 
-		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user_id).Order("n.created_at DESC").Find(&notifications)
+		DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user["id"]).Order("n.created_at DESC").Find(&notifications)
 
 		return c.JSON(map[string]interface{}{
 			"count":         0,
@@ -76,7 +89,7 @@ func GetAllNotifications(c *fiber.Ctx) error {
 	} else {
 		if config.Config.Database.Connection == "oracle" {
 			var notifications []models.UserNotificationsOracle
-			DB.DB.Table("NOTIFICATION_STATUS").Select("NOTIFICATIONS.*, USERS.FIRST_NAME, USERS.LOGIN, NOTIFICATION_STATUS.ID as SID, NOTIFICATION_STATUS.SEEN").Joins("LEFT JOIN NOTIFICATIONS on NOTIFICATIONS.ID = NOTIFICATION_STATUS.NOTIF_ID LEFT JOIN USERS on USERS.ID = NOTIFICATION_STATUS.RECEIVER_ID").Where("RECEIVER_ID = ?", user_id).Order("NOTIFICATIONS.CREATED_AT DESC").Find(&notifications)
+			DB.DB.Table("NOTIFICATION_STATUS").Select("NOTIFICATIONS.*, USERS.FIRST_NAME, USERS.LOGIN, NOTIFICATION_STATUS.ID as SID, NOTIFICATION_STATUS.SEEN").Joins("LEFT JOIN NOTIFICATIONS on NOTIFICATIONS.ID = NOTIFICATION_STATUS.NOTIF_ID LEFT JOIN USERS on USERS.ID = NOTIFICATION_STATUS.RECEIVER_ID").Where("RECEIVER_ID = ?", user["id"]).Order("NOTIFICATIONS.CREATED_AT DESC").Find(&notifications)
 
 			return c.JSON(map[string]interface{}{
 				"count":         0,
@@ -85,7 +98,7 @@ func GetAllNotifications(c *fiber.Ctx) error {
 		} else {
 			var notifications []models.UserNotifications
 
-			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user_id).Order("n.created_at DESC").Find(&notifications)
+			DB.DB.Table("notification_status as s").Select("n.*, u.first_name, u.login, s.id as sid, s.seen").Joins("left join notifications as n on n.id = s.notif_id left join users as u on u.id = s.receiver_id").Where("receiver_id = ?", user["id"]).Order("n.created_at DESC").Find(&notifications)
 
 			return c.JSON(map[string]interface{}{
 				"count":         0,
@@ -173,17 +186,24 @@ func SetSeen(c *fiber.Ctx) error {
 
 func SetToken(c *fiber.Ctx) error {
 
-	user_id := c.Params("user_id")
+	user, err := agentUtils.AuthUserObject(c)
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  err.Error(),
+			"status": false,
+		})
+	}
 	token := c.Params("token")
 
 	if config.Config.SysAdmin.UUID {
 		var savedToken models.UserFcmTokensUUID
 
-		DB.DB.Where("user_id = ? AND fcm_token = ?", user_id, token).First(&savedToken)
+		DB.DB.Where("user_id = ? AND fcm_token = ?", user["id"], token).First(&savedToken)
 
 		if savedToken.ID == "" {
 			savedToken.FcmToken = token
-			savedToken.UserID = user_id
+
+			savedToken.UserID = user["id"].(string)
 			DB.DB.Save(&savedToken)
 			return c.JSON(map[string]interface{}{
 				"status": true,
@@ -197,12 +217,12 @@ func SetToken(c *fiber.Ctx) error {
 		if config.Config.Database.Connection == "oracle" {
 			var savedToken models.UserFcmTokensOracle
 
-			DB.DB.Where("USER_ID = ? AND FCM_TOKEN = ?", user_id, token).Find(&savedToken)
+			DB.DB.Where("USER_ID = ? AND FCM_TOKEN = ?", user["id"], token).Find(&savedToken)
 
 			if savedToken.ID == 0 {
 				savedToken.FcmToken = token
-				intID, _ := strconv.Atoi(user_id)
-				savedToken.UserID = intID
+
+				savedToken.UserID = int(agentUtils.GetRole(user["id"]))
 				DB.DB.Save(&savedToken)
 				return c.JSON(map[string]interface{}{
 					"status": true,
@@ -215,12 +235,12 @@ func SetToken(c *fiber.Ctx) error {
 		} else {
 			var savedToken models.UserFcmTokens
 
-			DB.DB.Where("user_id = ? AND fcm_token = ?", user_id, token).Find(&savedToken)
+			DB.DB.Where("user_id = ? AND fcm_token = ?", user["id"], token).Find(&savedToken)
 
 			if savedToken.ID == 0 {
 				savedToken.FcmToken = token
-				intID, _ := strconv.Atoi(user_id)
-				savedToken.UserID = intID
+
+				savedToken.UserID = int(agentUtils.GetRole(user["id"]))
 				DB.DB.Save(&savedToken)
 				return c.JSON(map[string]interface{}{
 					"status": true,

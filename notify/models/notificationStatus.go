@@ -15,7 +15,7 @@ func (n *NotificationStatus) TableName() string {
 }
 
 type NotificationStatusUUID struct {
-	ID         string    `gorm:"column:id;primaryKey;autoIncrement;default:gen_random_uuid();type:uuid" json:"id"`
+	ID         string    `gorm:"column:id;primaryKey;type:varchar;default:gen_random_uuid()" json:"id"`
 	NotifID    string    `gorm:"column:notif_id;type:uuid" json:"notif_id"`
 	ReceiverID string    `gorm:"column:receiver_id;type:uuid" json:"receiver_id"`
 	Seen       int       `gorm:"column:seen" json:"seen"`

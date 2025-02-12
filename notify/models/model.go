@@ -19,15 +19,15 @@ type UserNotifications struct {
 }
 
 type UserNotificationsUUID struct {
-	ID         string     `gorm:"column:id" json:"id"`
+	ID         string     `gorm:"column:id;primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	Link       string     `gorm:"column:link" json:"link"`
-	Sender     string     `gorm:"column:sender" json:"sender"`
+	Sender     string     `gorm:"column:sender;type:uuid" json:"sender"`
 	Title      string     `gorm:"column:title" json:"title"`
 	Body       string     `gorm:"column:body" json:"body"`
 	Data       string     `gorm:"column:data" json:"data"`
 	CreatedAt  *time.Time `gorm:"column:created_at" json:"created_at"`
-	SID        string     `gorm:"column:sid" json:"sid"`
-	ReceiverID string     `gorm:"column:receiver_id" json:"receiver_id"`
+	SID        string     `gorm:"column:sid;type:uuid" json:"sid"`
+	ReceiverID string     `gorm:"column:receiver_id;type:uuid" json:"receiver_id"`
 	Seen       int        `gorm:"column:seen" json:"seen"`
 	SeenTime   *time.Time `gorm:"column:seen_time" json:"seen_time"`
 	FirstName  string     `gorm:"column:first_name" json:"first_name"`

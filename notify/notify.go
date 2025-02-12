@@ -19,10 +19,10 @@ func Set(c *fiber.App) {
 
 	g := c.Group("/lambda/notify")
 	/* ROUTES */
-	g.Get("/new/:user_id", agentMW.IsLoggedIn(), handler.GetNewNotifications)
-	g.Get("/all/:user_id", agentMW.IsLoggedIn(), handler.GetAllNotifications)
+	g.Get("/new", agentMW.IsLoggedIn(), handler.GetNewNotifications)
+	g.Get("/all", agentMW.IsLoggedIn(), handler.GetAllNotifications)
 	g.Get("/seen/:id", agentMW.IsLoggedIn(), handler.SetSeen)
-	g.Get("/token/:user_id/:token", agentMW.IsLoggedIn(), handler.SetToken)
+	g.Get("/token/:token", agentMW.IsLoggedIn(), handler.SetToken)
 	//g.Get("/fcm", handler.Fcm)
 
 }
