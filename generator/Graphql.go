@@ -549,7 +549,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-redis/redis"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gorilla/websocket"
 	"github.com/lambda-platform/lambda/config"
 	lambdaPlayground "github.com/lambda-platform/lambda/graphql/playground"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
