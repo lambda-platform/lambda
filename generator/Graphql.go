@@ -588,14 +588,7 @@ func Set(e *fiber.App) {
 	graphqlHandler.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New(100),
 	})
-	graphqlHandler.AddTransport(transport.Websocket{
-		KeepAlivePingInterval: 10 * time.Second,
-		Upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
-	})
+
 
 	e.Post("/query", func(c *fiber.Ctx) error {
 		ctx := context.WithValue(c.Context(), "FiberContextKey", c)

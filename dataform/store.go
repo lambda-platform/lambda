@@ -1,12 +1,14 @@
 package dataform
 
 import (
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/DBSchema"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/thedevsaddam/govalidator"
 	"net/http"
+	"regexp"
 )
 
 func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
@@ -22,6 +24,19 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			errData["details"] = err.Error()
 		}
 		return c.Status(http.StatusBadRequest).JSON(errData)
+	}
+
+	// Check password strength if password field exists
+	passwordField := "password" // Change this if your password field has a different name
+	if pwd, exists := (*requestData)[passwordField]; exists {
+		if password, ok := pwd.(string); ok {
+			if err := validatePasswordStrength(password); err != nil {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"status": false,
+					"error":  err.Error(),
+				})
+			}
+		}
 	}
 
 	if len(dataform.ValidationRules) >= 1 {
@@ -118,4 +133,36 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 		}
 	}
 
+}
+
+// Function to validate password strength
+func validatePasswordStrength(password string) error {
+	// Define password strength regex
+	var (
+		lowercase = regexp.MustCompile(`[a-z]`)
+		uppercase = regexp.MustCompile(`[A-Z]`)
+		number    = regexp.MustCompile(`[0-9]`)
+		special   = regexp.MustCompile(`[!@#\$%\^&\*\(\)_\+\-=\[\]{};':"\\|,.<>\/?]`)
+	)
+
+	// Check password length
+	if len(password) < 8 {
+		return errors.New("Нууц үг хамгийн багадаа 8 тэмдэгтээс бүрдэх ёстой.")
+	}
+
+	// Check character requirements
+	if !lowercase.MatchString(password) {
+		return errors.New("Нууц үг дор хаяж нэг жижиг үсэг агуулсан байх ёстой.")
+	}
+	if !uppercase.MatchString(password) {
+		return errors.New("Нууц үг дор хаяж нэг том үсэг агуулсан байх ёстой.")
+	}
+	if !number.MatchString(password) {
+		return errors.New("Нууц үг дор хаяж нэг тоо агуулсан байх ёстой.")
+	}
+	if !special.MatchString(password) {
+		return errors.New("Нууц үг дор хаяж нэг тусгай тэмдэгт (!@#$%^&*) агуулсан байх ёстой.")
+	}
+
+	return nil
 }
