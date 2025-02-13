@@ -58,6 +58,7 @@ func Login(c *fiber.Ctx) error {
 			"status": false,
 		})
 	}
+
 	// Амжилттай нэвтэрсэн тохиолдолд алдааны тоолуурыг цэвэрлэх
 	delete(failedAttempts, request.Login)
 	delete(lockoutUntil, request.Login)
@@ -104,12 +105,14 @@ func Login(c *fiber.Ctx) error {
 			OAuth:  OAuth,
 		})
 
+	} else {
+		failedAttempts[request.Login]++
+		lockAccountIfNeeded(request.Login)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  "Нэвтрэх нэр эсвэл нууц үг буруу байна",
+			"status": false,
+		})
 	}
-
-	return c.Status(fiber.StatusUnauthorized).JSON(models.Unauthorized{
-		Error:  "Unauthorized",
-		Status: false,
-	})
 
 }
 
