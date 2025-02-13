@@ -17,17 +17,20 @@ import (
 
 func CrudLogger(UserAgent string, IP string, action string, resBody []byte, userID interface{}, schemaId int64, RowId string) {
 
-	ID := userID.(int64)
-
 	if action == "store" {
+
 		var response models.CrudResponse
 		if err := json.Unmarshal(resBody, &response); err != nil {
 			panic(err)
 		}
 
-		RowId = GetID(response.ID)
+		if response.ID != nil {
+			RowId = GetID(response.ID)
+		}
+
 	}
 	if config.Config.Database.Connection == "oracle" {
+		ID := userID.(int64)
 		Log := models.CrudLogOracle{
 			UserId:    ID,
 			Ip:        IP,
@@ -40,17 +43,37 @@ func CrudLogger(UserAgent string, IP string, action string, resBody []byte, user
 
 		DB.DB.Create(&Log)
 	} else {
-		Log := models.CrudLog{
-			UserId:    ID,
-			Ip:        IP,
-			UserAgent: UserAgent,
-			Action:    action,
-			SchemaId:  schemaId,
-			RowId:     RowId,
-			Input:     string(resBody),
+
+		if config.Config.SysAdmin.UUID {
+
+			ID := userID.(string)
+
+			Log := models.CrudLogUUID{
+				UserId:    ID,
+				Ip:        IP,
+				UserAgent: UserAgent,
+				Action:    action,
+				SchemaId:  schemaId,
+				RowId:     RowId,
+				Input:     string(resBody),
+			}
+
+			DB.DB.Create(&Log)
+		} else {
+			ID := userID.(int64)
+			Log := models.CrudLog{
+				UserId:    ID,
+				Ip:        IP,
+				UserAgent: UserAgent,
+				Action:    action,
+				SchemaId:  schemaId,
+				RowId:     RowId,
+				Input:     string(resBody),
+			}
+
+			DB.DB.Create(&Log)
 		}
 
-		DB.DB.Create(&Log)
 	}
 
 	return
@@ -73,18 +96,22 @@ func BodyDump(c *fiber.Ctx, GetGridMODEL func(schema_id string) datagrid.Datagri
 		if userPre != nil {
 			user := c.Locals("user").(*jwt.Token)
 			claims := user.Claims.(jwt.MapClaims)
-
-			Id := agentUtils.GetRole(claims["id"])
-			schemaId, _ := strconv.ParseInt(c.Params("schemaId"), 10, 64)
-			rowID := c.Params("id")
-
 			IP := c.IP()
 			ip := c.IPs()
+			rowID := c.Params("id")
+			schemaId, _ := strconv.ParseInt(c.Params("schemaId"), 10, 64)
+
 			if len(ip) > 0 {
 				IP = ip[0]
 			}
+			if config.Config.SysAdmin.UUID {
+				Id := claims["id"]
 
-			CrudLogger(string(c.Context().UserAgent()), IP, action, c.Response().Body(), Id, schemaId, rowID)
+				CrudLogger(string(c.Context().UserAgent()), IP, action, c.Response().Body(), Id, schemaId, rowID)
+			} else {
+				Id := agentUtils.GetRole(claims["id"])
+				CrudLogger(string(c.Context().UserAgent()), IP, action, c.Response().Body(), Id, schemaId, rowID)
+			}
 		}
 
 	}

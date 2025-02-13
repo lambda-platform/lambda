@@ -28,10 +28,19 @@ func AutoMigrateSeed() {
 			&models.CrudLogOracle{},
 		)
 	} else {
-		DB.DB.AutoMigrate(
+		if config.Config.SysAdmin.UUID {
+			DB.DB.AutoMigrate(
 
-			&models.CrudLog{},
-		)
+				&models.CrudLogUUID{},
+			)
+
+		} else {
+			DB.DB.AutoMigrate(
+
+				&models.CrudLog{},
+			)
+		}
+
 	}
 
 	if config.Config.App.Seed == "true" {

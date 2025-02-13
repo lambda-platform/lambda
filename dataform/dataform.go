@@ -46,15 +46,35 @@ func (d *Dataform) getFieldType(field string) (string, error) {
 	}
 }
 func (d *Dataform) setStringField(field string, value string) error {
+
 	r := reflect.ValueOf(d.Model)
-	f := reflect.Indirect(r).FieldByName(field)
-	if f.IsValid() {
-		f.SetString(value)
-		return nil
-	} else {
+
+	// Get the underlying struct (if it's a pointer)
+	if r.Kind() == reflect.Ptr {
+		r = r.Elem()
+	}
+
+	f := r.FieldByName(field)
+
+	if !f.IsValid() {
 		return fmt.Errorf("Field not found: " + field)
 	}
 
+	// Handle pointer fields separately
+	if f.Kind() == reflect.Ptr {
+		if f.IsNil() {
+			newValue := value // Create a new string value
+			f.Set(reflect.ValueOf(&newValue))
+		} else {
+			f.Elem().SetString(value)
+		}
+	} else if f.Kind() == reflect.String {
+		f.SetString(value)
+	} else {
+		return fmt.Errorf("Field %s is not a string or *string", field)
+	}
+
+	return nil
 }
 func (d *Dataform) setIntField(field string, value int) error {
 	r := reflect.ValueOf(d.Model)

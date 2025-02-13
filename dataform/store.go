@@ -29,13 +29,42 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 	// Check password strength if password field exists
 	passwordField := "password" // Change this if your password field has a different name
 	if pwd, exists := (*requestData)[passwordField]; exists {
-		if password, ok := pwd.(string); ok {
-			if err := validatePasswordStrength(password); err != nil {
+
+		switch v := pwd.(type) {
+		case nil:
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
+				"error":  "Password cannot be nil",
+			})
+		case string:
+
+			if err = validatePasswordStrength(v); err != nil {
+
 				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"status": false,
 					"error":  err.Error(),
 				})
 			}
+		case *string:
+			if v == nil {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"status": false,
+					"error":  "Password pointer cannot be nil",
+				})
+			}
+
+			// Use *v directly instead of *v.(string)
+			if err = validatePasswordStrength(*v); err != nil {
+				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+					"status": false,
+					"error":  err.Error(),
+				})
+			}
+		default:
+			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
+				"status": false,
+				"error":  "Invalid password format",
+			})
 		}
 	}
 
