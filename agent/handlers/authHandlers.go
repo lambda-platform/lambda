@@ -59,13 +59,12 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Амжилттай нэвтэрсэн тохиолдолд алдааны тоолуурыг цэвэрлэх
-	delete(failedAttempts, request.Login)
-	delete(lockoutUntil, request.Login)
 	var roleID int64 = 0
 
 	if agentUtils.IsSame(request.Password, user["password"].(string)) {
-
+		// Амжилттай нэвтэрсэн тохиолдолд алдааны тоолуурыг цэвэрлэх
+		delete(failedAttempts, request.Login)
+		delete(lockoutUntil, request.Login)
 		delete(user, "password")
 		roleID = agentUtils.GetRole(user["role"])
 
