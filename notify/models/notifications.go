@@ -19,7 +19,7 @@ func (n *Notification) TableName() string {
 type NotificationUUID struct {
 	ID        string    `gorm:"column:id;primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	Link      string    `gorm:"column:link" json:"link"`
-	Sender    string    `gorm:"column:sender;type:uuid" json:"sender"`
+	Sender    *string   `gorm:"column:sender;type:uuid" json:"sender"`
 	Title     string    `gorm:"column:title" json:"title"`
 	Body      string    `gorm:"column:body" json:"body"`
 	Data      string    `gorm:"column:data" json:"data"`

@@ -308,7 +308,7 @@ func CreateNotification(notification models.NotificationData, options models.FCM
 
 		notificationDB := models.NotificationUUID{
 			Link:      link,
-			Sender:    "",
+			Sender:    nil,
 			Title:     notification.Notification.Title,
 			Body:      notification.Notification.Body,
 			Data:      string(jsonData),
