@@ -29,7 +29,15 @@ func (d *Dataform) getStringField(field string) (string, error) {
 	r := reflect.ValueOf(d.Model)
 	f := reflect.Indirect(r).FieldByName(field)
 	if f.IsValid() {
-		return string(f.String()), nil
+
+		if f.Kind() == reflect.Ptr {
+			return f.Elem().String(), nil
+		} else if f.Kind() == reflect.String {
+			return f.String(), nil
+		} else {
+			return "", fmt.Errorf("field %s is not a string or *string", field)
+		}
+
 	} else {
 		return "", fmt.Errorf("Field not found: " + field)
 	}
@@ -61,13 +69,9 @@ func (d *Dataform) setStringField(field string, value string) error {
 	}
 
 	// Handle pointer fields separately
+
 	if f.Kind() == reflect.Ptr {
-		if f.IsNil() {
-			newValue := value // Create a new string value
-			f.Set(reflect.ValueOf(&newValue))
-		} else {
-			f.Elem().SetString(value)
-		}
+		f.Elem().SetString(value)
 	} else if f.Kind() == reflect.String {
 		f.SetString(value)
 	} else {

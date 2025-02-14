@@ -98,7 +98,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 
 			errResponse := map[string]interface{}{
 				"status": false,
-				"error":  "Failed to update the record.",
+				"error":  "Хадгалах үед алдаа гарлаа.",
 			}
 			if config.Config.Database.Debug {
 				errResponse["details"] = err.Error()
