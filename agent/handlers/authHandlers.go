@@ -43,14 +43,14 @@ func Login(c *fiber.Ctx) error {
 	}
 	// Блок хугацааг шалгах
 	if lockoutTime, exists := lockoutUntil[request.Login]; exists && time.Now().Before(lockoutTime) {
-		lockMinute :=  int(lockoutTime.Sub(time.Now()).Minutes())
+		lockMinute := int(lockoutTime.Sub(time.Now()).Minutes())
 
 		if lockMinute == 0 {
 			lockMinute = lockMinute + 1
 		}
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"status": false,
-			"error": fmt.Sprintf("Таны бүртгэл хаагдсан байна. %v минутын дараа дахин оролдоно уу.", lockMinute)
+			"error":  fmt.Sprintf("Таны бүртгэл хаагдсан байна. %v минутын дараа дахин оролдоно уу.", lockMinute),
 		})
 	}
 
