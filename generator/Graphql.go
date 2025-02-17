@@ -542,6 +542,7 @@ func createGraphqlFile(subscriptions []map[string]string) {
 	temp := `package graph
 
 import (
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
@@ -552,6 +553,7 @@ import (
 	"github.com/lambda-platform/lambda/config"
 	lambdaPlayground "github.com/lambda-platform/lambda/graphql/playground"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
+	"github.com/vektah/gqlparser/v2/ast"
 	"lambda/lambda/graph/generated"
 	"net/http"
 	"context"
@@ -580,12 +582,11 @@ func Set(e *fiber.App) {
 	graphqlHandler.AddTransport(transport.GET{})
 	graphqlHandler.AddTransport(transport.POST{})
 	graphqlHandler.AddTransport(transport.MultipartForm{})
-	graphqlHandler.SetQueryCache(lru.New(1000))
-
-	
+	cache := &graphql.MapCache[*ast.QueryDocument]{}
+	graphqlHandler.SetQueryCache(cache)
 
 	graphqlHandler.Use(extension.AutomaticPersistedQuery{
-		Cache: lru.New(100),
+        Cache: lru.New[string](100),
 	})
 
 
