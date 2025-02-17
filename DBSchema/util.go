@@ -147,6 +147,7 @@ func wordWalkerFunc(private bool, nameRunes *[]rune) func(*wordInfo) {
 		*nameRunes = append(*nameRunes, []rune(word)...)
 	}
 }
+
 func isDelimiter(c rune) bool {
 	return c == '-' || c == '_' || unicode.IsSpace(c)
 }
@@ -183,21 +184,40 @@ func wordWalker(str string, f func(*wordInfo)) {
 		}
 		i++
 
+		initialisms := GetInitialisms()
 		// [w,i) is a word.
 		word := string(runes[w:i])
-		if !eow && commonInitialisms[word] && !unicode.IsLower(runes[i]) {
+		if !eow && initialisms[word] && !unicode.IsLower(runes[i]) {
 			// through
 			// split IDFoo → ID, Foo
 			// but URLs → URLs
 		} else if !eow {
-			if commonInitialisms[word] {
+			if initialisms[word] {
 				hasCommonInitial = true
 			}
 			continue
 		}
 
 		matchCommonInitial := false
-		if commonInitialisms[strings.ToUpper(word)] {
+		upperWord := strings.ToUpper(word)
+		if initialisms[upperWord] {
+			// If the uppercase word (string(runes[w:i]) is "ID" or "IP"
+			// AND
+			// the word is the first two characters of the current word
+			// AND
+			// that is not the end of the word
+			// AND
+			// the length of the remaining string is greater than 3
+			// AND
+			// the third rune is an uppercase one
+			// THEN
+			// do NOT count this as an initialism.
+			switch upperWord {
+			case "ID", "IP":
+				if remainingRunes := runes[w:]; word == string(remainingRunes[:2]) && !eow && len(remainingRunes) > 3 && unicode.IsUpper(remainingRunes[3]) {
+					continue
+				}
+			}
 			hasCommonInitial = true
 			matchCommonInitial = true
 		}
@@ -312,4 +332,62 @@ func StringifyFirstChar(str string) string {
 		return ""
 	}
 
+}
+
+// CommonInitialisms is a set of common initialisms.
+// Only add entries that are highly unlikely to be non-initialisms.
+// For instance, "ID" is fine (Freudian code is rare), but "AND" is not.
+var CommonInitialisms = map[string]bool{
+	"ACL":   true,
+	"API":   true,
+	"ASCII": true,
+	"CPU":   true,
+	"CSS":   true,
+	"CSV":   true,
+	"DNS":   true,
+	"EOF":   true,
+	"GUID":  true,
+	"HTML":  true,
+	"HTTP":  true,
+	"HTTPS": true,
+	"ICMP":  true,
+	"ID":    true,
+	"IP":    true,
+	"JSON":  true,
+	"KVK":   true,
+	"LHS":   true,
+	"PDF":   true,
+	"PGP":   true,
+	"QPS":   true,
+	"QR":    true,
+	"RAM":   true,
+	"RHS":   true,
+	"RPC":   true,
+	"SLA":   true,
+	"SMTP":  true,
+	"SQL":   true,
+	"SSH":   true,
+	"SVG":   true,
+	"TCP":   true,
+	"TLS":   true,
+	"TTL":   true,
+	"UDP":   true,
+	"UI":    true,
+	"UID":   true,
+	"URI":   true,
+	"URL":   true,
+	"UTF8":  true,
+	"UUID":  true,
+	"VM":    true,
+	"XML":   true,
+	"XMPP":  true,
+	"XSRF":  true,
+	"XSS":   true,
+	"AWS":   true,
+	"GCP":   true,
+}
+
+// GetInitialisms returns the initialisms to capitalize in Go names. If unchanged, default initialisms will be returned
+var GetInitialisms = func() map[string]bool {
+	return CommonInitialisms
 }
