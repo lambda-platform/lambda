@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
-	"github.com/tealeg/xlsx"
+	"github.com/tealeg/xlsx/v3"
 	"io"
 	"net/http"
 	"os"
@@ -192,8 +192,22 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 
 		// Apply the widths
 		for idx, width := range maxWidths {
-
-			sheet.Col(idx).Width = width
+			sheet.SetColWidth(idx+1, idx+1, width)
+		}
+		// Add AutoFilter to the header row
+		lastRow := len(rows) + 1 // +1 for header row
+		if datagrid.Aggregation != "" {
+			lastRow++ // Include aggregation row
+		}
+		colCount := len(datagrid.Columns)
+		if colCount > 0 && lastRow > 1 {
+			startCell := "A1"
+			endColLetter := string('A' + colCount - 1)
+			endCell := fmt.Sprintf("%s%d", endColLetter, lastRow)
+			sheet.AutoFilter = &xlsx.AutoFilter{
+				TopLeftCell:     startCell,
+				BottomRightCell: endCell,
+			}
 		}
 
 		var b bytes.Buffer
@@ -387,7 +401,7 @@ func getWidths(data []map[string]interface{}, columns []Column) []float64 {
 		for idx, col := range columns {
 			cellValue := getCellValue(row[col.Model], col.GridType)
 
-			LabelLength := float64(utf8.RuneCountInString(col.Label))
+			LabelLength := float64(utf8.RuneCountInString(col.Label)) + 8
 			cellLength := float64(utf8.RuneCountInString(cellValue))
 
 			if cellLength > maxWidths[idx] {
