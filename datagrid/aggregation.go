@@ -9,6 +9,14 @@ import (
 
 func Aggregation(c *fiber.Ctx, datagrid Datagrid) error {
 
+	var data []interface{}
+	aggregationData := GetAggregationData(c, datagrid)
+	data = append(data, aggregationData)
+	return c.JSON(data)
+}
+
+// Fetch Aggregation Data
+func GetAggregationData(c *fiber.Ctx, datagrid Datagrid) map[string]interface{} {
 	query := DB.DB.Table(datagrid.DataTable)
 
 	query, _ = Filter(c, datagrid, query)
@@ -31,51 +39,63 @@ func Aggregation(c *fiber.Ctx, datagrid Datagrid) error {
 	query = query.Select(datagrid.Aggregation)
 	rows, _ := query.Rows()
 
-	data := []interface{}{}
+	aggregationData := make(map[string]interface{})
 	columns, _ := rows.Columns()
 	count := len(columns)
 	values := make([]interface{}, count)
 	valuePtrs := make([]interface{}, count)
 
-	/*end*/
-
 	for rows.Next() {
-
-		/*start */
-
 		for i := range columns {
 			valuePtrs[i] = &values[i]
 		}
 
 		rows.Scan(valuePtrs...)
 
-		var myMap = make(map[string]interface{})
 		for i, col := range columns {
 			val := values[i]
 
-			b, ok := val.([]byte)
+			// Handle byte slices directly as numbers
+			if b, ok := val.([]byte); ok {
+				strValue := string(b)
 
-			if ok {
-
-				v, error := strconv.ParseInt(string(b), 10, 64)
-				if error != nil {
-					stringValue := string(b)
-
-					myMap[col] = stringValue
-				} else {
-					myMap[col] = v
+				// First, try parsing as an integer
+				if intVal, err := strconv.ParseInt(strValue, 10, 64); err == nil {
+					aggregationData[col] = intVal
+					continue
 				}
 
-			} else {
-				myMap[col] = val
+				// If integer parsing fails, try parsing as a float
+				if floatVal, err := strconv.ParseFloat(strValue, 64); err == nil {
+					aggregationData[col] = floatVal
+					continue
+				}
+
+				// If parsing fails, default to 0
+				aggregationData[col] = 0
+				continue
 			}
 
+			// Ensure known numeric types are stored correctly
+			switch v := val.(type) {
+			case int, int8, int16, int32, int64:
+				aggregationData[col] = v
+			case float32, float64:
+				aggregationData[col] = v
+			default:
+				// If it's a string that should be numeric, try converting
+				if str, ok := v.(string); ok {
+					if intVal, err := strconv.ParseInt(str, 10, 64); err == nil {
+						aggregationData[col] = intVal
+					} else if floatVal, err := strconv.ParseFloat(str, 64); err == nil {
+						aggregationData[col] = floatVal
+					} else {
+						aggregationData[col] = 0 // Default to 0 if conversion fails
+					}
+				}
+			}
 		}
-		/*end*/
-
-		data = append(data, myMap)
-
 	}
 
-	return c.JSON(data)
+	return aggregationData
 }

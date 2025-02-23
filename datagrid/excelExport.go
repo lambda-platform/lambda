@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
+	"github.com/lambda-platform/lambda/config"
 	"github.com/tealeg/xlsx"
+	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -111,10 +114,17 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 		}
 
 		headerRow := sheet.AddRow()
+		headerRow.SetHeight(30)
 		for _, k := range keys {
 
 			headerCell := headerRow.AddCell()
 			headerCell.Value = datagrid.Columns[k].Label
+			headerCell.GetStyle().Font.Bold = true                                      // Make header bold
+			headerCell.GetStyle().Font.Bold = true                                      // Make header bold
+			headerCell.GetStyle().Fill = *xlsx.NewFill("solid", "0099CCFF", "0099CCFF") // Set background color
+			headerCell.GetStyle().Alignment.Horizontal = "center"
+			headerCell.GetStyle().Alignment.Vertical = "center"
+
 		}
 		/*HEADER*/
 
@@ -137,6 +147,47 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 
 			}
 
+		}
+
+		if datagrid.Aggregation != "" {
+			// **Aggregation Logic**
+			aggData := GetAggregationData(c, datagrid)
+			aggRow := sheet.AddRow()
+
+			for _, column := range datagrid.Columns {
+				aggCell := aggRow.AddCell()
+
+				// Check for available aggregation values
+				aggregationKeys := []string{
+					"sum_" + column.Model,
+					"avg_" + column.Model,
+					"count_" + column.Model,
+					"min_" + column.Model,
+					"max_" + column.Model,
+				}
+
+				var value interface{}
+				var exists bool
+
+				for _, key := range aggregationKeys {
+					if val, found := aggData[key]; found && val != nil {
+						value = val
+						exists = true
+						break
+					}
+				}
+
+				if exists {
+					setCellValue(value, column.GridType, aggCell)
+
+					// Force Excel to use standard number format
+					style := xlsx.NewStyle()
+
+					aggCell.SetStyle(style)
+
+					aggCell.GetStyle().Font.Bold = true
+				}
+			}
 		}
 
 		// Apply the widths
@@ -198,7 +249,12 @@ func setCellValue(rawValue interface{}, GridType string, cell *xlsx.Cell) {
 					cell.SetDate(t)
 				}
 			} else {
-				cell.SetString(StripTags(rawValue.(string)))
+				if GridType == "Image" {
+					imageURL := fmt.Sprintf("%s%s", config.LambdaConfig.Domain, StripTags(v))
+					addImageToCell(imageURL, cell)
+				} else {
+					cell.SetString(StripTags(v))
+				}
 			}
 		case int:
 			cell.SetInt(v)
@@ -222,6 +278,50 @@ func setCellValue(rawValue interface{}, GridType string, cell *xlsx.Cell) {
 
 	}
 
+}
+func addImageToCell(imageURL string, cell *xlsx.Cell) {
+	resp, err := http.Get(imageURL)
+	if err != nil {
+		fmt.Println("Error downloading image:", err)
+		cell.SetString("Image Not Found")
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read image data
+	imgData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading image data:", err)
+		cell.SetString("Image Error")
+		return
+	}
+
+	// Create temp file
+	tmpFile, err := os.CreateTemp("", "image_*.png")
+	if err != nil {
+		fmt.Println("Error creating temp file:", err)
+		cell.SetString("File Error")
+		return
+	}
+	defer os.Remove(tmpFile.Name())
+
+	// Write image to temp file
+	_, err = tmpFile.Write(imgData)
+	if err != nil {
+		fmt.Println("Error writing image file:", err)
+		cell.SetString("Write Error")
+		return
+	}
+	tmpFile.Close()
+
+	if err != nil {
+		fmt.Println("Error adding image to Excel:", err)
+		cell.SetString("Insert Error")
+		return
+	}
+
+	// Set cell value to empty since image is placed
+	cell.Value = ""
 }
 func getCellValue(rawValue interface{}, GridType string) string {
 
