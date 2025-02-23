@@ -148,44 +148,61 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 			}
 
 		}
-
+		// Dynamic aggregation with uppercase SUM, AVG, COUNT, MIN, MAX formulas using SUBTOTAL
 		if datagrid.Aggregation != "" {
-			// **Aggregation Logic**
-			aggData := GetAggregationData(c, datagrid)
-			aggRow := sheet.AddRow()
+			// Add a blank row to separate data from aggregation
+			sheet.AddRow()
 
-			for _, column := range datagrid.Columns {
+			// Add aggregation row with a "Totals" label
+			aggRow := sheet.AddRow()
+			aggRow.AddCell().SetString("") // Label in first column
+			rowCount := len(rows)          // Number of data rows (excluding header)
+
+			// Split the aggregation string into individual parts (e.g., "SUM(qty) as SUM_qty")
+			aggParts := strings.Split(datagrid.Aggregation, ",")
+
+			// Create a map of aggregation functions to column names
+			aggMap := make(map[string]string) // e.g., "qty" -> "SUM", "total_price" -> "AVG"
+			for _, part := range aggParts {
+				part = strings.TrimSpace(part)
+				// Match patterns like "SUM(qty)", "AVG(total_price)", etc.
+				re := regexp.MustCompile(`(SUM|AVG|COUNT|MIN|MAX)\(([a-zA-Z_]+)\)`)
+				matches := re.FindStringSubmatch(part)
+				if len(matches) == 3 {
+					funcName := matches[1] // e.g., "SUM", "AVG", "COUNT", "MIN", "MAX"
+					colName := matches[2]  // e.g., "qty", "total_price"
+					aggMap[colName] = funcName
+				}
+			}
+
+			// Apply formulas based on column.Model, starting from second column
+			for colIdx, column := range datagrid.Columns[1:] { // Skip first column (label)
 				aggCell := aggRow.AddCell()
 
-				// Check for available aggregation values
-				aggregationKeys := []string{
-					"sum_" + column.Model,
-					"avg_" + column.Model,
-					"count_" + column.Model,
-					"min_" + column.Model,
-					"max_" + column.Model,
-				}
+				if funcName, exists := aggMap[column.Model]; exists {
+					// Calculate the range for the column (e.g., B2:B5)
+					colLetter := string('A' + colIdx + 1) // Offset by 1 for label column
+					formulaRange := fmt.Sprintf("%s2:%s%d", colLetter, colLetter, rowCount+1)
 
-				var value interface{}
-				var exists bool
-
-				for _, key := range aggregationKeys {
-					if val, found := aggData[key]; found && val != nil {
-						value = val
-						exists = true
-						break
+					// Set the appropriate Excel SUBTOTAL formula for filtered data
+					var formula string
+					switch funcName {
+					case "SUM":
+						formula = fmt.Sprintf("SUBTOTAL(9,%s)", formulaRange) // 9 = SUM
+					case "AVG":
+						formula = fmt.Sprintf("SUBTOTAL(1,%s)", formulaRange) // 1 = AVERAGE
+					case "COUNT":
+						formula = fmt.Sprintf("SUBTOTAL(2,%s)", formulaRange) // 2 = COUNT
+					case "MIN":
+						formula = fmt.Sprintf("SUBTOTAL(5,%s)", formulaRange) // 5 = MIN
+					case "MAX":
+						formula = fmt.Sprintf("SUBTOTAL(4,%s)", formulaRange) // 4 = MAX
 					}
-				}
 
-				if exists {
-					setCellValue(value, column.GridType, aggCell)
-
-					// Force Excel to use standard number format
-					style := xlsx.NewStyle()
-
-					aggCell.SetStyle(style)
-
-					aggCell.GetStyle().Font.Bold = true
+					if formula != "" {
+						aggCell.SetFormula(formula)
+						aggCell.GetStyle().Font.Bold = true
+					}
 				}
 			}
 		}
@@ -196,9 +213,7 @@ func ExportExcel(c *fiber.Ctx, datagrid Datagrid) error {
 		}
 		// Add AutoFilter to the header row
 		lastRow := len(rows) + 1 // +1 for header row
-		if datagrid.Aggregation != "" {
-			lastRow++ // Include aggregation row
-		}
+
 		colCount := len(datagrid.Columns)
 		if colCount > 0 && lastRow > 1 {
 			startCell := "A1"
