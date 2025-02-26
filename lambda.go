@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/template/html/v2"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/generator"
+	"github.com/lambda-platform/lambda/middlewares"
 	"github.com/lambda-platform/lambda/puzzle/views"
 	"os"
 )
@@ -88,12 +89,10 @@ func New(lambdaSettings ...*Settings) *Lambda {
 		ModuleName:   lambdaSettings[0].ModuleName,
 		IgnoreStatic: lambdaSettings[0].IgnoreStatic,
 	}
-
+	middlewares.Set(lambda.App)
 	if !lambdaSettings[0].IgnoreStatic {
 		lambda.App.Static("/", "public")
 	}
-
-	//middlewares.Set(lambda.App)
 
 	return lambda
 }

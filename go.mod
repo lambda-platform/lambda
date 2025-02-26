@@ -1,15 +1,13 @@
 module github.com/lambda-platform/lambda
 
-go 1.22.12
-
-toolchain go1.24.0
+go 1.24.0
 
 require (
 	github.com/99designs/gqlgen v0.17.66
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/gofiber/contrib/jwt v1.0.7
-	github.com/gofiber/fiber/v2 v2.52.0
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/template/html/v2 v2.0.5
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/iancoleman/strcase v0.3.0
