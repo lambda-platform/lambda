@@ -42,7 +42,7 @@ func MenuFormDataform() dataform.Dataform {
 		BeforeUpdate:     nil,
 		TriggerNameSpace: "",
 		Relations: map[string]models.Relation{
-			"krud": models.Relation{
+			"KRUD": models.Relation{
 				Table:              "KRUD",
 				Key:                "ID",
 				Fields:             []string{"TITLE", "TEMPLATE"},

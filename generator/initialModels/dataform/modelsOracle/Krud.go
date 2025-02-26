@@ -64,7 +64,7 @@ func KrudDataform() dataform.Dataform {
 				ParentFieldOfTable: "",
 				Filter:             "TYPE = 'form'",
 			},
-			"krud_templates": models.Relation{
+			"KRUD_TEMPLATES": models.Relation{
 				Table:              "KRUD_TEMPLATES",
 				Key:                "TEMPLATE_NAME",
 				Fields:             []string{"TEMPLATE_NAME"},
