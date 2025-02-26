@@ -10,7 +10,7 @@ func Set(app *fiber.App) {
 	// Rate limiter middleware
 	app.Use(limiter.New(limiter.Config{
 		Expiration: 30 * time.Second, //
-		Max:        500,              //
+		Max:        1000,             //
 	}))
 
 	/*
