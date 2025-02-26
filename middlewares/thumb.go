@@ -18,8 +18,11 @@ func ThumbMiddleware(app *fiber.App) {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid file name")
 		}
 
-		// Handle thumb_ prefix logic
-		finalFileName := handleThumbLogic(c.Params("year"), c.Params("month"), fileName)
+		// Check if the `thumb=true` query parameter is present
+		isThumbnail := c.Query("thumb") == "true"
+
+		// Construct the file path based on the thumb logic
+		finalFileName := constructFileName(c.Params("year"), c.Params("month"), fileName, isThumbnail)
 
 		// File path on the local server
 		filePath := filepath.Clean(fmt.Sprintf("public/uploaded/images/%s/%s/%s", c.Params("year"), c.Params("month"), finalFileName))
@@ -32,6 +35,21 @@ func ThumbMiddleware(app *fiber.App) {
 		// File not found
 		return c.Status(fiber.StatusNotFound).SendString("File not found")
 	})
+}
+
+// Constructs the file name based on whether the thumbnail is requested
+func constructFileName(year, month, fileName string, isThumbnail bool) string {
+	// If a thumbnail is requested, try the thumb_ prefixed file
+	if isThumbnail {
+		thumbFileName := "thumb_" + fileName
+		thumbFilePath := filepath.Clean(fmt.Sprintf("public/uploaded/images/%s/%s/%s", year, month, thumbFileName))
+		if fileExistsLocally(thumbFilePath) {
+			return thumbFileName
+		}
+	}
+
+	// Return the original file name if no thumbnail is found or not requested
+	return fileName
 }
 
 // Handles the logic for checking thumb_ prefix
