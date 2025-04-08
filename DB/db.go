@@ -15,9 +15,9 @@ import (
 )
 
 var DB *gorm.DB
-var onceDb sync.Once
+var OnceDB sync.Once
 
-func initializeDB() {
+func InitializeDB(DBName *string) {
 	Config := &gorm.Config{}
 
 	if config.Config.Database.Debug {
@@ -33,7 +33,7 @@ func initializeDB() {
 	case "mssql":
 		DB, err = gorm.Open(sqlserver.Open(buildMSSQLConnectionString()), Config)
 	case "postgres":
-		DB, err = gorm.Open(postgres.Open(buildPostgresConnectionString()), Config)
+		DB, err = gorm.Open(postgres.Open(buildPostgresConnectionString(DBName)), Config)
 	default: // Assuming MySQL as default.
 		DB, err = gorm.Open(mysql.Open(buildMySQLConnectionString()), Config)
 	}
@@ -44,7 +44,13 @@ func initializeDB() {
 }
 
 func init() {
-	onceDb.Do(initializeDB)
+	OnceDB.Do(func() {
+		InitializeDB(nil)
+	})
+}
+
+func ResetToDefaultDB() {
+	InitializeDB(nil)
 }
 
 func buildMSSQLConnectionString() string {
@@ -56,16 +62,20 @@ func buildMSSQLConnectionString() string {
 		config.Config.Database.Database)
 }
 
-func buildPostgresConnectionString() string {
+func buildPostgresConnectionString(DBName *string) string {
 	extra := "sslmode=prefer"
 	if config.Config.Database.Extra != "" {
 		extra = config.Config.Database.Extra
+	}
+	database := config.Config.Database.Database
+	if DBName != nil {
+		database = *DBName
 	}
 	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s %s",
 		config.Config.Database.Host,
 		config.Config.Database.Port,
 		config.Config.Database.UserName,
-		config.Config.Database.Database,
+		database,
 		config.Config.Database.Password,
 		extra)
 }

@@ -8,6 +8,7 @@ import (
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"net/http"
+	"strings"
 )
 
 func IsLoggedIn() fiber.Handler {
@@ -21,16 +22,26 @@ func IsLoggedIn() fiber.Handler {
 }
 
 func jwtError(c *fiber.Ctx, err error) error {
-	//if err.Error() == "Missing or malformed JWT" {
-	//	return c.Status(fiber.StatusBadRequest).
-	//		JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
-	//}
-	//
-	//return c.Status(fiber.StatusUnauthorized).
-	//	JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
+	// Хүсэлтийн методыг шалгах
+	if c.Method() != http.MethodGet {
+		// GET бус бүх хүсэлтэд Unauthorized статус буцаах
+		return c.Status(fiber.StatusUnauthorized).
+			JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
+	}
 
+	// GET хүсэлтийн хувьд AJAX эсвэл шууд хандалт гэдгийг шалгах
+	isAjax := c.Get("X-Requested-With") == "XMLHttpRequest" || strings.HasPrefix(c.Get("Accept"), "application/json")
+
+	if isAjax {
+		// AJAX request-ийн хувьд Unauthorized статус буцаах
+		return c.Status(fiber.StatusUnauthorized).
+			JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
+	}
+
+	// Шууд хандалтын (direct) хувьд redirect хийх
 	return c.Status(http.StatusSeeOther).Redirect("/auth/login")
 }
+
 func KeyFunc() jwt.Keyfunc {
 	return func(t *jwt.Token) (interface{}, error) {
 		// Always check the signing method
