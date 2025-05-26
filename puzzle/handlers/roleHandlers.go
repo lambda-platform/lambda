@@ -21,7 +21,7 @@ func GetRolesMenus(c *fiber.Ctx) error {
 		menus := []models.ProjectVBSchema{}
 		kruds := []krudModels.ProjectCruds{}
 
-		DB.DB.Where("id != 1 AND id != 3 AND id != 4 AND id != 2").Find(&roles)
+		DB.DB.Where("id != 1 AND id != 3 AND id != 2").Find(&roles)
 		DB.DB.Find(&kruds)
 		DB.DB.Where("type = 'menu'").Find(&menus)
 
