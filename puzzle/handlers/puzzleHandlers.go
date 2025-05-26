@@ -662,9 +662,7 @@ func BeforeSave(id uint64, type_ string, vbs *vb_schema, projectID int) {
 						substr := "."
 
 						if strings.Contains(schema.Schema[i].Relation.Table, substr) != true {
-							fmt.Println(&schema.Schema[i].Relation)
-							fmt.Println(&schema.Schema[i].Relation)
-							fmt.Println(&schema.Schema[i].Relation)
+
 							getTableWithSchema(&schema.Schema[i].Relation.Table, projectID)
 						}
 					}
@@ -719,6 +717,7 @@ func getTableWithSchema(tableName *string, projectID int) *string {
 	var schemaName string
 
 	if projectID > 0 {
+
 		schemaName = fmt.Sprintf("project_%d", projectID)
 
 		project := models.Projects{}
