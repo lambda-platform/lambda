@@ -81,7 +81,7 @@ func IsCloudUser(c *fiber.Ctx) error {
 	claims := user.Claims.(jwt.MapClaims)
 	role := GetUserRole(claims)
 
-	if role == 1.0 || role == 2.0 {
+	if role == 1.0 || role == 2.0 || role == 3.0 {
 		c.Status(http.StatusSeeOther).Redirect("/auth/login")
 	}
 	return c.Next()
