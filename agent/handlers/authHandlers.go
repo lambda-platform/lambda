@@ -253,21 +253,30 @@ func PermissionData(roleID int64) map[string]interface{} {
 
 }
 func Logout(c *fiber.Ctx) error {
-
 	cookie := new(fiber.Cookie)
 	cookie.Name = "token"
 	cookie.Path = "/"
 	cookie.Value = ""
-	cookie.Expires = time.Now()
+	cookie.Expires = time.Now().Add(-1 * time.Hour) // Set expiration in the past
+
+	// Optional: Set MaxAge to -1 to explicitly delete the cookie
+	cookie.MaxAge = -1
+
+	if !config.Config.JWT.DisableCookieSecure {
+		cookie.Secure = true
+	}
+	if config.LambdaConfig.CookieDomain != "" {
+		cookie.Domain = config.LambdaConfig.CookieDomain
+	}
 
 	c.Cookie(cookie)
-	return c.JSON(map[string]string{
+
+	return c.JSON(fiber.Map{
 		"status": "true",
 		"data":   "",
 		"path":   "auth/login",
 		"token":  "",
 	})
-
 }
 
 func LoginPage(c *fiber.Ctx) error {
