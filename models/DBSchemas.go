@@ -33,12 +33,13 @@ type FormItem struct {
 		Type string `json:"type"`
 		Msg  string `json:"msg"`
 	} `json:"rules"`
-	HasTranslation bool   `json:"hasTranslation"`
-	HasUserID      bool   `json:"hasUserId"`
-	HasEquation    bool   `json:"hasEquation"`
-	Equations      string `json:"equations"`
-	IsGridSearch   bool   `json:"isGridSearch"`
-	GridSearch     struct {
+	HasTranslation  bool   `json:"hasTranslation"`
+	HasUserID       bool   `json:"hasUserId"`
+	HasEquation     bool   `json:"hasEquation"`
+	FillByUserField string `json:"fillByUserField"`
+	Equations       string `json:"equations"`
+	IsGridSearch    bool   `json:"isGridSearch"`
+	GridSearch      struct {
 		Grid     interface{} `json:"grid"`
 		Key      interface{} `json:"key"`
 		Labels   interface{} `json:"labels"`
