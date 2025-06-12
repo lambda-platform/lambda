@@ -103,7 +103,34 @@ func Tables() map[string][]string {
 
 		return result
 	} else if config.Config.Database.Connection == "postgres" {
-		rows, _ := DB_.Query("SELECT tablename, concat('TABLE') as tabletype FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' union SELECT table_name as tablename, concat('VIEW') as tabletype FROM information_schema.views where table_schema not in ('information_schema', 'pg_catalog') ORDER BY tablename")
+		rows, _ := DB_.Query(`-- Get base tables (excluding partition children)
+SELECT
+    pt.tablename,
+    'TABLE' AS tabletype
+FROM
+    pg_catalog.pg_tables pt
+JOIN pg_class c ON c.relname = pt.tablename
+JOIN pg_namespace n ON n.oid = c.relnamespace AND n.nspname = pt.schemaname
+WHERE
+    pt.schemaname NOT IN ('pg_catalog', 'information_schema')
+    AND c.oid NOT IN (
+        SELECT inhrelid FROM pg_inherits  -- partition/inherited children
+    )
+
+UNION
+
+-- Get views
+SELECT
+    v.table_name AS tablename,
+    'VIEW' AS tabletype
+FROM
+    information_schema.views v
+WHERE
+    v.table_schema NOT IN ('pg_catalog', 'information_schema')
+
+ORDER BY
+    tablename;
+`)
 		for rows.Next() {
 			var tableName, tableType string
 			rows.Scan(&tableName, &tableType)
