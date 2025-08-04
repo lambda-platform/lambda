@@ -89,7 +89,7 @@ type CrudLogFullOracle struct {
 }
 
 func (c *CrudLogFullOracle) TableName() string {
-	return "DS_CRUD_LOG"
+	return "view_crud_log"
 }
 
 type CrudLogFull struct {
@@ -108,5 +108,15 @@ type CrudLogFull struct {
 }
 
 func (c *CrudLogFull) TableName() string {
-	return "ds_crud_log"
+	return "view_crud_log"
+}
+
+type CrudTableType struct {
+	SchemaID    int    `gorm:"column:schema_id" json:"schema_id"`
+	DBTableName string `gorm:"column:db_table_name" json:"db_table_name"`
+	LogType     string `gorm:"column:log_type" json:"log_type"`
+}
+
+func (c *CrudTableType) TableName() string {
+	return "public.crud_table_type"
 }
