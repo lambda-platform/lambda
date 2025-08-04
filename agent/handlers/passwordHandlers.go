@@ -18,6 +18,7 @@ type mailPost struct {
 	Email string `json:"email" `
 	Lang  string `json:"lang"`
 }
+
 type passwordResetPost struct {
 	Email           string `json:"email" `
 	Code            string `json:"code"`
@@ -27,7 +28,6 @@ type passwordResetPost struct {
 }
 
 func SendForgotMail(c *fiber.Ctx) error {
-
 	data := new(mailPost)
 	if err := c.BodyParser(data); err != nil {
 
@@ -51,7 +51,8 @@ func SendForgotMail(c *fiber.Ctx) error {
 		})
 	}
 
-	user, err := agentUtils.AuthUser(data.Email, "email")
+	uEmail := strings.ToLower(data.Email)
+	user, err := agentUtils.AuthUser(uEmail, "email")
 
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
@@ -62,20 +63,20 @@ func SendForgotMail(c *fiber.Ctx) error {
 	}
 
 	pReset := models.PasswordReset{}
-	DB.DB.Where("email = ?", data.Email).Delete(pReset)
+	DB.DB.Where("LOWER(email) = ?", uEmail).Delete(pReset)
 
 	permittedChars := strings.Join(shuffle([]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}), "")
 	//permittedChars := strings.Join(shuffle([]string{"0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"}),"")
 	tokenPre := string([]rune(permittedChars)[0:6])
 	token, _ := agentUtils.Hash(tokenPre)
 
-	pReset.Email = data.Email
+	pReset.Email = uEmail
 	pReset.Token = token
 	pReset.CreatedAt = time.Now()
 
 	DB.DB.Create(&pReset)
 
-	mail := mailer.NewRequest([]string{data.Email}, StaticWords["passwordResetCode"].(string), config.Config.Mail.FromAddress)
+	mail := mailer.NewRequest([]string{uEmail}, StaticWords["passwordResetCode"].(string), config.Config.Mail.FromAddress)
 	mailSent := mail.Send("views/forgot.html", map[string]string{
 		"keyword":           tokenPre,
 		"username":          user["login"].(string),
@@ -87,9 +88,7 @@ func SendForgotMail(c *fiber.Ctx) error {
 	})
 
 	if mailSent {
-
 		delete(user, "password")
-
 		return c.JSON(map[string]interface{}{
 			"msg":    StaticWords["passwordResetCodeSent"],
 			"status": true,
@@ -104,8 +103,8 @@ func SendForgotMail(c *fiber.Ctx) error {
 	}
 
 }
-func PasswordReset(c *fiber.Ctx) error {
 
+func PasswordReset(c *fiber.Ctx) error {
 	data := new(passwordResetPost)
 	if err := c.BodyParser(data); err != nil {
 
@@ -129,13 +128,15 @@ func PasswordReset(c *fiber.Ctx) error {
 		})
 	}
 
+	uEmail := strings.ToLower(data.Email)
+
 	if config.Config.SysAdmin.UUID {
 		foundUser := models.UserUUID{}
 		pReset := models.PasswordReset{}
 		PasswordResetTimeOut := config.LambdaConfig.PasswordResetTimeOut
 
-		errU := DB.DB.Where("email = ?", data.Email).First(&foundUser).Error
-		errR := DB.DB.Where("email = ?", data.Email).First(&pReset).Error
+		errU := DB.DB.Where("LOWER(email) = ?", uEmail).First(&foundUser).Error
+		errR := DB.DB.Where("LOWER(email) = ?", uEmail).First(&pReset).Error
 
 		if errU != nil || foundUser.Login == "" {
 			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
@@ -144,6 +145,7 @@ func PasswordReset(c *fiber.Ctx) error {
 				"status": false,
 			})
 		}
+
 		if errR != nil || pReset.Email == "" {
 			return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 				"error":  StaticWords["userNotFound"],
@@ -160,23 +162,20 @@ func PasswordReset(c *fiber.Ctx) error {
 		if PasswordResetTimeOut <= 1 {
 			PasswordResetTimeOut = 3
 		}
+
 		if PasswordResetTimeOut >= mins && pReset.Wrong <= 2 {
-
 			if agentUtils.IsSame(data.Code, pReset.Token) {
-
 				if data.Password == data.PasswordConfirm {
-
 					newPassword, _ := agentUtils.Hash(data.Password)
-
 					foundUser.Password = newPassword
 					err := DB.DB.Save(foundUser).Error
-					if err != nil {
 
+					if err != nil {
 						return c.JSON(map[string]interface{}{
 							"status": false,
 						})
 					} else {
-						DB.DB.Where("email = ?", data.Email).Delete(pReset)
+						DB.DB.Where("LOWER(email) = ?", uEmail).Delete(pReset)
 						return c.JSON(map[string]interface{}{
 							"msg":    StaticWords["passwordResetSuccess"],
 							"status": true,
@@ -184,14 +183,12 @@ func PasswordReset(c *fiber.Ctx) error {
 					}
 
 				} else {
-
 					return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 						"error":  StaticWords["passwordConfirmError"],
 						"msg":    StaticWords["passwordConfirmError"],
 						"status": false,
 					})
 				}
-
 			} else {
 				pReset.Wrong = pReset.Wrong + 1
 				DB.DB.Save(pReset)
@@ -214,8 +211,8 @@ func PasswordReset(c *fiber.Ctx) error {
 			pReset := models.PASSWORDRESETSOracle{}
 			PasswordResetTimeOut := config.LambdaConfig.PasswordResetTimeOut
 
-			errU := DB.DB.Where("EMAIL = ?", data.Email).Find(&foundUser).Error
-			errR := DB.DB.Where("EMAIL = ?", data.Email).Find(&pReset).Error
+			errU := DB.DB.Where("LOWER(EMAIL) = ?", uEmail).Find(&foundUser).Error
+			errR := DB.DB.Where("LOWER(EMAIL) = ?", uEmail).Find(&pReset).Error
 
 			if errU != nil || foundUser.Login == "" {
 				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
@@ -224,6 +221,7 @@ func PasswordReset(c *fiber.Ctx) error {
 					"status": false,
 				})
 			}
+
 			if errR != nil || pReset.Email == "" {
 				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"error":  StaticWords["userNotFound"],
@@ -238,40 +236,34 @@ func PasswordReset(c *fiber.Ctx) error {
 			if PasswordResetTimeOut <= 1 {
 				PasswordResetTimeOut = 3
 			}
+
 			mins := int(diff.Minutes())
 
 			if PasswordResetTimeOut >= mins && pReset.Wrong <= 21 {
-
 				if agentUtils.IsSame(data.Code, pReset.Token) {
-
 					if data.Password == data.PasswordConfirm {
-
 						newPassword, _ := agentUtils.Hash(data.Password)
-
 						foundUser.Password = newPassword
 						err := DB.DB.Save(foundUser).Error
-						if err != nil {
 
+						if err != nil {
 							return c.JSON(map[string]interface{}{
 								"status": false,
 							})
 						} else {
-							DB.DB.Where("email = ?", data.Email).Delete(pReset)
+							DB.DB.Where("LOWER(EMAIL) = ?", uEmail).Delete(pReset)
 							return c.JSON(map[string]interface{}{
 								"msg":    StaticWords["passwordResetSuccess"],
 								"status": true,
 							})
 						}
-
 					} else {
-
 						return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 							"error":  StaticWords["passwordConfirmError"],
 							"msg":    StaticWords["passwordConfirmError"],
 							"status": false,
 						})
 					}
-
 				} else {
 					pReset.Wrong = pReset.Wrong + 1
 					DB.DB.Save(pReset)
@@ -293,8 +285,8 @@ func PasswordReset(c *fiber.Ctx) error {
 			pReset := models.PasswordReset{}
 			PasswordResetTimeOut := config.LambdaConfig.PasswordResetTimeOut
 
-			errU := DB.DB.Where("email = ?", data.Email).Find(&foundUser).Error
-			errR := DB.DB.Where("email = ?", data.Email).Find(&pReset).Error
+			errU := DB.DB.Where("LOWER(email) = ?", uEmail).Find(&foundUser).Error
+			errR := DB.DB.Where("LOWER(email) = ?", uEmail).Find(&pReset).Error
 
 			if errU != nil || foundUser.Login == "" {
 				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
@@ -303,6 +295,7 @@ func PasswordReset(c *fiber.Ctx) error {
 					"status": false,
 				})
 			}
+
 			if errR != nil || pReset.Email == "" {
 				return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 					"error":  StaticWords["userNotFound"],
@@ -317,39 +310,33 @@ func PasswordReset(c *fiber.Ctx) error {
 			if PasswordResetTimeOut <= 1 {
 				PasswordResetTimeOut = 3
 			}
+
 			mins := int(diff.Minutes())
 
 			if PasswordResetTimeOut >= mins && pReset.Wrong <= 2 {
-
 				if agentUtils.IsSame(data.Code, pReset.Token) {
-
 					if data.Password == data.PasswordConfirm {
-
 						newPassword, _ := agentUtils.Hash(data.Password)
-
 						err := DB.DB.Model(&foundUser).Update("Password", newPassword).Error
-						if err != nil {
 
+						if err != nil {
 							return c.JSON(map[string]interface{}{
 								"status": false,
 							})
 						} else {
-							DB.DB.Where("email = ?", data.Email).Delete(pReset)
+							DB.DB.Where("LOWER(email) = ?", uEmail).Delete(pReset)
 							return c.JSON(map[string]interface{}{
 								"msg":    StaticWords["passwordResetSuccess"],
 								"status": true,
 							})
 						}
-
 					} else {
-
 						return c.Status(http.StatusBadRequest).JSON(map[string]interface{}{
 							"error":  StaticWords["passwordConfirmError"],
 							"msg":    StaticWords["passwordConfirmError"],
 							"status": false,
 						})
 					}
-
 				} else {
 					pReset.Wrong = pReset.Wrong + 1
 					DB.DB.Save(pReset)
