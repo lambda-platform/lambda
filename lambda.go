@@ -3,13 +3,14 @@ package lambda
 import (
 	"embed"
 	"fmt"
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/generator"
 	"github.com/lambda-platform/lambda/middlewares"
 	"github.com/lambda-platform/lambda/puzzle/views"
-	"os"
 )
 
 var viewsfs embed.FS
@@ -78,17 +79,23 @@ func New(lambdaSettings ...*Settings) *Lambda {
 		panic(err)
 	}
 
+	var bodyLimit = 100 * 1024 * 1024
+	if config.Config.File.FileMaxSize > 0 {
+		bodyLimit = config.Config.File.FileMaxSize * 1024 * 1024
+	}
+
 	lambda := &Lambda{
 		App: fiber.New(fiber.Config{
 			Views:          engine,
-			BodyLimit:      100 * 1024 * 1024, // this is the default limit of 100MB
-			ReadBufferSize: 1024 * 1024,       // Set this to the desired size in  1MB
+			BodyLimit:      bodyLimit,
+			ReadBufferSize: 1024 * 1024,
 			//JSONEncoder: json.Marshal,
 			//JSONDecoder: json.Unmarshal,
 		}),
 		ModuleName:   lambdaSettings[0].ModuleName,
 		IgnoreStatic: lambdaSettings[0].IgnoreStatic,
 	}
+
 	middlewares.Set(lambda.App)
 	if !lambdaSettings[0].IgnoreStatic {
 		lambda.App.Static("/", "public")
