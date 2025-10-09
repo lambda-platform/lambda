@@ -257,8 +257,9 @@ type GridItem struct {
 	Update        interface{} `json:"update"`
 	Pinned        bool        `json:"pinned"`
 	PinPosition   string      `json:"pinPosition"`
-	Link          string      `json:"link"`
-	LinkTarget    string      `json:"linkTarget"`
+	Link          *string     `json:"link"`
+	LinkTarget    *string     `json:"linkTarget"`
+	Icon          *string     `json:"icon"`
 	Relation      struct {
 		Column          string `json:"column"`
 		ConnectionField string `json:"connection_field"`
