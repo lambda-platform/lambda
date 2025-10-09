@@ -260,7 +260,7 @@ type GridItem struct {
 	Link          *string     `json:"link"`
 	LinkTarget    *string     `json:"linkTarget"`
 	Icon          *string     `json:"icon"`
-	ShowOnlyIcon  *string     `json:"showOnlyIcon"`
+	ShowOnlyIcon  *bool       `json:"showOnlyIcon"`
 	Relation      struct {
 		Column          string `json:"column"`
 		ConnectionField string `json:"connection_field"`
