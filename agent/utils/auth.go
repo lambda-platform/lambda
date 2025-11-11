@@ -2,6 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lambda-platform/lambda/DB"
@@ -9,10 +14,6 @@ import (
 	"github.com/lambda-platform/lambda/config"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"net/http"
-	"reflect"
-	"strconv"
-	"strings"
 )
 
 func AuthUserOracle(c *fiber.Ctx) *models.USERSOracle {
@@ -57,6 +58,49 @@ func AuthUserObject(c *fiber.Ctx) (map[string]interface{}, error) {
 		}
 
 		return claims, nil
+	}
+}
+
+func ToStringID(v interface{}) (string, bool) {
+	switch t := v.(type) {
+	case string:
+		return t, true
+	case fmt.Stringer:
+		return t.String(), true
+	case int, int8, int16, int32, int64:
+		return fmt.Sprintf("%d", t), true
+	case uint, uint8, uint16, uint32, uint64:
+		return fmt.Sprintf("%d", t), true
+	case float32, float64:
+		// if your IDs are numeric but may come as float from JSON/JWT
+		// This keeps "123" not "123.000000"
+		return fmt.Sprintf("%.0f", t), true
+	default:
+		return "", false
+	}
+}
+
+func AuthUserIDString(c *fiber.Ctx) (string, error) {
+
+	if c.Locals("user") == nil {
+		return "", gorm.ErrRecordNotFound
+	} else {
+		user := c.Locals("user").(*jwt.Token)
+		claims := user.Claims.(jwt.MapClaims)
+
+		if !config.Config.SysAdmin.UUID {
+
+			claims["id"] = GetRole(claims["id"])
+
+		}
+
+		userID, ok := claims["id"]
+		idStr, ok := ToStringID(userID)
+		if !ok {
+			return "", gorm.ErrRecordNotFound
+		}
+		return idStr, nil
+
 	}
 }
 

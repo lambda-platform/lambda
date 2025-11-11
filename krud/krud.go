@@ -11,7 +11,7 @@ import (
 	"github.com/lambda-platform/lambda/krud/utils"
 )
 
-func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, GetMODEL func(schema_id string) dataform.Dataform, krudMiddleWares []fiber.Handler, KrudWithPermission bool) {
+func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, GetMODEL func(schema_id string) dataform.Dataform, krudMiddleWares []fiber.Handler, KrudWithPermission bool, publicForms []string) {
 	if config.Config.App.Migrate == "true" {
 		utils.AutoMigrateSeed()
 	}
@@ -22,12 +22,7 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 			g.Use(krudMiddleWare)
 		}
 	}
-	kp := e.Group("/lambda/krud-public")
-	if len(krudMiddleWares) >= 1 {
-		for _, krudMiddleWare := range krudMiddleWares {
-			kp.Use(krudMiddleWare)
-		}
-	}
+
 	p := e.Group("/lambda/puzzle")
 	if len(krudMiddleWares) >= 1 {
 		for _, krudMiddleWare := range krudMiddleWares {
@@ -39,7 +34,7 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	g.Post("/import-excel/:schemaId", agentMW.IsLoggedIn(), handlers.ImportExcel(GetGridMODEL))
 	g.Post("/print/:schemaId", agentMW.IsLoggedIn(), handlers.Print(GetGridMODEL))
 	if KrudWithPermission {
-		g.Post("/:schemaId/filter-options", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.FilterOptions(GetGridMODEL))
+		g.Post("/:schemaId/filter-options", agentMW.IsLoggedIn(), handlers.FilterOptions(GetGridMODEL))
 		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.UpdateRow(GetGridMODEL))
 		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), krudMW.PermissionCreate, handlers.Crud(GetMODEL))
 		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), krudMW.PermissionEdit, handlers.Crud(GetMODEL))
@@ -51,9 +46,8 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), handlers.Crud(GetMODEL))
 		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), handlers.Crud(GetMODEL))
 		g.Delete("/delete/:schemaId/:id", agentMW.IsLoggedIn(), handlers.Delete(GetGridMODEL))
-
 	}
-	kp.Post("/:schemaId/:action", krudMW.PermissionCreate, handlers.Crud(GetMODEL))
+
 	/*
 		OTHER
 	*/
@@ -69,8 +63,34 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	/*
 		PUBLIC CURDS
 	*/
-	public := e.Group("/lambda/krud-public")
-	public.Post("/:schemaId/:action", handlers.Crud(GetMODEL))
-	public.Post("/:schemaId/:action/:id", handlers.Crud(GetMODEL))
+	if len(publicForms) >= 1 {
+
+		contains := func(slice []string, item string) bool {
+			for _, s := range slice {
+				if s == item {
+					return true
+				}
+			}
+			return false
+		}
+		// Middleware to check if schemaId is in publicForms
+		publicSchemaCheck := func(c *fiber.Ctx) error {
+			schemaId := c.Params("schemaId")
+
+			if schemaId == "" || !contains(publicForms, schemaId) {
+				return c.Status(403).JSON(fiber.Map{"error": "Schema is not public"})
+			}
+			return c.Next()
+		}
+
+		public := e.Group("/lambda/krud-public")
+		if len(krudMiddleWares) >= 1 {
+			for _, krudMiddleWare := range krudMiddleWares {
+				public.Use(krudMiddleWare)
+			}
+		}
+		public.Post("/:schemaId/:action", publicSchemaCheck, handlers.Crud(GetMODEL))
+		public.Post("/:schemaId/:action/:id", publicSchemaCheck, handlers.Crud(GetMODEL))
+	}
 
 }

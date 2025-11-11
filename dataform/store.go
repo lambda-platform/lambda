@@ -2,13 +2,15 @@ package dataform
 
 import (
 	"errors"
+	"net/http"
+	"regexp"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/DBSchema"
 	"github.com/lambda-platform/lambda/config"
+	"github.com/lambda-platform/lambda/utils"
 	"github.com/thedevsaddam/govalidator"
-	"net/http"
-	"regexp"
 )
 
 func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
@@ -112,11 +114,20 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 				dataform.AfterUpdate(dataform.Model)
 			}
 
-			return c.JSON(map[string]interface{}{
-				"status": true,
-				"data":   dataform.Model,
-				"id":     id,
-			})
+			if dataMap, ok := utils.StructToMap(dataform.Model); ok {
+				delete(dataMap, "password")
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   dataMap,
+					"id":     id,
+				})
+			} else {
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   dataform.Model,
+					"id":     id,
+				})
+			}
 		}
 	} else {
 
@@ -154,11 +165,22 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 				return c.Status(http.StatusBadRequest).JSON(errResponse)
 			}
 
-			return c.JSON(map[string]interface{}{
-				"status": true,
-				"data":   dataform.Model,
-				"id":     idValue,
-			})
+			if dataMap, ok := utils.StructToMap(dataform.Model); ok {
+				delete(dataMap, "password")
+
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   dataMap,
+					"id":     idValue,
+				})
+			} else {
+				return c.JSON(map[string]interface{}{
+					"status": true,
+					"data":   dataform.Model,
+					"id":     idValue,
+				})
+			}
+
 		}
 	}
 

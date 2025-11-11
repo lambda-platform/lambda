@@ -5,11 +5,12 @@ import (
 	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/datagrid"
+	"github.com/lambda-platform/lambda/krud/krudMW"
 	"github.com/lambda-platform/lambda/puzzle/handlers"
 	"github.com/lambda-platform/lambda/puzzle/utils"
 )
 
-func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) datagrid.Datagrid, isMicroservice bool, withUserRole bool) {
+func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) datagrid.Datagrid, isMicroservice bool, withUserRole bool, publicGrids []string) {
 
 	if isMicroservice {
 
@@ -48,7 +49,10 @@ func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) da
 	//Puzzle
 	g.Get("/puzzle/schema/:type", agentMW.IsLoggedIn(), handlers.GetVB)
 	g.Get("/puzzle/schema/:type/:id", agentMW.IsLoggedIn(), handlers.GetVB)
-	g.Get("/puzzle/schema-public/:type/:id", handlers.GetVB)
+	if len(publicGrids) > 0 {
+		g.Get("/puzzle/schema-public/:type/:id", handlers.GetVB)
+	}
+
 	g.Get("/puzzle/schema/:type/:id/:condition", agentMW.IsLoggedIn(), handlers.GetVB)
 
 	//VB SCHEMA
@@ -60,12 +64,10 @@ func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) da
 	e.Get("/lambda/krud/menu_form/edit/:id", agentMW.IsLoggedIn(), handlers.GetMenuVB)
 
 	//GRID
-	g.Post("/puzzle/grid/:action/:schemaId", agentMW.IsLoggedIn(), handlers.GridVB(GetGridMODEL))
-	g.Post("/puzzle/grid-public/:action/:schemaId", handlers.GridVB(GetGridMODEL))
-
-	//Get From Options
-	//g.Post("/puzzle/get_options", agentMW.IsLoggedIn(), handlers.GetOptions)
-	//g.Post("/puzzle/get_options-public", handlers.GetOptions)
+	g.Post("/puzzle/grid/:action/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionRead, handlers.GridVB(GetGridMODEL))
+	if len(publicGrids) > 0 {
+		g.Post("/puzzle/grid-public/:action/:schemaId", handlers.GridVB(GetGridMODEL))
+	}
 
 	//Roles
 	g.Get("/puzzle/roles-menus", agentMW.IsLoggedIn(), agentMW.IsAdmin, handlers.GetRolesMenus)

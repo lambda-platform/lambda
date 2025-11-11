@@ -112,6 +112,7 @@ type FormItem struct {
 type Relation struct {
 	MicroserviceID     int               `json:"microservice_id"`
 	Table              string            `json:"table"`
+	TargetField        string            `json:"target_field"`
 	Key                string            `json:"key"`
 	Fields             []string          `json:"fields"`
 	FilterWithUser     *[]FilterWithUser `json:"filterWithUser"`

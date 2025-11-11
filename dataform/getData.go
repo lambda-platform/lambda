@@ -2,13 +2,16 @@ package dataform
 
 import (
 	"encoding/json"
+	"fmt"
+	"reflect"
+	"regexp"
+
 	"github.com/PaesslerAG/gval"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DBSchema"
 	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/utils"
-	"reflect"
-	"regexp"
+	"github.com/pkg/errors"
 )
 
 func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[string]interface{}, error) {
@@ -22,10 +25,82 @@ func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[st
 	bodyBytes := utils.GetBody(c)
 	json.Unmarshal([]byte(bodyBytes), requestData)
 
+	var optionsData = map[string][]map[string]interface{}{}
+
+	for relationKey, relation := range dataform.Relations {
+		data := OptionsData(relation, c)
+
+		optionsData[relationKey] = data
+
+	}
+
 	if len(dataform.FieldTypes) >= 1 {
 
 		for field, fieldType := range dataform.FieldTypes {
 
+			if fieldType == "Select" {
+
+				requestValue := (*requestData)[field]
+
+				if requestValue != nil {
+					// Loop through relations
+					for relationKey, relation := range dataform.Relations {
+						if relation.TargetField == field {
+
+							allowed := false
+							for _, opt := range optionsData[relationKey] {
+								if optVal, ok := opt["value"]; ok {
+
+									switch optVal.(type) {
+									case string:
+										if requestValue == optVal {
+											allowed = true
+											break
+										}
+									case float64:
+										// JSON numbers are float64 by default
+										if fmt.Sprintf("%v", requestValue) == fmt.Sprintf("%v", optVal) {
+											allowed = true
+											break
+										}
+									case float32:
+										// JSON numbers are float64 by default
+										if fmt.Sprintf("%v", requestValue) == fmt.Sprintf("%v", optVal) {
+											allowed = true
+											break
+										}
+									case int64:
+										if fmt.Sprintf("%v", requestValue) == fmt.Sprintf("%v", optVal) {
+											allowed = true
+											break
+										}
+									case int32:
+										if fmt.Sprintf("%v", requestValue) == fmt.Sprintf("%v", optVal) {
+											allowed = true
+											break
+										}
+									case int:
+										if fmt.Sprintf("%v", requestValue) == fmt.Sprintf("%v", optVal) {
+											allowed = true
+											break
+										}
+									}
+								}
+							}
+
+							if !allowed {
+								msg := map[string]interface{}{
+									"status": false,
+									"error":  fmt.Sprintf("Value %v not allowed for field %s", requestValue, field),
+								}
+								fmt.Println(fmt.Sprintf("Value %v not allowed for field %s", requestValue, field))
+								return &msg, errors.New("Value not allowed")
+							}
+						}
+					}
+				}
+
+			}
 			if fieldType == "Password" {
 				fieldName := DBSchema.FieldName(field)
 				value, err := dataform.getStringField(fieldName)

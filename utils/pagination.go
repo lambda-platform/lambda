@@ -1,8 +1,12 @@
 package utils
 
 import (
-	"gorm.io/gorm"
+	"fmt"
 	"math"
+	"reflect"
+	"strings"
+
+	"gorm.io/gorm"
 )
 
 type Param struct {
@@ -93,4 +97,65 @@ func Paging(p *Param, result interface{}) *Paginator {
 
 func countRecords(db *gorm.DB, anyType interface{}, count *int64) {
 	db.Model(anyType).Count(count)
+}
+
+func ExtractAllowedSorts(model interface{}) map[string]bool {
+	allowed := make(map[string]bool)
+
+	t := reflect.TypeOf(model)
+
+	// Unwrap pointer
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	// If it's a slice, use its element type
+	if t.Kind() == reflect.Slice {
+		t = t.Elem()
+	}
+	// We only handle structs
+	if t.Kind() != reflect.Struct {
+		return allowed
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		tag := field.Tag.Get("gorm")
+		if strings.Contains(tag, "column:") {
+			parts := strings.Split(tag, ";")
+			for _, part := range parts {
+				part = strings.TrimSpace(part)
+				if strings.HasPrefix(part, "column:") {
+					col := strings.TrimPrefix(part, "column:")
+					col = strings.TrimSpace(col)
+					if col != "" {
+						allowed[col] = true
+					}
+				}
+			}
+		}
+	}
+
+	return allowed
+}
+
+func Sort(model interface{}, sortCol, sortDir string, db *gorm.DB) *gorm.DB {
+
+	if sortCol == "" || sortCol == "null" || sortCol == "undefined" {
+		return db
+	}
+
+	allowedSorts := ExtractAllowedSorts(model)
+	if !allowedSorts[sortCol] {
+
+		return db
+	}
+
+	sd := strings.ToLower(sortDir)
+	if sd != "asc" && sd != "desc" {
+		sd = "asc"
+	}
+
+	orderExpr := fmt.Sprintf("%s %s", sortCol, sd)
+	return db.Order(orderExpr)
 }

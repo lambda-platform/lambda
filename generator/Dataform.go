@@ -3,12 +3,13 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/lambda-platform/lambda/DBSchema"
 	genertarModels "github.com/lambda-platform/lambda/generator/models"
 	"github.com/lambda-platform/lambda/generator/utils"
 	lambdaModels "github.com/lambda-platform/lambda/models"
-	"strconv"
-	"strings"
 )
 
 func WriteFormsModelData(dbSchema lambdaModels.DBSCHEMA, schemas []genertarModels.ProjectSchemas, copyClienModels bool) {
@@ -141,6 +142,7 @@ func buildRelationString(relations map[string]lambdaModels.Relation) string {
 	relationString := ""
 	for key, relation := range relations {
 		relationString += fmt.Sprintf(`            "%s": models.Relation{
+				TargetField: "%s",
                 Table: "%s",
                 Key: "%s",
                 Fields: %#v,
@@ -153,6 +155,7 @@ func buildRelationString(relations map[string]lambdaModels.Relation) string {
             },
 `,
 			key,
+			relation.TargetField,
 			relation.Table,
 			relation.Key,
 			relation.Fields,
@@ -239,6 +242,7 @@ func GetRelations(schema []lambdaModels.FormItem, microserviceID int) map[string
 
 	for _, item := range schema {
 		if item.FormType == "Radio" || item.FormType == "Select" || item.FormType == "ISelect" || item.FormType == "TreeSelect" || item.FormType == "FooterButton" || item.FormType == "AdminMenu" {
+			item.Relation.TargetField = item.Model
 			if item.Relation.Table != "" {
 				if microserviceID == 0 || (item.Relation.MicroserviceID == microserviceID) {
 
@@ -248,8 +252,11 @@ func GetRelations(schema []lambdaModels.FormItem, microserviceID int) map[string
 					}
 
 					relations[key] = item.Relation
+
 				}
+
 			}
+
 		}
 
 		if item.FormType == "SubForm" && item.Schema != nil {

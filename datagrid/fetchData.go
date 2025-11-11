@@ -20,9 +20,22 @@ func FetchData(c *fiber.Ctx, datagrid Datagrid) error {
 	query = query.Select(datagrid.ColumnList)
 
 	if sortColumn != "null" && sortColumn != "undefined" {
-		if order == "asc" || order == "desc" || order == "ASC" || order == "DESC" {
-			query = query.Order(sortColumn + " " + order)
+		// Check if sortColumn exists in ColumnList
+		found := false
+		for _, col := range datagrid.ColumnList {
+			if col == sortColumn {
+				found = true
+				break
+			}
 		}
+
+		if found {
+			if order == "asc" || order == "desc" || order == "ASC" || order == "DESC" {
+				query = query.Order(sortColumn + " " + order)
+			}
+		}
+		// Optional: else { log or handle invalid sortColumn }
+
 	}
 
 	//DB.DB.LogMode(true)

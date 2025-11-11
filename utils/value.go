@@ -22,3 +22,25 @@ func GetFieldValue(structVar interface{}, fieldName string) (interface{}, error)
 
 	return field.Interface(), nil
 }
+
+func StructToMap(obj interface{}) (map[string]interface{}, bool) {
+	v := reflect.ValueOf(obj)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return nil, false
+	}
+
+	data := make(map[string]interface{})
+	t := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		field := t.Field(i)
+		jsonKey := field.Tag.Get("json")
+		if jsonKey == "" {
+			jsonKey = field.Name
+		}
+		data[jsonKey] = v.Field(i).Interface()
+	}
+	return data, true
+}
