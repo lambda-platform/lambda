@@ -387,6 +387,7 @@ func GetPermission(c *fiber.Ctx, vbType string) PermissionObj {
 				if vbType == "form" {
 					if crud.Form == schemaID {
 						realPermission.C = basePerm.C
+						realPermission.R = basePerm.R
 						realPermission.U = basePerm.U
 					}
 				}
