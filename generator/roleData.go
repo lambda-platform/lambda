@@ -50,7 +50,7 @@ func generateRoleDataOracle() error {
 			continue
 		}
 
-		var menu models.VBSchemaAdminOracle
+		var menu models.VBSchemaOracle
 		if err := DB.DB.Where("id = ?", perms.MenuID).First(&menu).Error; err != nil {
 			// Хэрэв menu олдохгүй бол энэ role-г алгасна
 			continue
