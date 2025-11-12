@@ -102,171 +102,217 @@ type RoleData struct {
 	Permissions Permissions `json:"permissions"`
 }
 
-func PermissionEdit(c *fiber.Ctx) error {
-	pageID := c.Query("page_id")
-	id := c.Params("id")
-	action := c.Params("action")
-	schemaId := c.Params("schemaId")
+func PermissionEdit(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
 
-	// Хэрэглэгч өөрийн profile / password-оо л засна
-	if schemaId == "user_profile" || schemaId == "user_password" {
-		userID, err := agentUtils.AuthUserIDString(c)
-		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":  err.Error(),
-				"status": false,
-			})
-		}
+	return func(c *fiber.Ctx) error {
+		pageID := c.Query("page_id")
+		id := c.Params("id")
+		action := c.Params("action")
+		schemaId := c.Params("schemaId")
 
-		if userID != id {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error":  "Засах эрхгүй байна",
-				"status": false,
-			})
-		}
+		profileSchemaId := os.Getenv("PROFILE_FORM_ID")
+		changePasswordSchemaId := os.Getenv("CHANGE_PASSWORD_FORM_ID")
 
-		// Нууц үг өөрчлөх үед current_password шалгана
-		if action == "update" {
-			var requestData map[string]interface{}
-			if err := c.BodyParser(&requestData); err != nil {
-				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-					"status": false,
-					"error":  "Invalid request body",
-				})
-			}
+		// Хэрэглэгч өөрийн profile / password-оо л засна
+		if schemaId == "user_profile" || schemaId == "user_password" || (schemaId == profileSchemaId && profileSchemaId != "") || (schemaId == changePasswordSchemaId && changePasswordSchemaId != "") {
+			userID, err := agentUtils.AuthUserIDString(c)
 
-			requestID, _ := agentUtils.ToStringID(requestData["id"])
-			if requestID != "" && requestID != userID {
-				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-					"error":  "Засах эрхгүй байна",
+			if err != nil {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"error":  err.Error(),
 					"status": false,
 				})
 			}
 
-			if schemaId == "user_password" {
-				currentPassword := ""
-				if val, ok := requestData["current_password"]; ok {
-					switch v := val.(type) {
-					case string:
-						currentPassword = v
-					case []byte:
-						currentPassword = string(v)
-					case nil:
+			if userID != id {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+					"error":  "Засах эрхгүй байна ",
+					"status": false,
+				})
+			}
+
+			// Нууц үг өөрчлөх үед current_password шалгана
+			if action == "update" {
+				var requestData map[string]interface{}
+				if err := c.BodyParser(&requestData); err != nil {
+					return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+						"status": false,
+						"error":  "Invalid request body",
+					})
+				}
+
+				requestID, _ := agentUtils.ToStringID(requestData["id"])
+				if requestID != "" && requestID != userID {
+					return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+						"error":  "Засах эрхгүй байна",
+						"status": false,
+					})
+				}
+
+				if schemaId == "user_password" || (schemaId == changePasswordSchemaId && changePasswordSchemaId != "") {
+					currentPassword := ""
+					if val, ok := requestData["current_password"]; ok {
+						switch v := val.(type) {
+						case string:
+							currentPassword = v
+						case []byte:
+							currentPassword = string(v)
+						case nil:
+							return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+								"status": false,
+								"error":  "Password cannot be nil",
+							})
+						default:
+							currentPassword = fmt.Sprintf("%v", v)
+						}
+					}
+
+					if currentPassword == "" {
 						return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 							"status": false,
-							"error":  "Password cannot be nil",
+							"error":  "Password field required",
 						})
-					default:
-						currentPassword = fmt.Sprintf("%v", v)
+					}
+
+					var user struct{ Password string }
+
+					if config.Config.SysAdmin.UUID {
+						u := agentUtils.AuthUserUUID(c)
+						user.Password = u.Password
+					} else if config.Config.Database.Connection == "oracle" {
+						u := agentUtils.AuthUserOracle(c)
+						user.Password = u.Password
+					} else {
+						u := agentUtils.AuthUserFromContext(c)
+						user.Password = u.Password
+					}
+
+					if !agentUtils.IsSame(currentPassword, user.Password) {
+						return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+							"status": false,
+							"msg":    "Нууц үг буруу байна !!!",
+						})
 					}
 				}
 
-				if currentPassword == "" {
-					return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-						"status": false,
-						"error":  "Password field required",
-					})
+				return c.Next()
+			}
+
+			if action == "edit" {
+				return c.Next()
+			}
+		}
+
+		// page_id дээр permission шалгах (form context)
+		if pageID != "" {
+			if GetPermissionHandler != nil {
+				perm := GetPermission(c, "form")
+				if (action == "edit" && perm.R) || (action == "update" && perm.U) {
+					return c.Next()
 				}
-
-				var user struct{ Password string }
-
-				if config.Config.SysAdmin.UUID {
-					u := agentUtils.AuthUserUUID(c)
-					user.Password = u.Password
-				} else if config.Config.Database.Connection == "oracle" {
-					u := agentUtils.AuthUserOracle(c)
-					user.Password = u.Password
-				} else {
-					u := agentUtils.AuthUserFromContext(c)
-					user.Password = u.Password
+			} else {
+				perm := GetPermission(c, "form")
+				if (action == "edit" && perm.R) || (action == "update" && perm.U) {
+					return c.Next()
 				}
+			}
+		}
 
-				if !agentUtils.IsSame(currentPassword, user.Password) {
-					return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-						"status": false,
-						"msg":    "Нууц үг буруу байна !!!",
-					})
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":  "Засах эрхгүй байна",
+			"status": false,
+		})
+	}
+
+}
+
+func PermissionCreate(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
+
+	return func(c *fiber.Ctx) error {
+		pageID := c.Query("page_id")
+		action := c.Params("action")
+
+		if action == "options" {
+			return c.Next()
+		}
+
+		if pageID != "" {
+			if GetPermissionHandler != nil {
+				perm := GetPermissionHandler(c, "form")
+				if perm.C {
+					return c.Next()
+				}
+			} else {
+				perm := GetPermission(c, "form")
+				if perm.C {
+					return c.Next()
 				}
 			}
 
-			return c.Next()
 		}
 
-		if action == "edit" {
-			return c.Next()
-		}
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":  "Нэмэх эрх олгогдоогүй байна",
+			"status": false,
+		})
 	}
-
-	// page_id дээр permission шалгах (form context)
-	if pageID != "" {
-		perm := GetPermission(c, "form")
-		if (action == "edit" && perm.R) || (action == "update" && perm.U) {
-			return c.Next()
-		}
-	}
-
-	return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-		"error":  "Засах эрхгүй байна",
-		"status": false,
-	})
 }
 
-func PermissionCreate(c *fiber.Ctx) error {
-	pageID := c.Query("page_id")
-	action := c.Params("action")
+func PermissionDelete(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
 
-	if action == "options" {
-		return c.Next()
-	}
+	return func(c *fiber.Ctx) error {
+		pageID := c.Query("page_id")
+		action := c.Params("filter-options")
 
-	if pageID != "" {
-		perm := GetPermission(c, "form")
-		if perm.C {
+		if action == "filter-options" {
 			return c.Next()
 		}
-	}
 
-	return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-		"error":  "Нэмэх эрх олгогдоогүй байна",
-		"status": false,
-	})
+		if pageID != "" {
+			if GetPermissionHandler != nil {
+				perm := GetPermissionHandler(c, "grid")
+				if perm.D {
+					return c.Next()
+				}
+			} else {
+				perm := GetPermission(c, "grid")
+				if perm.D {
+					return c.Next()
+				}
+			}
+		}
+
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":  "Устгах эрх олгогдоогүй байна",
+			"status": false,
+		})
+	}
 }
 
-func PermissionDelete(c *fiber.Ctx) error {
-	pageID := c.Query("page_id")
-	action := c.Params("filter-options")
+func PermissionRead(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
 
-	if action == "filter-options" {
-		return c.Next()
-	}
+	return func(c *fiber.Ctx) error {
+		pageID := c.Query("page_id")
 
-	if pageID != "" {
-		perm := GetPermission(c, "grid")
-		if perm.D {
-			return c.Next()
+		if pageID != "" {
+			if GetPermissionHandler != nil {
+				perm := GetPermissionHandler(c, "grid")
+				if perm.R || perm.Show {
+					return c.Next()
+				}
+			} else {
+				perm := GetPermission(c, "grid")
+				if perm.R || perm.Show {
+					return c.Next()
+				}
+			}
 		}
+
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":  "Унших эрхгүй байна",
+			"status": false,
+		})
 	}
-
-	return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-		"error":  "Устгах эрх олгогдоогүй байна",
-		"status": false,
-	})
-}
-
-func PermissionRead(c *fiber.Ctx) error {
-	pageID := c.Query("page_id")
-
-	if pageID != "" {
-		perm := GetPermission(c, "grid")
-		if perm.R || perm.Show {
-			return c.Next()
-		}
-	}
-
-	return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-		"error":  "Унших эрхгүй байна",
-		"status": false,
-	})
 }
 
 // ---------------- GetPermission core logic ----------------
@@ -331,9 +377,9 @@ func GetPermission(c *fiber.Ctx, vbType string) PermissionObj {
 			menuID = pageID
 		}
 
-		if menu := findMenuByID(roleData.Menu, menuID); menu != nil {
+		if menu := FindMenuByID(roleData.Menu, menuID); menu != nil {
 			// 1.2 menu.URL-с CRUD олно
-			if crud := findCrudByMenuURL(roleData.Cruds, menu.URL); crud != nil {
+			if crud := FindCrudByMenuURL(roleData.Cruds, menu.URL); crud != nil {
 
 				realPermission := PermissionObj{}
 
@@ -363,13 +409,13 @@ func GetPermission(c *fiber.Ctx, vbType string) PermissionObj {
 
 // ---------------- Helper функцууд ----------------
 
-func findMenuByID(menu []MenuItem, id string) *MenuItem {
+func FindMenuByID(menu []MenuItem, id string) *MenuItem {
 	for i := range menu {
 		if menu[i].ID == id {
 			return &menu[i]
 		}
 		if len(menu[i].Children) > 0 {
-			if found := findMenuByID(menu[i].Children, id); found != nil {
+			if found := FindMenuByID(menu[i].Children, id); found != nil {
 				return found
 			}
 		}
@@ -378,7 +424,7 @@ func findMenuByID(menu []MenuItem, id string) *MenuItem {
 }
 
 // menu.URL-ээс crud хайх
-func findCrudByMenuURL(cruds []Crud, url interface{}) *Crud {
+func FindCrudByMenuURL(cruds []Crud, url interface{}) *Crud {
 	if url == nil {
 		return nil
 	}

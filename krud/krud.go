@@ -11,7 +11,7 @@ import (
 	"github.com/lambda-platform/lambda/krud/utils"
 )
 
-func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, GetMODEL func(schema_id string) dataform.Dataform, krudMiddleWares []fiber.Handler, KrudWithPermission bool, publicForms []string) {
+func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, GetMODEL func(schema_id string) dataform.Dataform, krudMiddleWares []fiber.Handler, KrudWithPermission bool, publicForms []string, GetPermissionCustom func(c *fiber.Ctx, vbType string) krudMW.PermissionObj) {
 	if config.Config.App.Migrate == "true" {
 		utils.AutoMigrateSeed()
 	}
@@ -35,10 +35,10 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	g.Post("/print/:schemaId", agentMW.IsLoggedIn(), handlers.Print(GetGridMODEL))
 	if KrudWithPermission {
 		g.Post("/:schemaId/filter-options", agentMW.IsLoggedIn(), handlers.FilterOptions(GetGridMODEL))
-		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.UpdateRow(GetGridMODEL))
-		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), krudMW.PermissionCreate, handlers.Crud(GetMODEL))
-		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), krudMW.PermissionEdit, handlers.Crud(GetMODEL))
-		g.Delete("/delete/:schemaId/:id", agentMW.IsLoggedIn(), krudMW.PermissionDelete, handlers.Delete(GetGridMODEL))
+		g.Post("/update-row/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionDelete(GetPermissionCustom), handlers.UpdateRow(GetGridMODEL))
+		g.Post("/:schemaId/:action", agentMW.IsLoggedIn(), krudMW.PermissionCreate(GetPermissionCustom), handlers.Crud(GetMODEL))
+		g.Post("/:schemaId/:action/:id", agentMW.IsLoggedIn(), krudMW.PermissionEdit(GetPermissionCustom), handlers.Crud(GetMODEL))
+		g.Delete("/delete/:schemaId/:id", agentMW.IsLoggedIn(), krudMW.PermissionDelete(GetPermissionCustom), handlers.Delete(GetGridMODEL))
 
 	} else {
 		g.Post("/:schemaId/filter-options", agentMW.IsLoggedIn(), handlers.FilterOptions(GetGridMODEL))
