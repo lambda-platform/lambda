@@ -205,8 +205,9 @@ func PermissionEdit(GetPermissionHandler func(c *fiber.Ctx, vbType string) Permi
 
 		// page_id дээр permission шалгах (form context)
 		if pageID != "" {
+
 			if GetPermissionHandler != nil {
-				perm := GetPermission(c, "form")
+				perm := GetPermissionHandler(c, "form")
 				if (action == "edit" && perm.R) || (action == "update" && perm.U) {
 					return c.Next()
 				}
