@@ -79,6 +79,11 @@ func GetData(c *fiber.Ctx, action string, id string, dataform Dataform) (*map[st
 											allowed = true
 											break
 										}
+									case int16:
+										if fmt.Sprintf("%v", requestValue) == fmt.Sprintf("%v", optVal) {
+											allowed = true
+											break
+										}
 									case int:
 										if fmt.Sprintf("%v", requestValue) == fmt.Sprintf("%v", optVal) {
 											allowed = true
