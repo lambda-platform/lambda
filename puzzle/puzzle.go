@@ -10,7 +10,7 @@ import (
 	"github.com/lambda-platform/lambda/puzzle/utils"
 )
 
-func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) datagrid.Datagrid, isMicroservice bool, withUserRole bool, publicGrids []string, GetPermissionCustom func(c *fiber.Ctx, vbType string) krudMW.PermissionObj) {
+func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) datagrid.Datagrid, isMicroservice bool, withUserRole bool, publicGrids []string, GetPermissionCustom func(c *fiber.Ctx, vbType string) krudMW.PermissionObj, ignoreList []string) {
 
 	if isMicroservice {
 
@@ -64,7 +64,7 @@ func Set(e *fiber.App, moduleName string, GetGridMODEL func(schema_id string) da
 	e.Get("/lambda/krud/menu_form/edit/:id", agentMW.IsLoggedIn(), handlers.GetMenuVB)
 
 	//GRID
-	g.Post("/puzzle/grid/:action/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionRead(GetPermissionCustom), handlers.GridVB(GetGridMODEL))
+	g.Post("/puzzle/grid/:action/:schemaId", agentMW.IsLoggedIn(), krudMW.PermissionRead(GetPermissionCustom, ignoreList), handlers.GridVB(GetGridMODEL))
 	if len(publicGrids) > 0 {
 		g.Post("/puzzle/grid-public/:action/:schemaId", handlers.GridVB(GetGridMODEL))
 	}

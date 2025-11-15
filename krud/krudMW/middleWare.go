@@ -102,13 +102,17 @@ type RoleData struct {
 	Permissions Permissions `json:"permissions"`
 }
 
-func PermissionEdit(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
+func PermissionEdit(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj, ignoreList []string) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 		pageID := c.Query("page_id")
 		id := c.Params("id")
 		action := c.Params("action")
 		schemaId := c.Params("schemaId")
+
+		if isIgnore(schemaId, ignoreList) {
+			c.Next()
+		}
 
 		profileSchemaId := os.Getenv("PROFILE_FORM_ID")
 		changePasswordSchemaId := os.Getenv("CHANGE_PASSWORD_FORM_ID")
@@ -227,11 +231,16 @@ func PermissionEdit(GetPermissionHandler func(c *fiber.Ctx, vbType string) Permi
 
 }
 
-func PermissionCreate(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
+func PermissionCreate(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj, ignoreList []string) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 		pageID := c.Query("page_id")
 		action := c.Params("action")
+
+		schemaId := c.Params("schemaId")
+		if isIgnore(schemaId, ignoreList) {
+			c.Next()
+		}
 
 		if action == "options" {
 			return c.Next()
@@ -259,12 +268,16 @@ func PermissionCreate(GetPermissionHandler func(c *fiber.Ctx, vbType string) Per
 	}
 }
 
-func PermissionDelete(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
+func PermissionDelete(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj, ignoreList []string) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 		pageID := c.Query("page_id")
 		action := c.Params("filter-options")
 
+		schemaId := c.Params("schemaId")
+		if isIgnore(schemaId, ignoreList) {
+			c.Next()
+		}
 		if action == "filter-options" {
 			return c.Next()
 		}
@@ -290,11 +303,14 @@ func PermissionDelete(GetPermissionHandler func(c *fiber.Ctx, vbType string) Per
 	}
 }
 
-func PermissionRead(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj) fiber.Handler {
+func PermissionRead(GetPermissionHandler func(c *fiber.Ctx, vbType string) PermissionObj, ignoreList []string) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 		pageID := c.Query("page_id")
-
+		schemaId := c.Params("schemaId")
+		if isIgnore(schemaId, ignoreList) {
+			c.Next()
+		}
 		if pageID != "" {
 			if GetPermissionHandler != nil {
 				perm := GetPermissionHandler(c, "grid")
@@ -469,4 +485,12 @@ func FindCrudByMenuURL(cruds []Crud, url interface{}) *Crud {
 	}
 
 	return nil
+}
+func isIgnore(item string, ignoreList []string) bool {
+	for _, a := range ignoreList {
+		if a == item {
+			return true
+		}
+	}
+	return false
 }
