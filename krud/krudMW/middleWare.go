@@ -111,7 +111,7 @@ func PermissionEdit(GetPermissionHandler func(c *fiber.Ctx, vbType string) Permi
 		schemaId := c.Params("schemaId")
 
 		if isIgnore(schemaId, ignoreList) {
-			c.Next()
+			return c.Next()
 		}
 
 		profileSchemaId := os.Getenv("PROFILE_FORM_ID")
@@ -239,7 +239,7 @@ func PermissionCreate(GetPermissionHandler func(c *fiber.Ctx, vbType string) Per
 
 		schemaId := c.Params("schemaId")
 		if isIgnore(schemaId, ignoreList) {
-			c.Next()
+			return c.Next()
 		}
 
 		if action == "options" {
@@ -276,7 +276,7 @@ func PermissionDelete(GetPermissionHandler func(c *fiber.Ctx, vbType string) Per
 
 		schemaId := c.Params("schemaId")
 		if isIgnore(schemaId, ignoreList) {
-			c.Next()
+			return c.Next()
 		}
 		if action == "filter-options" {
 			return c.Next()
@@ -309,7 +309,7 @@ func PermissionRead(GetPermissionHandler func(c *fiber.Ctx, vbType string) Permi
 		pageID := c.Query("page_id")
 		schemaId := c.Params("schemaId")
 		if isIgnore(schemaId, ignoreList) {
-			c.Next()
+			return c.Next()
 		}
 		if pageID != "" {
 			if GetPermissionHandler != nil {
