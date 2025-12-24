@@ -90,6 +90,8 @@ var TypeBinaries = []string{
 	"varbinary",
 	"BFILE",
 	"BLOB",
+	"vector",
+	"tsvector",
 }
 var TypeSecure = []string{
 	"secure",
