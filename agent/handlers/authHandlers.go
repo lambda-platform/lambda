@@ -3,6 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lambda-platform/lambda/DB"
@@ -12,10 +17,6 @@ import (
 	krudModels "github.com/lambda-platform/lambda/krud/models"
 	puzzleModels "github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/utils"
-	"io"
-	"io/ioutil"
-	"os"
-	"time"
 )
 
 type LoginRequest struct {

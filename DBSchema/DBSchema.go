@@ -3,12 +3,13 @@ package DBSchema
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/models"
 	"github.com/lambda-platform/lambda/utils"
-	"os"
-	"strings"
 )
 
 var Enums []models.PostgresEnum
@@ -128,7 +129,17 @@ FROM
 WHERE
     v.table_schema NOT IN ('pg_catalog', 'information_schema')
 
-ORDER BY
+UNION ALL
+
+SELECT 
+    m.matviewname AS tablename, 
+    'VIEW' AS tabletype
+FROM 
+    pg_matviews m
+WHERE 
+    m.schemaname NOT IN ('pg_catalog', 'information_schema')
+
+ORDER BY 
     tablename;
 `)
 		for rows.Next() {
