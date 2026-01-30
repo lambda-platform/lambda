@@ -261,7 +261,41 @@ func TableMetas(tableName string) []models.TableMeta {
 
 		var currentTableMetas []models.PostgresTableMata
 
-		DB.DB.Raw(fmt.Sprintf("SELECT column_name, udt_name, is_nullable, is_identity, column_default, numeric_scale, table_schema FROM information_schema.columns WHERE udt_catalog = '%s' AND table_name   = '%s' ORDER BY ORDINAL_POSITION", config.Config.Database.Database, tableName)).Scan(&currentTableMetas)
+		query := fmt.Sprintf(`
+    -- 1. Стандарт хүснэгт болон View-ээс мэдээлэл авах
+    SELECT 
+        column_name, 
+        udt_name, 
+        is_nullable, 
+        is_identity, 
+        column_default, 
+        numeric_scale, 
+        table_schema 
+    FROM information_schema.columns 
+    WHERE table_catalog = '%[1]s' AND table_name = '%[2]s'
+
+    UNION ALL
+
+    -- 2. Materialized View-ээс мэдээлэл авах
+    SELECT 
+        a.attname AS column_name,
+        t.typname AS udt_name,
+        'YES' AS is_nullable,
+        'NO' AS is_identity,
+        NULL AS column_default,
+        CASE WHEN a.atttypmod = -1 THEN NULL ELSE a.atttypmod - 4 END AS numeric_scale,
+        n.nspname AS table_schema
+    FROM pg_attribute a
+    JOIN pg_class c ON a.attrelid = c.oid
+    JOIN pg_namespace n ON c.relnamespace = n.oid
+    JOIN pg_type t ON a.atttypid = t.oid
+    WHERE c.relname = '%[2]s'
+      AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+      AND c.relkind = 'm' -- Зөвхөн Materialized View
+      AND a.attnum > 0 
+      AND NOT a.attisdropped
+`, config.Config.Database.Database, tableName)
+		DB.DB.Raw(query).Scan(&currentTableMetas)
 
 		for _, column := range currentTableMetas {
 
