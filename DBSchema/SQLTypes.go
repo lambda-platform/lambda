@@ -59,6 +59,7 @@ var TypeTimes = []string{
 	"TIMESTAMP",
 	"TIMESTAMP(6)",
 	"datetime",
+	"datetime2",
 	"date",
 	"DATE",
 	"timestamp",
