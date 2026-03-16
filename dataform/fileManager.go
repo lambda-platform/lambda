@@ -228,9 +228,9 @@ func Upload(c *fiber.Ctx) error {
 		"application/octet-stream",
 	}
 
-	if ext == "dwg" || ext == "pdf" || ext == "zip" || ext == "swf" || ext == "doc" || ext == "docx" || ext == "csv" || ext == "xls" || ext == "xlsx" || ext == "ppt" || ext == "pptx" {
+	if ext == "dwg" || ext == "pdf" || ext == "zip" || ext == "swf" || ext == "doc" || ext == "docx" || ext == "csv" || ext == "xls" || ext == "xlsx" || ext == "ppt" || ext == "pptx" || ext == "json" {
 		rules = govalidator.MapData{
-			"file:file": []string{"ext:xls,xlsx,doc,docx,pdf,ppt,pptx,csv,zip,dwg,XLS,XLSX,DOC,DOCX,PDF,PPT,PPTX,CSV,ZIP,DWG", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
+			"file:file": []string{"ext:xls,xlsx,doc,docx,pdf,ppt,pptx,csv,zip,dwg,json,XLS,XLSX,DOC,DOCX,PDF,PPT,PPTX,CSV,ZIP,DWG,JSON", fmt.Sprintf("size:%d", defaultMaxFileSize), "required"},
 		}
 		mimeTypes = []string{
 			"application/acad",
@@ -244,6 +244,7 @@ func Upload(c *fiber.Ctx) error {
 			"application/vnd.ms-powerpoint",
 			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
 			"text/csv",
+			"application/json",
 		}
 		fileType = "documents"
 	}
