@@ -118,6 +118,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 
 				fmt.Println(dbStatusType)
 				fmt.Println(isVoteStatus)
+				fmt.Println(currentUserID)
 			}
 		}
 	}
