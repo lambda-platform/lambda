@@ -108,7 +108,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			return c.Status(http.StatusBadRequest).JSON(errResponse)
 		} else {
 
-			saveNestedSubItem(dataform, *requestData)
+			saveNestedSubItem(dataform, *requestData, c)
 
 			if dataform.TriggerNameSpace != "" && dataform.AfterUpdate != nil {
 				dataform.AfterUpdate(dataform.Model)
@@ -145,7 +145,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			return c.Status(http.StatusBadRequest).JSON(errResponse)
 		} else {
 
-			saveNestedSubItem(dataform, *requestData)
+			saveNestedSubItem(dataform, *requestData, c)
 
 			if dataform.TriggerNameSpace != "" && dataform.AfterInsert != nil {
 				dataform.AfterInsert(dataform.Model)

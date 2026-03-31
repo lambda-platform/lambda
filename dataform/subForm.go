@@ -3,16 +3,33 @@ package dataform
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"regexp"
 	"strconv"
 
 	"github.com/lambda-platform/lambda/DBSchema"
+	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"strings"
 )
 
-func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
+func saveNestedSubItem(dataform Dataform, data map[string]interface{}, c *fiber.Ctx) {
+
+	// Check if status_type is "VOTE" — only save current user's sub-rows, preserve others
+	isVoteStatus := false
+	var currentUserID interface{}
+	if statusType, ok := data["status_type"]; ok {
+		if statusTypeStr, ok := statusType.(string); ok && statusTypeStr == "VOTE" {
+			isVoteStatus = true
+			// Get the authenticated user's ID from JWT, not from request data
+			if c != nil {
+				if authUser, authErr := agentUtils.AuthUserObject(c); authErr == nil {
+					currentUserID = authUser["id"]
+				}
+			}
+		}
+	}
 
 	if len(dataform.SubForms) >= 1 {
 
@@ -55,6 +72,14 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 					for _, sData := range currentData {
 
 						subD := sData.(map[string]interface{})
+
+						// VOTE mode: only process the row that matches the current user_id
+						if isVoteStatus && currentUserID != nil {
+							rowUserID := subD["user_id"]
+							if !isSameID(currentUserID, rowUserID) {
+								continue
+							}
+						}
 
 						subIdentityValue := subD[subIdentity]
 
@@ -128,25 +153,29 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 
 						if err == nil {
 							//	CallTrigger("afterUpdate", subForm, subD, "")
-							saveNestedSubItem(subForm, subD)
+							saveNestedSubItem(subForm, subD, c)
 						}
 
 					}
-					Clear(subForm.Model)
-					if tableTypeColumn != "" && tableTypeValue != "" {
-						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ? AND "+subIdentity+" NOT IN ?", parentId, tableTypeValue, existingIDS).Unscoped().Delete(subForm.Model)
-					} else {
 
-						DB.DB.Where(connectionField+" = ? AND "+subIdentity+" NOT IN ?", parentId, existingIDS).Unscoped().Delete(subForm.Model)
+					// VOTE mode: do NOT delete other users' rows
+					if !isVoteStatus {
+						Clear(subForm.Model)
+						if tableTypeColumn != "" && tableTypeValue != "" {
+							DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ? AND "+subIdentity+" NOT IN ?", parentId, tableTypeValue, existingIDS).Unscoped().Delete(subForm.Model)
+						} else {
+							DB.DB.Where(connectionField+" = ? AND "+subIdentity+" NOT IN ?", parentId, existingIDS).Unscoped().Delete(subForm.Model)
+						}
 					}
 				} else {
-					Clear(subForm.Model)
-					if tableTypeColumn != "" && tableTypeValue != "" {
-						DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ?", parentId, tableTypeValue).Unscoped().Delete(subForm.Model)
-					} else {
-
-						DB.DB.Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
-
+					// VOTE mode: do NOT delete all rows when array is empty
+					if !isVoteStatus {
+						Clear(subForm.Model)
+						if tableTypeColumn != "" && tableTypeValue != "" {
+							DB.DB.Where(connectionField+" = ? AND "+tableTypeColumn+" = ?", parentId, tableTypeValue).Unscoped().Delete(subForm.Model)
+						} else {
+							DB.DB.Where(connectionField+" = ?", parentId).Unscoped().Delete(subForm.Model)
+						}
 					}
 				}
 
@@ -155,6 +184,14 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}) {
 		}
 	}
 
+}
+
+// isSameID compares two interface{} values (potentially different numeric types from JSON) by string representation
+func isSameID(a, b interface{}) bool {
+	if a == nil || b == nil {
+		return false
+	}
+	return fmt.Sprintf("%v", a) == fmt.Sprintf("%v", b)
 }
 
 func IsInt(s string) bool {
