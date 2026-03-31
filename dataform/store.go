@@ -101,8 +101,11 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 
 				dbStatusType := ""
 				if st, ok := dbRecord["status_type"]; ok {
-					if stStr, ok := st.(string); ok {
-						dbStatusType = stStr
+					switch v := st.(type) {
+					case string:
+						dbStatusType = v
+					case []byte:
+						dbStatusType = string(v)
 					}
 				}
 
@@ -115,10 +118,8 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 						currentUserID = authUser["id"]
 					}
 				}
-
 				fmt.Println(dbStatusType)
 				fmt.Println(isVoteStatus)
-				fmt.Println(currentUserID)
 			}
 		}
 	}
