@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/DB"
 	"github.com/lambda-platform/lambda/DBSchema"
+	agentUtils "github.com/lambda-platform/lambda/agent/utils"
 	"github.com/lambda-platform/lambda/config"
 	"github.com/lambda-platform/lambda/utils"
 	"github.com/thedevsaddam/govalidator"
@@ -87,6 +88,35 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 		}
 	}
 
+	// Determine isVoteStatus: protect voter rows only when DB is already in VOTE status
+	isVoteStatus := false
+	var currentUserID interface{}
+	if id != "" {
+		if requestStatusType, ok := (*requestData)["status_type"]; ok {
+			if statusTypeStr, ok := requestStatusType.(string); ok && statusTypeStr == "VOTE" {
+				// Check current DB record's status_type
+				var dbRecord map[string]interface{}
+				DB.DB.Table(dataform.Table).Select("status_type").Where(dataform.Identity+" = ?", id).Take(&dbRecord)
+
+				dbStatusType := ""
+				if st, ok := dbRecord["status_type"]; ok {
+					if stStr, ok := st.(string); ok {
+						dbStatusType = stStr
+					}
+				}
+
+				// PREPARE_VOTE → VOTE transition: allow full sub-form save
+				// Only protect voter rows when DB is already in VOTE status
+				if dbStatusType != "PREPARE_VOTE" {
+					isVoteStatus = true
+					if authUser, authErr := agentUtils.AuthUserObject(c); authErr == nil {
+						currentUserID = authUser["id"]
+					}
+				}
+			}
+		}
+	}
+
 	if id != "" {
 		query := DB.DB
 		if config.Config.Database.Connection != "mysql" {
@@ -108,7 +138,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			return c.Status(http.StatusBadRequest).JSON(errResponse)
 		} else {
 
-			saveNestedSubItem(dataform, *requestData, c)
+			saveNestedSubItem(dataform, *requestData, isVoteStatus, currentUserID)
 
 			if dataform.TriggerNameSpace != "" && dataform.AfterUpdate != nil {
 				dataform.AfterUpdate(dataform.Model)
@@ -145,7 +175,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			return c.Status(http.StatusBadRequest).JSON(errResponse)
 		} else {
 
-			saveNestedSubItem(dataform, *requestData, c)
+			saveNestedSubItem(dataform, *requestData, false, nil)
 
 			if dataform.TriggerNameSpace != "" && dataform.AfterInsert != nil {
 				dataform.AfterInsert(dataform.Model)

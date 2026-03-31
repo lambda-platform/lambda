@@ -3,33 +3,19 @@ package dataform
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/lambda-platform/lambda/DB"
 	"regexp"
 	"strconv"
 
-	"github.com/lambda-platform/lambda/DBSchema"
-	agentUtils "github.com/lambda-platform/lambda/agent/utils"
-	"github.com/lambda-platform/lambda/config"
+	"github.com/lambda-platform/lambda/DB"
+
 	"strings"
+
+	"github.com/lambda-platform/lambda/DBSchema"
+	"github.com/lambda-platform/lambda/config"
 )
 
-func saveNestedSubItem(dataform Dataform, data map[string]interface{}, c *fiber.Ctx) {
+func saveNestedSubItem(dataform Dataform, data map[string]interface{}, isVoteStatus bool, currentUserID interface{}) {
 
-	// Check if status_type is "VOTE" — only save current user's sub-rows, preserve others
-	isVoteStatus := false
-	var currentUserID interface{}
-	if statusType, ok := data["status_type"]; ok {
-		if statusTypeStr, ok := statusType.(string); ok && statusTypeStr == "VOTE" {
-			isVoteStatus = true
-			// Get the authenticated user's ID from JWT, not from request data
-			if c != nil {
-				if authUser, authErr := agentUtils.AuthUserObject(c); authErr == nil {
-					currentUserID = authUser["id"]
-				}
-			}
-		}
-	}
 
 	if len(dataform.SubForms) >= 1 {
 
@@ -153,7 +139,7 @@ func saveNestedSubItem(dataform Dataform, data map[string]interface{}, c *fiber.
 
 						if err == nil {
 							//	CallTrigger("afterUpdate", subForm, subD, "")
-							saveNestedSubItem(subForm, subD, c)
+							saveNestedSubItem(subForm, subD, isVoteStatus, currentUserID)
 						}
 
 					}
