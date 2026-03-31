@@ -96,7 +96,7 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 			if statusTypeStr, ok := requestStatusType.(string); ok && statusTypeStr == "VOTE" {
 				// Check current DB record's status_type
 				var dbRecord map[string]interface{}
-				DB.DB.Table(dataform.Table).Select("status_type").Where(dataform.Identity+" = ?", id).Take(&dbRecord)
+				DB.DB.Model(dataform.Model).Select("status_type").Where(dataform.Identity+" = ?", id).Take(&dbRecord)
 
 				dbStatusType := ""
 				if st, ok := dbRecord["status_type"]; ok {
