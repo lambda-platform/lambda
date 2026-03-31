@@ -2,6 +2,7 @@ package dataform
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 
@@ -109,10 +110,14 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 				// Only protect voter rows when DB is already in VOTE status
 				if dbStatusType != "PREPARE_VOTE" {
 					isVoteStatus = true
+
 					if authUser, authErr := agentUtils.AuthUserObject(c); authErr == nil {
 						currentUserID = authUser["id"]
 					}
 				}
+
+				fmt.Println(dbStatusType)
+				fmt.Println(isVoteStatus)
 			}
 		}
 	}
