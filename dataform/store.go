@@ -96,18 +96,8 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 		if requestStatusType, ok := (*requestData)["status_type"]; ok {
 			if statusTypeStr, ok := requestStatusType.(string); ok && statusTypeStr == "VOTE" {
 				// Check current DB record's status_type
-				var dbRecord map[string]interface{}
-				DB.DB.Model(dataform.Model).Select("status_type").Where(dataform.Identity+" = ?", id).Take(&dbRecord)
-
-				dbStatusType := ""
-				if st, ok := dbRecord["status_type"]; ok {
-					switch v := st.(type) {
-					case string:
-						dbStatusType = v
-					case []byte:
-						dbStatusType = string(v)
-					}
-				}
+				var dbStatusType string
+				DB.DB.Model(dataform.Model).Where(dataform.Identity+" = ?", id).Pluck("status_type", &dbStatusType)
 
 				// PREPARE_VOTE → VOTE transition: allow full sub-form save
 				// Only protect voter rows when DB is already in VOTE status
@@ -118,8 +108,10 @@ func Store(c *fiber.Ctx, dataform Dataform, action string, id string) error {
 						currentUserID = authUser["id"]
 					}
 				}
+				fmt.Println("dbStatusType")
 				fmt.Println(dbStatusType)
 				fmt.Println(isVoteStatus)
+				fmt.Println("dbStatusType")
 			}
 		}
 	}

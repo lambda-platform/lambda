@@ -2,9 +2,10 @@ package dataform
 
 import (
 	"fmt"
-	"github.com/lambda-platform/lambda/models"
 	"reflect"
 	"strconv"
+
+	"github.com/lambda-platform/lambda/models"
 )
 
 type Dataform struct {
