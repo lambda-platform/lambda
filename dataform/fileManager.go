@@ -4,12 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/lambda-platform/lambda/config"
-	"github.com/nfnt/resize"
-	"github.com/thedevsaddam/govalidator"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
-	"image"
 	"image/jpeg"
 	"image/png"
 	"io"
@@ -19,6 +13,12 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/disintegration/imaging"
+	"github.com/gofiber/fiber/v2"
+	"github.com/lambda-platform/lambda/config"
+	"github.com/thedevsaddam/govalidator"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
 // Default maximum file size in bytes (10MB)
@@ -150,27 +150,25 @@ func makeUploadable(src io.Reader, fileType string, ext string, fileName string,
 }
 
 func createThumbnail(inputPath, outputPath string, maxSize int64) error {
-	// Open the image file
-	file, err := os.Open(inputPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	img, format, err := image.Decode(file)
+	// Open the image file with EXIF orientation auto-correction
+	// imaging.Open automatically reads EXIF orientation and rotates the image correctly
+	img, err := imaging.Open(inputPath, imaging.AutoOrientation(true))
 	if err != nil {
 		return err
 	}
 
 	// Resize the image for the thumbnail
-	img = resize.Thumbnail(500, 500, img, resize.Lanczos3)
+	img = imaging.Fit(img, 300, 300, imaging.Lanczos)
+
+	// Determine format from extension
+	ext := strings.ToLower(filepath.Ext(inputPath))
 
 	var buf bytes.Buffer
 
-	switch format {
-	case "jpeg", "jpg":
+	switch ext {
+	case ".jpeg", ".jpg":
 		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 75})
-	case "png":
+	case ".png":
 		err = png.Encode(&buf, img)
 	default:
 		return errors.New("unsupported image format for thumbnail")

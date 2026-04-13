@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/99designs/gqlgen v0.17.66
 	github.com/PaesslerAG/gval v1.2.2
+	github.com/disintegration/imaging v1.6.2
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/gofiber/contrib/jwt v1.0.7
 	github.com/gofiber/fiber/v2 v2.52.5
@@ -13,7 +14,6 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/otiai10/copy v1.14.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0
@@ -63,7 +63,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/microsoft/go-mssqldb v1.6.0 // indirect
 	github.com/peterbourgon/diskv/v3 v3.0.1 // indirect
-	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
@@ -80,9 +79,9 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/rtree v0.0.0-20180113144539-6cd427091e0e // indirect
 	github.com/tidwall/tinyqueue v0.0.0-20180302190814-1e39f5511563 // indirect
-	github.com/tinylib/msgp v1.1.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
+	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect

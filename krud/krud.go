@@ -1,6 +1,15 @@
 package krud
 
 import (
+	"bytes"
+	"fmt"
+	"image/jpeg"
+	"image/png"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/disintegration/imaging"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lambda-platform/lambda/agent/agentMW"
 	"github.com/lambda-platform/lambda/config"
@@ -60,6 +69,9 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 	g.Get("/now", handlers.Now)
 	g.Post("/check_current_password", agentMW.IsLoggedIn(), handlers.CheckCurrentPassword)
 
+	// Regenerate all thumbnails with correct EXIF orientation
+	g.Get("/regenerate-thumbs", agentMW.IsLoggedIn(), handleRegenerateThumbs)
+
 	/*
 		PUBLIC CURDS
 	*/
@@ -93,4 +105,93 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 		public.Post("/:schemaId/:action/:id", publicSchemaCheck, handlers.Crud(GetMODEL))
 	}
 
+}
+
+// handleRegenerateThumbs regenerates all thumb_ prefixed images
+// with correct EXIF orientation from the original source images.
+func handleRegenerateThumbs(c *fiber.Ctx) error {
+	rootDir := "public/uploaded/images"
+
+	var totalFound, totalFixed, totalFailed, totalSkipped int
+	var results []string
+
+	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if info.IsDir() {
+			return nil
+		}
+
+		fileName := info.Name()
+		if !strings.HasPrefix(fileName, "thumb_") {
+			return nil
+		}
+
+		totalFound++
+
+		dir := filepath.Dir(path)
+		originalName := strings.TrimPrefix(fileName, "thumb_")
+		originalPath := filepath.Join(dir, originalName)
+
+		if _, err := os.Stat(originalPath); os.IsNotExist(err) {
+			totalSkipped++
+			results = append(results, fmt.Sprintf("⚠️ Skip (no original): %s", path))
+			return nil
+		}
+
+		if err := regenerateThumb(originalPath, path); err != nil {
+			totalFailed++
+			results = append(results, fmt.Sprintf("❌ Failed: %s → %v", path, err))
+			return nil
+		}
+
+		totalFixed++
+		results = append(results, fmt.Sprintf("✅ Fixed: %s", path))
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  false,
+			"message": fmt.Sprintf("Walk error: %v", err),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  true,
+		"message": "Thumbnail regeneration complete",
+		"total":   totalFound,
+		"fixed":   totalFixed,
+		"skipped": totalSkipped,
+		"failed":  totalFailed,
+		"details": results,
+	})
+}
+
+func regenerateThumb(originalPath, thumbPath string) error {
+	img, err := imaging.Open(originalPath, imaging.AutoOrientation(true))
+	if err != nil {
+		return fmt.Errorf("open: %w", err)
+	}
+
+	img = imaging.Fit(img, 500, 500, imaging.Lanczos)
+
+	ext := strings.ToLower(filepath.Ext(originalPath))
+	var buf bytes.Buffer
+
+	switch ext {
+	case ".jpeg", ".jpg":
+		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 75})
+	case ".png":
+		err = png.Encode(&buf, img)
+	default:
+		return fmt.Errorf("unsupported format: %s", ext)
+	}
+
+	if err != nil {
+		return fmt.Errorf("encode: %w", err)
+	}
+
+	return os.WriteFile(thumbPath, buf.Bytes(), 0644)
 }
