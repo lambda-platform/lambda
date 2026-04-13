@@ -107,65 +107,80 @@ func Set(e *fiber.App, GetGridMODEL func(schema_id string) datagrid.Datagrid, Ge
 
 }
 
+// thumbRegenerationRunning prevents duplicate concurrent runs
+var thumbRegenerationRunning bool
+
 // handleRegenerateThumbs regenerates all thumb_ prefixed images
 // with correct EXIF orientation from the original source images.
+// Runs in background goroutine to avoid HTTP timeout.
+// Skips already-fixed thumbs (thumb modtime > original modtime).
 func handleRegenerateThumbs(c *fiber.Ctx) error {
-	rootDir := "public/uploaded/images"
-
-	var totalFound, totalFixed, totalFailed, totalSkipped int
-	var results []string
-
-	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return nil
-		}
-		if info.IsDir() {
-			return nil
-		}
-
-		fileName := info.Name()
-		if !strings.HasPrefix(fileName, "thumb_") {
-			return nil
-		}
-
-		totalFound++
-
-		dir := filepath.Dir(path)
-		originalName := strings.TrimPrefix(fileName, "thumb_")
-		originalPath := filepath.Join(dir, originalName)
-
-		if _, err := os.Stat(originalPath); os.IsNotExist(err) {
-			totalSkipped++
-			results = append(results, fmt.Sprintf("⚠️ Skip (no original): %s", path))
-			return nil
-		}
-
-		if err := regenerateThumb(originalPath, path); err != nil {
-			totalFailed++
-			results = append(results, fmt.Sprintf("❌ Failed: %s → %v", path, err))
-			return nil
-		}
-
-		totalFixed++
-		results = append(results, fmt.Sprintf("✅ Fixed: %s", path))
-		return nil
-	})
-
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
+	if thumbRegenerationRunning {
+		return c.JSON(fiber.Map{
 			"status":  false,
-			"message": fmt.Sprintf("Walk error: %v", err),
+			"message": "Regeneration is already running. Please wait.",
 		})
 	}
 
+	thumbRegenerationRunning = true
+
+	// Run in background goroutine — return immediately
+	go func() {
+		defer func() { thumbRegenerationRunning = false }()
+
+		rootDir := "public/uploaded/images"
+		var totalFound, totalFixed, totalFailed, totalSkipped int
+
+		_ = filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return nil
+			}
+			if info.IsDir() {
+				return nil
+			}
+
+			fileName := info.Name()
+			if !strings.HasPrefix(fileName, "thumb_") {
+				return nil
+			}
+
+			totalFound++
+
+			dir := filepath.Dir(path)
+			originalName := strings.TrimPrefix(fileName, "thumb_")
+			originalPath := filepath.Join(dir, originalName)
+
+			originalInfo, err := os.Stat(originalPath)
+			if os.IsNotExist(err) {
+				totalSkipped++
+				return nil
+			}
+
+			// Skip if thumb is already newer than original (already regenerated)
+			if info.ModTime().After(originalInfo.ModTime()) {
+				totalSkipped++
+				return nil
+			}
+
+			if err := regenerateThumb(originalPath, path); err != nil {
+				totalFailed++
+				fmt.Printf("❌ Thumb regen failed: %s → %v\n", path, err)
+				return nil
+			}
+
+			totalFixed++
+			fmt.Printf("✅ Thumb fixed: %s\n", path)
+			return nil
+		})
+
+		fmt.Printf("\n===== THUMB REGENERATION DONE =====\n")
+		fmt.Printf("Total: %d | Fixed: %d | Skipped: %d | Failed: %d\n",
+			totalFound, totalFixed, totalSkipped, totalFailed)
+	}()
+
 	return c.JSON(fiber.Map{
 		"status":  true,
-		"message": "Thumbnail regeneration complete",
-		"total":   totalFound,
-		"fixed":   totalFixed,
-		"skipped": totalSkipped,
-		"failed":  totalFailed,
-		"details": results,
+		"message": "Thumbnail regeneration started in background. Check server logs for progress.",
 	})
 }
 
