@@ -23,7 +23,13 @@ func InitializeDB(DBName *string) {
 	if config.Config.Database.Debug {
 		Config.Logger = logger.Default.LogMode(logger.Info)
 	} else {
-		Config.Logger = logger.Default.LogMode(logger.Error)
+		Config.Logger = logger.New(
+			log.New(log.Writer(), "\r\n", log.LstdFlags),
+			logger.Config{
+				LogLevel:                  logger.Error,
+				IgnoreRecordNotFoundError: true,
+			},
+		)
 	}
 
 	var err error
