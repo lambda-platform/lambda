@@ -130,7 +130,7 @@ var TypeBinaries = []string{
 	"bytea[]",
 	"vector[]",
 	"tsvector[]",
-	"'{}'::text[]",
+	"_text",
 }
 var TypeSecure = []string{
 	"secure",
